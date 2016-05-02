@@ -1,0 +1,19 @@
+# For servers with 2 GB RAM.
+
+version: '2'
+services:
+  nginx:
+    mem_limit: 100M
+
+  play:
+    mem_limit: 1300M
+    environment:
+      # There's also stack memory and permanent-generation memory.
+      PLAY_HEAP_MEMORY_MB: 900
+
+  redis:
+    mem_limit: 50M
+
+  postgres:
+    mem_limit: 300M
+

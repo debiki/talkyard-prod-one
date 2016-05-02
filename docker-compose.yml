@@ -1,0 +1,64 @@
+version: '2'
+services:
+  nginx:
+    # "Debiki" is the original name of Effective Discussions (it was renamed).
+    image: debiki/ed-nginx
+    command: nginx
+    restart: always
+    volumes:
+      - ./uploads/:/opt/ed/uploads/:ro
+      - ./sites-available/:/etc/nginx/sites-available/
+      - ./sites-enabled/:/etc/nginx/sites-enabled/
+      - ./letsencrypt/:/etc/letsencrypt/
+    ports:
+      - '80:80'
+      - '443:443'
+    depends_on:
+      - play
+
+  play:
+    image: debiki/ed-play
+    restart: always
+    stdin_open: true  # otherwise Play exits
+    volumes:
+      - ./play-conf/:/opt/ed/play-conf
+      - ./uploads/:/opt/ed/uploads/
+    #ports:
+      # - '9000:9000' # Play's HTTP listen port, for bypasssing Nginx (to debug)
+      # - '9443:9443' # Play's HTTPS port
+      # Be sure to configure a firewall to block these ports, if you enable them here
+      # (and then access them via an SSH tunnel).
+      # - '9999:9999' # Java debugger port
+      # - '3333:3333' # JMX
+    links:
+      - redis
+      - postgres
+    environment:
+      CONFIG_FILE: /opt/ed/play-conf/prod.conf
+      POSTGRES_PASSWORD: 'changeme'  # edit
+
+  redis:
+    image: redis:3.0.7-alpine
+    restart: always
+    volumes:
+      - ./redis-data/:/data/
+    ports:
+      - '6379:6379'
+
+  postgres:
+    image: debiki/ed-postgres
+    restart: always
+    volumes:
+      - ./postgres-data/:/var/lib/postgresql/data/
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: 'changeme'  # edit (to the same password as above)
+      # Optionally, streaming replication peer:
+      # (but you'll need to rename ./postgresql/data/recovery.conf.disabled first — that file is
+      # created when you start Postgres)
+      # PEER_HOST: 'postgres2'
+      # PEER_PORT: '5432'
+      # PEER_PASSWORD: '...'
+
+# vim: et ts=2 sw=2

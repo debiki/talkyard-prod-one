@@ -1,0 +1,19 @@
+# For servers with 600 MB RAM (e.g. a Google Compute Engine micro instance)
+
+version: '2'
+services:
+  nginx:
+    mem_limit: 30M
+
+  play:
+    mem_limit: 370M
+    environment:
+      # There's also stack memory and permanent-generation memory.
+      PLAY_HEAP_MEMORY_MB: 280
+
+  redis:
+    mem_limit: 20M
+
+  postgres:
+    mem_limit: 150M
+
