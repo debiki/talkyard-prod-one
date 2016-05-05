@@ -1,7 +1,7 @@
 version: '2'
 services:
   nginx:
-    image: debiki/ed-nginx
+    image: debiki/ed-nginx:$VERSION_TAG
     command: nginx
     restart: always
     volumes:
@@ -16,7 +16,7 @@ services:
       - play
 
   play:
-    image: debiki/ed-play
+    image: debiki/ed-play:$VERSION_TAG
     restart: always
     stdin_open: true  # otherwise Play Framework exits
     volumes:
@@ -36,7 +36,7 @@ services:
       - ./redis-data/:/data/
 
   postgres:
-    image: debiki/ed-postgres
+    image: debiki/ed-postgres:$VERSION_TAG
     restart: always
     volumes:
       - ./postgres-data/:/var/lib/postgresql/data/

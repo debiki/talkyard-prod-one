@@ -93,25 +93,32 @@ Git-clone this repo, edit config files and memory, and `run docker-compose up`. 
     git clone https://github.com/debiki/ed-prod-one.git ed
     cd ed
 
+    # Download a submodule that keeps track of the most recent Docker tag.
+    git submodule update --init
+
+    # Edit config files.
     nano play-conf/prod.conf  # edit all config values in the Required Settings section
     nano docker-compose.yml   # edit the database password
 
     # Depending on how much RAM your server has, choose one of these files:
     # mem/0.6g.yml, mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on.
-    # and copy it to ./docker-compose.override.yml.
+    # and copy it to ./docker-compose.override.yml. For example, if you're using
+    # a Google Compute Engine micro instance, with 0.6 GB RAM:
     #
-    # For example, if you're using a Google Compute Engine micro instance, with 0.6 GB RAM:
-    # cp mem/0.6g.yml docker-compose.override.yml
+    #   cp mem/0.6g.yml docker-compose.override.yml
     #
     # ... oops but currently 0.6 GB is too little mem. Try 2G instead. 0.6 should work,
     # why not? but Play just gets OOM-killed by Linux. Perhaps I have hardcoded some
     # too-large in-memory caches?
 
-    # Then start Effective Discussions: (it'll restart on reboot)
-    # This might take one or a few minutes (to download Docker images).
-    docker-compose up -d
+    # Upgrade to the latest version, and start.
+    # This might take one or a few minutes the first time (to download Docker images).
+    ./upgrade-backup-restart.sh
+
 
 And point your browser to http://your-ip-address, or http:\//hostname.
+
+(Everything will restart automatically on server reboot.)
 
 
 Importing a backup
