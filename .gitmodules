@@ -1,0 +1,3 @@
+[submodule "versions"]
+	path = versions
+	url = https://github.com/debiki/ed-versions.git

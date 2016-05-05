@@ -96,10 +96,13 @@ Git-clone this repo, edit config files and memory, and `run docker-compose up`. 
     nano play-conf/prod.conf  # edit all config values in the Required Settings section
     nano docker-compose.yml   # edit the database password
 
-    # Depending on how much RAM your server has, copy one of these files to memory.yml:
+    # Depending on how much RAM your server has, choose one of these files:
     # mem/0.6g.yml, mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on.
+    # and copy it to ./docker-compose.override.yml.
+    #
     # For example, if you're using a Google Compute Engine micro instance, with 0.6 GB RAM:
-    # cp mem/0.6g.yml memory.yml
+    # cp mem/0.6g.yml docker-compose.override.yml
+    #
     # ... oops but currently 0.6 GB is too little mem. Try 2G instead. 0.6 should work,
     # why not? but Play just gets OOM-killed by Linux. Perhaps I have hardcoded some
     # too-large in-memory caches?

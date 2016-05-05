@@ -1,0 +1,21 @@
+# Opens ports to Docker containers so you can connect and debug. If you make use of this file,
+# be sure to configure a firewall to block these ports, and then access them via an SSH tunnel.
+
+version: '2'
+services:
+  play:
+    ports:
+      - '9000:9000' # Play's HTTP listen port, for bypasssing Nginx (to debug)
+      - '9443:9443' # Play's HTTPS port
+      - '9999:9999' # Java debugger port
+      - '3333:3333' # JMX
+
+  redis:
+    ports:
+      - '6379:6379'
+
+  postgres:
+    ports:
+      - '5432:5432'
+
+# vim: et ts=2 sw=2
