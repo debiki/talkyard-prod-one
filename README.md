@@ -7,6 +7,11 @@ that something will break and that you'll lose data, is relatively high. Also,
 these instructions and config files have not been so very tested. They might be
 wrong or misleading.
 
+Currently I recommend that you don't try this, unless you know how to use Git
+and can resolve edit conflicts. Because I will update the files herein, but if
+you've edited the same files and lines — then there will be edit conflicts,
+which you will need to resolve.
+
 Feel free to tell me about problems you find; post a something-is-broken topic here:
 http://www.effectivediscussions.org/forum/latest/support
 
@@ -115,8 +120,17 @@ Git-clone this repo, edit config files and memory, and `run docker-compose up`. 
     # This might take one or a few minutes the first time (to download Docker images).
     ./upgrade-backup-restart.sh
 
+    # Schedule daily backups, 10 minutes past 02:00
+    crontab -l | { cat; echo '10 2 0 0 0 /opt/ed/backup.sh daily >> /opt/ed/cron.log 2>&1'; } | crontab -
 
-And point your browser to http://your-ip-address, or http:\//hostname.
+    # Delete old backups (so the disk won't fill up).
+    crontab -l | { cat; echo '10 4 0 0 0 /opt/ed/delete-old-backups.sh >> /opt/ed/cron.log 2>&1'; } | crontab -
+
+    # You also need to copy backups off-site regularly. See the Backups section below.
+
+
+Now point your browser to http://your-ip-address, or http:\//hostname and follow
+the instructions.
 
 (Everything will restart automatically on server reboot.)
 
@@ -143,11 +157,11 @@ Backups and upgrades
 Upgrading means fetching the lates Docker images, and restarting. When you do
 this, your forum will unavailable for a short while (when the backup script runs).
 
+Backup manually like so:
+
     cd /opt/ed/
-    docker-compose pull      # downloads the latest version
-    docker-compose down      # shut down the old version...
-    #./backup-everything.sh /opt/ed-backups  # todo
-    docker-compose up -d     # ...start the new version.
+    ./backup.sh manual
+
 
 And copy the contents in /opt/ed-backups elsewhere, regularly:
 
