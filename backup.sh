@@ -10,7 +10,7 @@ fi
 
 echo "`date '+%F %H:%M'` Backing up, tag: $1"
 
-when="`date '+%F.%H.%M'`"
+when="`date '+%FT%H.%M'`"
 backup_dir=/opt/ed-backups
 
 
