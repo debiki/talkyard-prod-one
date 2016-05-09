@@ -4,8 +4,9 @@
 # (For now, never delete monthly dumps.)
 
 backup_dir=/opt/ed-backups
-echo "`date '+%F %H:%M'` Searching for old backups to delete in $dump_dir/..."
+echo "`date '+%F %H:%M'` Searching for old backups to delete in $backup_dir/..."
 echo "Doing nothing. Script not yet implemented. Try 'git fetch origin' and see if there's something new."
+echo
 
 # Fix later ...
 # find $backup_dir -daystart -mtime 13 -name "*-postgres.sql.gz'  -printf 'Could delete daily dump file:  %p\n'

@@ -121,10 +121,10 @@ Git-clone this repo, edit config files and memory, and `run docker-compose up`. 
     ./upgrade-backup-restart.sh
 
     # Schedule daily backups, 10 minutes past 02:00
-    crontab -l | { cat; echo '10 2 0 0 0 /opt/ed/backup.sh daily >> /opt/ed/cron.log 2>&1'; } | crontab -
+    crontab -l | { cat; echo '10 2 * * * cd /opt/ed && ./backup.sh daily >> cron.log 2>&1'; } | crontab -
 
     # Delete old backups (so the disk won't fill up).
-    crontab -l | { cat; echo '10 4 0 0 0 /opt/ed/delete-old-backups.sh >> /opt/ed/cron.log 2>&1'; } | crontab -
+    crontab -l | { cat; echo '10 4 * * * cd /opt/ed && ./delete-old-backups.sh >> cron.log 2>&1'; } | crontab -
 
     # You also need to copy backups off-site regularly. See the Backups section below.
 
@@ -275,4 +275,4 @@ repository only, not for any Effective Discussions source code.)
 
 See [LICENSE.txt](LICENSE.txt)
 
-<!-- vim: et ts=2 sw=2 tw=0 fo=r : -->
+<!-- vim: set et ts=2 sw=2 tw=0 fo=r : -->

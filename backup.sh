@@ -17,10 +17,16 @@ backup_dir=/opt/ed-backups
 # Backup Postgres
 # -------------------
 
+set -x
 postgres_backup_path=$backup_dir/`hostname`-$1-$when-postgres.sql.gz
 echo "Backing up Postgres..."
-docker-compose exec postgres pg_dumpall --username=postgres | gzip > $postgres_backup_path
+# (cron's path apparently doesn't include /sur/local/bin/)
+# buggy, see: https://github.com/docker/compose/issues/3352
+# and: http://stackoverflow.com/questions/36733777/error-on-docker-compose-when-i-use-by-pipe-with-sh-echo-docker-compose
+# /usr/local/bin/docker-compose exec postgres pg_dumpall --username=postgres | gzip > $postgres_backup_path
+/usr/bin/docker exec edp_postgres_1 pg_dumpall --username=postgres | gzip > $postgres_backup_path
 echo "Backed up Postgres to: $postgres_backup_path"
+set +x
 
 
 # Backup Redis
@@ -36,5 +42,7 @@ echo "Backing up Redis..."
 gzip --to-stdout redis-data/dump.rdb > $redis_backup_path
 echo "Backed up Redis to: $redis_backup_path"
 
+
+echo
 
 # vim: et ts=2 sw=2 tw=0 fo=r

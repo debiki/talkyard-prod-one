@@ -43,7 +43,7 @@ services:
     environment:
       POSTGRES_PASSWORD: 'changeme'  # edit (to the same password as above)
       # Optionally, streaming replication peer:
-      # (but you'll need to rename ./postgresql/data/recovery.conf.disabled first — and
+      # (but you'll need to rename ./postgres-data/recovery.conf.disabled first — and
       # that file isn't created until you start Postgres)
       # PEER_HOST: 'postgres2'
       # PEER_PORT: '5432'
