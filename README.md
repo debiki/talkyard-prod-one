@@ -61,7 +61,7 @@ Docker-Compose as follows:
     systemctl enable docker
 
     # Install Docker Compose 1.7+ (see https://github.com/docker/compose/releases/tag/1.7.0 )
-    curl -L https://github.com/docker/compose/releases/download/1.7.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+    curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
 
     # This should say "docker-compose version 1.7.0 ..." (or later):

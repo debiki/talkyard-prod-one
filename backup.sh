@@ -39,7 +39,7 @@ set +x
 
 redis_backup_path=$backup_dir/`hostname`-$1-$when-redis.rdb.gz
 echo "Backing up Redis..."
-gzip --to-stdout redis-data/dump.rdb > $redis_backup_path
+gzip --to-stdout data/redis/dump.rdb > $redis_backup_path
 echo "Backed up Redis to: $redis_backup_path"
 
 
