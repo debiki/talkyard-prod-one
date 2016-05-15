@@ -14,8 +14,8 @@ cd ..
 docker-compose pull
 
 # Backup (unless we're starting for the very first time).
-if [ -f current-version-tag ]; then
-  PREVIOUS_VERSION=`cat current-version-tag`
+if [ -f version-tag ]; then
+  PREVIOUS_VERSION=`cat version-tag`
   ./backup.sh "$PREVIOUS_VERSION"
   echo "$PREVIOUS_VERSION" >> previous-version-tags.log
 fi
@@ -23,7 +23,7 @@ fi
 
 # Shut down the old version, start the new. The website will go offline for a short while.
 docker-compose down
-echo $VERSION_TAG > current-version-tag
+echo $VERSION_TAG > version-tag
 docker-compose up -d
 
 

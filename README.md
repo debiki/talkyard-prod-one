@@ -67,6 +67,16 @@ Docker-Compose as follows:
     # This should say "docker-compose version 1.7.0 ..." (or later):
     docker-compose -v
 
+
+Make Docker work after OS upgrades: (Docker needs you to install some stuff
+when the Linux kernel has been upgraded)
+
+    # but this won't work :-(  why not. Nothing happens after reboot (when 'install' is needed)
+    # however, @reboot does work, echoing to a file shows it works.
+
+    crontab -l | { cat; echo '@reboot apt-get install linux-image-extra-`uname -r` && sudo modprobe aufs'; } | crontab -
+
+
 I think you should also configure a firewall and automatic security upgrades:
 
     # Configure a firewall: (not needed if you're using Google Compute Engine)
@@ -85,6 +95,12 @@ I think you should also configure a firewall and automatic security upgrades:
     # Some questions will pop up; I suppose you can just click Yes and accept all defaults.
     apt-get install unattended-upgrades
     dpkg-reconfigure --priority=low unattended-upgrades
+
+    # Automatically reboot, if there's some urgent security upgrades that require a reboot:
+    # (we'll install the maybe-security-reboot.sh script used below in a moment)
+    apt-get install aptitude
+    crontab -l | { cat; echo '45 * * * * cd /opt/ed && ./maybe-security-reboot.sh >> cron.log 2>&1'; } | crontab -
+
 
 Now we're done with the preparations. Time to install Effective Discussions:
 
@@ -260,7 +276,11 @@ Tips about how to view logs: all logs, app specific logs.
 
 How to jump into a Docker container.
 
-How to connect a debugger: open Docker port, then connect via SSH tunnel (assuming a firewall blocks the port on the host)
+How to connect a debugger: open Docker port, then connect via SSH tunnel (assuming a firewall blocks the port on the host).
+If using Google Compute Engine, then ssh tunnel:
+
+    gcloud compute ssh server-name --ssh-flag=-L9999:127.0.0.1:9999 --ssh-flag=-N
+
 
 How to open console in Chroem, view messages & post to the E.D. help forum.
 
