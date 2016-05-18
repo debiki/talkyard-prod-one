@@ -6,21 +6,36 @@ services:
     restart: always
     volumes:
       - ./data/uploads/:/opt/ed/uploads/:ro
-      - ./data/sites-available/:/etc/nginx/sites-available/
-      - ./data/sites-enabled/:/etc/nginx/sites-enabled/
-      - ./data/letsencrypt/:/etc/letsencrypt/
+      - ./data/sites-available/:/etc/nginx/sites-available/:ro
+      - ./data/sites-enabled/:/etc/nginx/sites-enabled/:ro
+      - ./data/certbot/:/etc/certbot/:ro
+      - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro
     ports:
       - '80:80'
       - '443:443'
     depends_on:
       - play
 
+  # (todo)
+  # This is a tiny Rust web server to which one POSTs /make-cert?domain=www.example.com
+  # and which then calls Bash & certbot. The resulting cert is mounted :ro in Nginx, above.
+  #certbot:
+  #  image: debiki/ed-certbot:$VERSION_TAG
+  #  command: certbot-server
+  #  restart: always
+  #  volumes:
+  #    - ./data/certbot/:/etc/certbot/
+  #    - ./data/certbot-challenges/.well-known/:/opt/webserver/html/.well-known/
+  #
+  # todo:
+  #   docker-compose run --rm certbot certbot ...  ?
+
   play:
     image: debiki/ed-play:$VERSION_TAG
     restart: always
     stdin_open: true  # otherwise Play Framework exits
     volumes:
-      - ./play-conf/:/opt/ed/play-conf
+      - ./play-conf/:/opt/ed/play-conf:ro
       - ./data/uploads/:/opt/ed/uploads/
     links:
       - redis
@@ -29,6 +44,8 @@ services:
       CONFIG_FILE: /opt/ed/play-conf/prod.conf
       POSTGRES_PASSWORD: 'changeme'  # edit
 
+  # SHOULD build my own Redis image for this, so I can auto upgrade the Redis config
+  # by bumping the $VERSION_TAG.
   redis:
     image: redis:3.0.7-alpine
     restart: always

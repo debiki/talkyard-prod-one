@@ -73,8 +73,9 @@ when the Linux kernel has been upgraded)
 
     # but this won't work :-(  why not. Nothing happens after reboot (when 'install' is needed)
     # however, @reboot does work, echoing to a file shows it works.
+    # Now I just added -y, let's wait and see ... wait for the next kernel upgrade ...
 
-    crontab -l | { cat; echo '@reboot apt-get install linux-image-extra-`uname -r` && sudo modprobe aufs'; } | crontab -
+    crontab -l | { cat; echo '@reboot apt-get install -y linux-image-extra-`uname -r` && sudo modprobe aufs'; } | crontab -
 
 
 I think you should also configure a firewall and automatic security upgrades:
@@ -94,12 +95,12 @@ I think you should also configure a firewall and automatic security upgrades:
     # break, because the whole Effective Discussions stack runs in Docker containers anyway.
     # Some questions will pop up; I suppose you can just click Yes and accept all defaults.
     apt-get install unattended-upgrades
-    dpkg-reconfigure --priority=low unattended-upgrades
-
-    # Automatically reboot, if there's some urgent security upgrades that require a reboot:
-    # (we'll install the maybe-security-reboot.sh script used below in a moment)
-    apt-get install aptitude
-    crontab -l | { cat; echo '45 * * * * cd /opt/ed && ./maybe-security-reboot.sh >> cron.log 2>&1'; } | crontab -
+    apt-get install update-notifier-common
+    cat <<EOF > /etc/apt/apt.conf.d/20auto-upgrades
+    APT::Periodic::Update-Package-Lists "1";
+    APT::Periodic::Unattended-Upgrade "1";
+    Unattended-Upgrade::Automatic-Reboot "true";
+    EOF
 
 
 Now we're done with the preparations. Time to install Effective Discussions:
@@ -124,13 +125,9 @@ Git-clone this repo, edit config files and memory, and `run docker-compose up`. 
     # Depending on how much RAM your server has, choose one of these files:
     # mem/0.6g.yml, mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on.
     # and copy it to ./docker-compose.override.yml. For example, if you're using
-    # a Google Compute Engine micro instance, with 0.6 GB RAM:
+    # a Digital Ocean server with 2 GB RAM:
     #
-    #   cp mem/0.6g.yml docker-compose.override.yml
-    #
-    # ... oops but currently 0.6 GB is too little mem. Try 2G instead. 0.6 should work,
-    # why not? but Play just gets OOM-killed by Linux. Perhaps I have hardcoded some
-    # too-large in-memory caches?
+    #   cp mem/2g.yml docker-compose.override.yml
 
     # Upgrade to the latest version, and start.
     # This might take one or a few minutes the first time (to download Docker images).

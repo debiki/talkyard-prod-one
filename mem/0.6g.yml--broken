@@ -1,5 +1,7 @@
 # For servers with 600 MB RAM (e.g. a Google Compute Engine micro instance)
 
+# Doesn't work. The JVM OOM-kills Play Framework all the time.
+
 version: '2'
 services:
   nginx:
