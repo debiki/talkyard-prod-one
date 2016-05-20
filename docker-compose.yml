@@ -6,7 +6,7 @@ services:
     restart: always
     volumes:
       - ./data/uploads/:/opt/ed/uploads/:ro
-      - ./data/sites-available/:/etc/nginx/sites-available/:ro
+      #- ./data/default-site/:/etc/nginx/default-site/:ro
       - ./data/sites-enabled/:/etc/nginx/sites-enabled/:ro
       - ./data/certbot/:/etc/certbot/:ro
       - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro

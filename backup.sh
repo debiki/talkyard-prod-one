@@ -12,6 +12,7 @@ echo "`date '+%F %H:%M'` Backing up, tag: $1"
 
 when="`date '+%FT%H.%M'`"
 backup_dir=/opt/ed-backups
+mkdir -p $backup_dir
 
 
 # Backup Postgres

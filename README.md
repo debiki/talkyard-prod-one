@@ -91,9 +91,8 @@ I think you should also configure a firewall and automatic security upgrades:
     ufw allow 2375/tcp  # Docker needs this port
     ufw reload
 
-    # Automatically apply OS security patches. I don't think this will cause anything to
-    # break, because the whole Effective Discussions stack runs in Docker containers anyway.
-    # Some questions will pop up; I suppose you can just click Yes and accept all defaults.
+    # Automatically apply OS security patches. (I don't think this will cause anything to
+    # break, because the whole Effective Discussions stack runs in Docker containers anyway.)
     apt-get install unattended-upgrades
     apt-get install update-notifier-common
     cat <<EOF > /etc/apt/apt.conf.d/20auto-upgrades
