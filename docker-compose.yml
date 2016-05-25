@@ -11,6 +11,7 @@ services:
       - ./data/sites-enabled/:/etc/nginx/sites-enabled/:ro
       - ./data/certbot/:/etc/certbot/:ro
       - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro
+      - /var/log/nginx/:/var/log/nginx/
     ports:
       - '80:80'
       - '443:443'
@@ -58,6 +59,8 @@ services:
     restart: always
     volumes:
       - ./data/postgres/:/var/lib/postgresql/data/
+      # Monut here so standard monitoring tools configured to find Postgres logs here will work.
+      - /var/log/postgres/:/var/lib/postgresql/data/pg_log/
     environment:
       POSTGRES_PASSWORD: 'changeme'  # edit (to the same password as above)
       # Optionally, streaming replication peer:

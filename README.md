@@ -102,6 +102,11 @@ I think you should also configure a firewall and automatic security upgrades:
     EOF
 
 
+And why not start using any hardware random number generator, in case the server has one:
+
+    apt install rng-tools
+
+
 Now we're done with the preparations. Time to install Effective Discussions:
 
 
