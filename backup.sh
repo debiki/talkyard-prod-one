@@ -25,7 +25,7 @@ echo "Backing up Postgres..."
 # buggy, see: https://github.com/docker/compose/issues/3352
 # and: http://stackoverflow.com/questions/36733777/error-on-docker-compose-when-i-use-by-pipe-with-sh-echo-docker-compose
 # /usr/local/bin/docker-compose exec postgres pg_dumpall --username=postgres | gzip > $postgres_backup_path
-/usr/bin/docker exec edp_postgres_1 pg_dumpall --username=postgres | gzip > $postgres_backup_path
+/usr/bin/docker exec edp_postgres_1 pg_dumpall --username=postgres --clean --if-exists | gzip > $postgres_backup_path
 echo "Backed up Postgres to: $postgres_backup_path"
 set +x
 

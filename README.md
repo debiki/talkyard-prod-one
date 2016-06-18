@@ -1,6 +1,12 @@
 Effective Discussions — Production Installation
 ================
 
+Warning: Don't use.
+
+Don't try to install this anywhere, unless your intention is to help me test if
+all this works and report bugs. Because all this is too untested and volatile
+right now for anyone to use.
+
 Please read the license (at the end of this page): all this is provided "as-is"
 without any warranty of any kind. The software is rather untested and the risk
 that something will break and that you'll lose data, is relatively high. Also,
@@ -12,10 +18,10 @@ and can resolve edit conflicts. Because I will update the files herein, but if
 you've edited the same files and lines — then there will be edit conflicts,
 which you will need to resolve.
 
-Feel free to tell me about problems you find; post a something-is-broken topic here:
+Feel free to tell me about problems you find; post a Problem topic here:
 http://www.effectivediscussions.org/forum/latest/support
 
-Perhaps I'll rename all config variables from `debiki.…` to `ed.…`, hmm.
+(Perhaps I'll rename all config variables from `debiki.…` to `ed.…`, hmm.)
 
 
 Preparation
@@ -75,10 +81,13 @@ when the Linux kernel has been upgraded)
     # however, @reboot does work, echoing to a file shows it works.
     # Now I just added -y, let's wait and see ... wait for the next kernel upgrade ...
 
-    crontab -l | { cat; echo '@reboot apt-get install -y linux-image-extra-`uname -r` && sudo modprobe aufs'; } | crontab -
+    crontab -l | { cat; echo '@reboot apt-get install -y linux-image-extra-`uname -r` 2>&1 >> /opt/ed/cron.log'; } | crontab -
+
+    # oh it's because:
+    #  http://serverfault.com/questions/784734/how-make-docker-auto-survive-kernel-upgrades-and-restart
 
 
-I think you should also configure a firewall and automatic security upgrades:
+Configure a firewall and automatic security upgrades:
 
     # Configure a firewall: (not needed if you're using Google Compute Engine)
     ufw allow 22
@@ -91,8 +100,7 @@ I think you should also configure a firewall and automatic security upgrades:
     ufw allow 2375/tcp  # Docker needs this port
     ufw reload
 
-    # Automatically apply OS security patches. (I don't think this will cause anything to
-    # break, because the whole Effective Discussions stack runs in Docker containers anyway.)
+    # Automatically apply OS security patches.
     apt-get install unattended-upgrades
     apt-get install update-notifier-common
     cat <<EOF > /etc/apt/apt.conf.d/20auto-upgrades
