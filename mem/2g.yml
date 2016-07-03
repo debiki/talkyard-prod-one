@@ -2,18 +2,22 @@
 
 version: '2'
 services:
-  nginx:
-    mem_limit: 100M
+  web:
+    mem_limit: 150M
 
-  play:
-    mem_limit: 1300M
+  app:
+    mem_limit: 1050M
     environment:
       # There's also stack memory and permanent-generation memory.
-      PLAY_HEAP_MEMORY_MB: 900
+      PLAY_HEAP_MEMORY_MB: 700
 
-  redis:
-    mem_limit: 50M
+  cache:
+    mem_limit: 40M
 
-  postgres:
-    mem_limit: 300M
+  rdb:
+    mem_limit: 250M
 
+  search:
+    mem_limit: 380M
+    environment:
+      ES_JAVA_OPTS: '-Xms260m -Xmx260m'

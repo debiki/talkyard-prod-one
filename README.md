@@ -21,7 +21,11 @@ which you will need to resolve.
 Feel free to tell me about problems you find; post a Problem topic here:
 http://www.effectivediscussions.org/forum/latest/support
 
-(Perhaps I'll rename all config variables from `debiki.…` to `ed.…`, hmm.)
+
+Todo??
+----------------
+
+Rename all config variables to `ed.some.thing`.
 
 
 Preparation
@@ -56,7 +60,8 @@ Docker-Compose as follows:
     # Now this should show version 1.11 or later, but not 1.10:
     apt-cache policy docker-engine
 
-    apt-get install linux-image-extra-$(uname -r)
+    #apt-get install linux-image-extra-$(uname -r)
+    apt-get install linux-image-generic
     apt-get install docker-engine
     service docker start
 
@@ -166,14 +171,14 @@ Upgrading to newer versions
 Upgrading means fetching the lates Docker images, backing up, and restarting
 everything. When you do this, your forum will unavailable for a short while.
 
-Upgrade manually like so: (this downloads, backups and restarts)
+Upgrade manually like so:
 
     cd /opt/ed/
-    ./upgrade.sh   # TODO check if there is no new version, then do nothing
+    ./upgrade-backup-restart.sh  # TODO check if there is no new version, then do nothing
 
 ### Automatic upgrades
 
-A cron job that runs `./upgrade.sh` randomly once a day? once per hour?
+A cron job that runs `./upgrade-backup-restart.sh` randomly once a day? once per hour?
 
 
 Backups
@@ -183,15 +188,15 @@ Backups
 
 You can import a Postgres database backup like so:
 
-    zcat /opt/ed-backups/backup-file.gz | docker exec -i edp_postgres_1 psql postgres postgres
+    zcat /opt/ed-backups/backup-file.gz | docker exec -i edp_rdb_1 psql postgres postgres
 
 (If you've renamed the Docker project name in the `.env` file, then change
 `edp_` above to the new name.)
 
 You can login to Postgres like so:
 
-    docker-compose exec postgres psql postgres postgres  # as user 'postgres'
-    docker-compose exec postgres psql ed ed              # as user 'ed'
+    docker-compose exec rdb psql postgres postgres  # as user 'postgres'
+    docker-compose exec rdb psql ed ed              # as user 'ed'
 
 ### Manual backups
 
@@ -294,6 +299,15 @@ If using Google Compute Engine, then ssh tunnel:
 How to open console in Chroem, view messages & post to the E.D. help forum.
 
 View CPU & memory usage: `./stats.sh`
+
+
+Directories
+----------------
+
+- `conf/`: Container config files, mounted read-only in the containers. Can add to a Git repo.
+
+- `data/`: Directories mounted read-write in the containers (and sometimes read-only too).
+            Should probably add to any Git repo.
 
 
 License

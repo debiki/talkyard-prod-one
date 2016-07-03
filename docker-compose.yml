@@ -1,22 +1,23 @@
 version: '2'
 services:
-  nginx:
-    image: debiki/ed-nginx:$VERSION_TAG
+  web:
+    image: debiki/ed-web:$VERSION_TAG
     command: nginx
     restart: always
     volumes:
       - ./data/uploads/:/opt/ed/uploads/:ro
-      - ./nginx-listen.conf:/etc/nginx/listen.conf:ro
-      #- ./data/default-site/:/etc/nginx/default-site/:ro
+      - ./conf/web/listen.conf:/etc/nginx/listen.conf:ro
+      #- ./conf/web/default-site/:/etc/nginx/default-site/:ro
       - ./data/sites-enabled/:/etc/nginx/sites-enabled/:ro
       - ./data/certbot/:/etc/certbot/:ro
       - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro
+      # Mount here so standard monitoring tools looking for Nginx logs will work.
       - /var/log/nginx/:/var/log/nginx/
     ports:
       - '80:80'
       - '443:443'
     depends_on:
-      - play
+      - app
 
   # (todo)
   # This is a tiny Rust web server to which one POSTs /make-cert?domain=www.example.com
@@ -32,35 +33,38 @@ services:
   # todo:
   #   docker-compose run --rm certbot certbot ...  ?
 
-  play:
-    image: debiki/ed-play:$VERSION_TAG
+  app:
+    image: debiki/ed-app:$VERSION_TAG
     restart: always
     stdin_open: true  # otherwise Play Framework exits
     volumes:
-      - ./play-conf/:/opt/ed/play-conf:ro
+      - ./conf/app/:/opt/ed/app-conf/:ro
       - ./data/uploads/:/opt/ed/uploads/
     links:
-      - redis
-      - postgres
+      - cache
+      - rdb
+      - search
     environment:
-      CONFIG_FILE: /opt/ed/play-conf/prod.conf
+      CONFIG_FILE: /opt/ed/app-conf/play.conf
       POSTGRES_PASSWORD: 'changeme'  # edit
 
   # SHOULD build my own Redis image for this, so I can auto upgrade the Redis config
   # by bumping the $VERSION_TAG.
-  redis:
+  cache:
     image: redis:3.0.7-alpine
     restart: always
     volumes:
-      - ./data/redis/:/data/
+      - ./data/cache/:/data/
 
-  postgres:
-    image: debiki/ed-postgres:$VERSION_TAG
+  rdb:
+    image: debiki/ed-rdb:$VERSION_TAG
     restart: always
     volumes:
-      - ./data/postgres/:/var/lib/postgresql/data/
-      # Monut here so standard monitoring tools configured to find Postgres logs here will work.
-      - /var/log/postgres/:/var/lib/postgresql/data/pg_log/
+      - ./data/rdb/:/var/lib/postgresql/data/
+      # Mount here so standard monitoring tools configured to find Postgres logs here will work.
+      # (Inside the container, we don't mount in /var/lib/postgresql/data/pg_log/ because
+      # then Postgres would refuse to create a db in data/, because data/ wouldn't be empty.)
+      - /var/log/postgres/:/var/log/postgres/
     environment:
       POSTGRES_PASSWORD: 'changeme'  # edit (to the same password as above)
       # Optionally, streaming replication peer:
@@ -69,5 +73,11 @@ services:
       # PEER_HOST: 'postgres2'
       # PEER_PORT: '5432'
       # PEER_PASSWORD: '...'
+
+  search:
+    image: elasticsearch:5.0.0-alpha3
+    volumes:
+      - ./conf/search/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./data/search/:/usr/share/elasticsearch/data/
 
 # vim: et ts=2 sw=2

@@ -3,19 +3,24 @@
 
 version: '2'
 services:
-  play:
+  app:
     ports:
-      - '9000:9000' # Play's HTTP listen port, for bypasssing Nginx (to debug)
-      - '9443:9443' # Play's HTTPS port
+      - '9000:9000' # Play Framework's HTTP listen port, for bypasssing Nginx (to debug)
+      - '9443:9443' # Play Framework's HTTPS port
       - '9999:9999' # Java debugger port
       - '3333:3333' # JMX
 
-  redis:
+  cache:
     ports:
       - '6379:6379'
 
-  postgres:
+  rdb:
     ports:
       - '5432:5432'
+
+  search:
+    ports:
+      - '9200:9200'
+      - '9300:9300'
 
 # vim: et ts=2 sw=2
