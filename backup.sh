@@ -24,10 +24,8 @@ echo "Backing up Postgres..."
 # (cron's path apparently doesn't include /sur/local/bin/)
 # Specify -T so Docker won't create a tty, because that results in a Docker Compose
 # stack trace and error exit code.
-/usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres | gzip > $postgres_backup_path
-# buggy, see: https://github.com/docker/compose/issues/3352
-# and: http://stackoverflow.com/questions/36733777/error-on-docker-compose-when-i-use-by-pipe-with-sh-echo-docker-compose
-#/usr/bin/docker exec edp_postgres_1 pg_dumpall --username=postgres --clean --if-exists | gzip > $postgres_backup_path
+./dc exec -T rdb pg_dumpall --username=postgres --clean --if-exists | gzip > $postgres_backup_path
+#./dc exec -T rdb pg_dump --username=ed --clean --if-exists --create ed | gzip > $postgres_backup_path
 echo "Backed up Postgres to: $postgres_backup_path"
 set +x
 
@@ -40,10 +38,14 @@ set +x
 # atomically using rename(2) only when the new snapshot is complete."""
 # See http://redis.io/topics/persistence
 
-redis_backup_path=$backup_dir/`hostname`-$1-$when-redis.rdb.gz
-echo "Backing up Redis..."
-gzip --to-stdout data/redis/dump.rdb > $redis_backup_path
-echo "Backed up Redis to: $redis_backup_path"
+if [ -f data/redis/dump.rdb ]; then
+  redis_backup_path=$backup_dir/`hostname`-$1-$when-redis.rdb.gz
+  echo "Backing up Redis..."
+  gzip --to-stdout data/redis/dump.rdb > $redis_backup_path
+  echo "Backed up Redis to: $redis_backup_path"
+else
+  echo "No Redis dump.rdb to backup."
+fi
 
 
 # Backup ElasticSearch?

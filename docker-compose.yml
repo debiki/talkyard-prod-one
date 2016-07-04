@@ -55,6 +55,7 @@ services:
     restart: always
     volumes:
       - ./data/cache/:/data/
+      - /var/log/redis/:/var/log/redis/
 
   rdb:
     image: debiki/ed-rdb:$VERSION_TAG
@@ -64,7 +65,7 @@ services:
       # Mount here so standard monitoring tools configured to find Postgres logs here will work.
       # (Inside the container, we don't mount in /var/lib/postgresql/data/pg_log/ because
       # then Postgres would refuse to create a db in data/, because data/ wouldn't be empty.)
-      - /var/log/postgres/:/var/log/postgres/
+      - /var/log/postgresql/:/var/log/postgresql/
     environment:
       POSTGRES_PASSWORD: 'changeme'  # edit (to the same password as above)
       # Optionally, streaming replication peer:
@@ -75,7 +76,7 @@ services:
       # PEER_PASSWORD: '...'
 
   search:
-    image: elasticsearch:5.0.0-alpha3
+    image: elasticsearch:5.0.0-alpha4
     volumes:
       - ./conf/search/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
       - ./data/search/:/usr/share/elasticsearch/data/

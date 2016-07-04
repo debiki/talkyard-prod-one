@@ -71,25 +71,27 @@ Docker-Compose as follows:
     # Make everything start automatically on server startup:
     systemctl enable docker
 
-    # Install Docker Compose 1.7+ (see https://github.com/docker/compose/releases/tag/1.7.0 )
+    # Install Docker Compose 1.7+ (see https://github.com/docker/compose/releases/tag/1.7.1 )
     curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
 
-    # This should say "docker-compose version 1.7.0 ..." (or later):
+    # This should say "docker-compose version 1.7.1 ..." (or later):
     docker-compose -v
 
 
-Make Docker work after OS upgrades: (Docker needs you to install some stuff
-when the Linux kernel has been upgraded)
+Optimize system config, and make the ElasticSearch Docker container work:
+(copy-paste this whole text block and run it as one single command. Not one line at a time.)
 
-    # but this won't work :-(  why not. Nothing happens after reboot (when 'install' is needed)
-    # however, @reboot does work, echoing to a file shows it works.
-    # Now I just added -y, let's wait and see ... wait for the next kernel upgrade ...
 
-    crontab -l | { cat; echo '@reboot apt-get install -y linux-image-extra-`uname -r` 2>&1 >> /opt/ed/cron.log'; } | crontab -
+    cat <<EOF >> /etc/sysctl.conf
 
-    # oh it's because:
-    #  http://serverfault.com/questions/784734/how-make-docker-auto-survive-kernel-upgrades-and-restart
+    ###################################################################
+    # EffectiveDiscussions settings
+    #
+    vm.swappiness=1            # turn off swap, default = 60
+    net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128
+    vm.max_map_count=262144    # ElasticSearch requires (at least) this, default = 65530
+    EOF
 
 
 Configure a firewall and automatic security upgrades:
@@ -136,7 +138,7 @@ Git-clone this repo, edit config files and memory, and `run docker-compose up`. 
     git submodule update --init
 
     # Edit config files.
-    nano play-conf/prod.conf  # edit all config values in the Required Settings section
+    nano conf/app/play.conf   # edit all config values in the Required Settings section
     nano docker-compose.yml   # edit the database password
 
     # Depending on how much RAM your server has, choose one of these files:
