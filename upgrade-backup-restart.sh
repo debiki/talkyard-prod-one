@@ -23,8 +23,9 @@ fi
 
 # Shut down the old version, start the new. The website will go offline for a short while.
 docker-compose down
+./dc down
 echo $VERSION_TAG > version-tag
-docker-compose up -d
+./dc up -d
 
 
 # vim: et ts=2 sw=2 tw=0 fo=r

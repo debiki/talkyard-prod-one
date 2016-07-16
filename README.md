@@ -94,6 +94,19 @@ Optimize system config, and make the ElasticSearch Docker container work:
     EOF
 
 
+Simplify troubleshooting:
+
+    cat <<EOF >> ~/.bashrc
+
+    ###################################################################
+    export HISTCONTROL=ignoredups
+    export HISTCONTROL=ignoreboth
+    export HISTSIZE=10100
+    export HISTFILESIZE=10100
+    export HISTTIMEFORMAT='%F %T %z  '
+    EOF
+
+
 Configure a firewall and automatic security upgrades:
 
     # Configure a firewall: (not needed if you're using Google Compute Engine)

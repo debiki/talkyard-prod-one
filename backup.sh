@@ -38,10 +38,10 @@ set +x
 # atomically using rename(2) only when the new snapshot is complete."""
 # See http://redis.io/topics/persistence
 
-if [ -f data/redis/dump.rdb ]; then
+if [ -f data/cache/dump.rdb ]; then
   redis_backup_path=$backup_dir/`hostname`-$1-$when-redis.rdb.gz
   echo "Backing up Redis..."
-  gzip --to-stdout data/redis/dump.rdb > $redis_backup_path
+  gzip --to-stdout data/cache/dump.rdb > $redis_backup_path
   echo "Backed up Redis to: $redis_backup_path"
 else
   echo "No Redis dump.rdb to backup."
