@@ -61,8 +61,8 @@ Docker-Compose as follows:
     apt-cache policy docker-engine
 
     #apt-get install linux-image-extra-$(uname -r)
-    apt-get install linux-image-generic
-    apt-get install docker-engine
+    apt-get install -y linux-image-generic
+    apt-get install -y docker-engine
     service docker start
 
     # Now this should say "Hello from Docker ...":
@@ -72,10 +72,10 @@ Docker-Compose as follows:
     systemctl enable docker
 
     # Install Docker Compose 1.7+ (see https://github.com/docker/compose/releases/tag/1.7.1 )
-    curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+    curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
 
-    # This should say "docker-compose version 1.7.1 ..." (or later):
+    # This should say "docker-compose version 1.8.0 ..." (or later):
     docker-compose -v
 
 
@@ -92,6 +92,11 @@ Optimize system config, and make the ElasticSearch Docker container work:
     net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128
     vm.max_map_count=262144    # ElasticSearch requires (at least) this, default = 65530
     EOF
+
+
+Then reload the system config:
+
+    sysctl --system
 
 
 Simplify troubleshooting:

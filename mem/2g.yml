@@ -1,4 +1,5 @@
 # For servers with 2 GB RAM.
+# (Or rather, more than 2G, Should leave some for the OS cache too.)
 
 version: '2'
 services:
@@ -18,6 +19,8 @@ services:
     mem_limit: 250M
 
   search:
-    mem_limit: 380M
+    # If there's too little memory, the container will abruptly exit with status 137
+    # and no error message. This is too little: 380M & Xmx260m
+    mem_limit: 450M
     environment:
-      ES_JAVA_OPTS: '-Xms260m -Xmx260m'
+      ES_JAVA_OPTS: '-Xms300m -Xmx300m'
