@@ -1,26 +1,26 @@
 # For servers with 2 GB RAM.
-# (Or rather, more than 2G, Should leave some for the OS cache too.)
+# (the 'mem_limit's below won't sum to 2 GB, because we leave some memore for the OS cache.)
 
 version: '2'
 services:
   web:
-    mem_limit: 150M
+    mem_limit: 100M
 
   app:
-    mem_limit: 1050M
+    mem_limit: 850M
     environment:
       # There's also stack memory and permanent-generation memory.
-      PLAY_HEAP_MEMORY_MB: 700
+      PLAY_HEAP_MEMORY_MB: 550
 
   cache:
-    mem_limit: 40M
+    mem_limit: 50M
 
   rdb:
-    mem_limit: 250M
+    mem_limit: 200M
 
   search:
     # If there's too little memory, the container will abruptly exit with status 137
     # and no error message. This is too little: 380M & Xmx260m
-    mem_limit: 450M
+    mem_limit: 500M
     environment:
       ES_JAVA_OPTS: '-Xms300m -Xmx300m'

@@ -16,7 +16,7 @@ docker-compose pull
 # Backup (unless we're starting for the very first time).
 if [ -f version-tag ]; then
   PREVIOUS_VERSION=`cat version-tag`
-  ./backup.sh "$PREVIOUS_VERSION"
+  ./scripts/backup.sh "$PREVIOUS_VERSION"
   echo "$PREVIOUS_VERSION" >> previous-version-tags.log
 fi
 

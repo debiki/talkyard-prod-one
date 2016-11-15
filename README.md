@@ -1,14 +1,14 @@
 Effective Discussions (ED) — Production Installation
 ================
 
-Warning 1: As of now, don't use this, unless you understand Git and Docker (or
+Warning 1: As of now, only use this, if you understand Git and Docker (or
 want to take risks & learn).
 
-Details: 1) You might run into Git edit conflicts, if you and I change the same
-file.  Also 2) I'm thinking about somehow switching from Docker to CoreOS' rkt,
+Details: You might run into Git edit conflicts, if you and I change the same
+files. Also I'm thinking about somehow switching from Docker to CoreOS' rkt,
 because rkt doesn't require you to have root permissions. — If those previous
-words and phrases sound unfamiliar/confusing to you, then you'll fairly likely
-run into unsurmountable problems later on.
+words and phrases sound unfamiliar/confusing to you, then you will likely
+run into problems later on. Perhaps not today, but half a year later.
 
 Warning 2: Please read the license (at the end of this page): all this is
 provided "as-is" without any warranty of any kind. This software is still under
@@ -18,139 +18,89 @@ Feel free to tell me about problems you find; post a Problem topic here:
 http://www.effectivediscussions.org/forum/latest/support
 
 
-Preparation
-----------------
 
-### Get a server
+Get a server
+----------------
 
 Provision an Ubuntu 16.04 server with at least 2 GB RAM. Here are two good
 places to hire servers:
 
-- Digital Ocean: https://www.digitalocean.com/
-  Easy to use.
+- Digital Ocean: https://www.digitalocean.com/ — easy to use.
 
 - Google Compute Engine: https://cloud.google.com/compute/
-  For advanced users. You should be a company, because Google says you should pay taxes yourself.
+  — for advanced users. You should be a company, because Google says you should pay taxes yourself.
 
-The server should be amd64, not ARM. So you cannot use Scaleway's bare-metal
-ARM servers.
-
-### Install Docker
-
-Ssh into the server and install Docker-Engine 1.11+ (perhaps 1.10+ will work
-too, haven't tested) and Docker-Compose 1.8+ (1.6 won't work).
-
-    # This should say "docker-compose version 1.8.0 ..." (or later):
-    docker-compose -v
-
-### Configure Ubuntu
-
-Optimize system config, and make the ElasticSearch Docker container work:
-(copy-paste this whole text block and run it as one single command. Not one line at a time.)
-
-
-    cat <<EOF >> /etc/sysctl.conf
-
-    ###################################################################
-    # EffectiveDiscussions settings
-    #
-    vm.swappiness=1            # turn off swap, default = 60
-    net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128
-    vm.max_map_count=262144    # ElasticSearch requires (at least) this, default = 65530
-    EOF
-
-
-Then reload the system config:
-
-    sysctl --system
-
-
-Simplify troubleshooting:
-
-    cat <<EOF >> ~/.bashrc
-
-    ###################################################################
-    export HISTCONTROL=ignoredups
-    export HISTCONTROL=ignoreboth
-    export HISTSIZE=10100
-    export HISTFILESIZE=10100
-    export HISTTIMEFORMAT='%F %T %z  '
-    EOF
-
-
-Configure a firewall and automatic security upgrades:
-
-    # Configure a firewall: (not needed if you're using Google Compute Engine)
-    ufw allow 22
-    ufw allow 80
-    ufw allow 443
-    ufw enable  # will ask you to confirm
-
-    # Make the firewall work with Docker: (not needed in Google Compute Engine)
-    vi /etc/default/ufw # change forward policy to accept: DEFAULT_FORWARD_POLICY="ACCEPT"
-    ufw allow 2375/tcp  # Docker needs this port
-    ufw reload
-
-    # Automatically apply OS security patches.
-    apt-get install unattended-upgrades
-    apt-get install update-notifier-common
-    cat <<EOF > /etc/apt/apt.conf.d/20auto-upgrades
-    APT::Periodic::Update-Package-Lists "1";
-    APT::Periodic::Unattended-Upgrade "1";
-    Unattended-Upgrade::Automatic-Reboot "true";
-    EOF
-
-
-And why not start using any hardware random number generator, in case the server has one:
-
-    apt install rng-tools
-
-
-Now we're done with the preparations. Time to install Effective Discussions:
-
+(The server should be amd64, not ARM. So you cannot use Scaleway's bare-metal
+ARM servers.)
 
 
 Installation instructions
 ----------------
 
-Git-clone this repo, edit config files and memory, and `run docker-compose up`. Like so:
+1. Git-clone this repo:
 
-    cd /opt/
-    git clone https://github.com/debiki/ed-prod-one.git ed
-    cd ed
+        cd /opt/
+        git clone https://github.com/debiki/ed-prod-one.git ed
+        cd ed
 
-    # Download a submodule that keeps track of the most recent Docker tag.
-    git submodule update --init
+1. Install Docker
 
-    # Edit config files.
-    nano conf/app/play.conf   # edit all config values in the Required Settings section
-    nano docker-compose.yml   # edit the database password
+        sudo ./scripts/install-docker-compose.sh
 
-    # Depending on how much RAM your server has, choose one of these files:
-    # mem/0.6g.yml, mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on.
-    # and copy it to ./docker-compose.override.yml. For example, if you're using
-    # a Digital Ocean server with 2 GB RAM:
-    #
-    #   cp mem/2g.yml docker-compose.override.yml
+        # Afterwards, this should say "docker-compose version 1.8.0 ..." (or later):
+        docker-compose -v
 
-    # Upgrade to the latest version, and start.
-    # This might take one or a few minutes the first time (to download Docker images).
-    ./upgrade-backup-restart.sh
+1. Configure Ubuntu: enable automatic security updates, simplify troubleshooting,
+   and make ElasticSearch work:
 
-    # Schedule daily backups, 10 minutes past 02:00
-    crontab -l | { cat; echo '10 2 * * * cd /opt/ed && ./backup.sh daily >> cron.log 2>&1'; } | crontab -
-
-    # Delete old backups (so the disk won't fill up).
-    crontab -l | { cat; echo '10 4 * * * cd /opt/ed && ./delete-old-backups.sh >> cron.log 2>&1'; } | crontab -
-
-    # You also need to copy backups off-site regularly. See the Backups section below.
+        sudo ./scripts/configure-ubuntu.sh
 
 
-Now point your browser to http://your-ip-address, or http:\//hostname and follow
+1. Start a firewall: (you can skip this if you use Google Cloud Engine; GCE already has a firewall)
+
+        sudo ./scripts/start-firewall.sh
+
+
+1. Download a submodule that keeps track of the most recent Docker image tag.
+
+        git submodule update --init
+
+1. Edit config files:
+
+        nano conf/app/play.conf   # edit all config values in the Required Settings section
+        nano docker-compose.yml   # edit the database password
+
+1. Depending on how much RAM your server has, choose one of these files:
+   mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
+   and copy it to ./docker-compose.override.yml. For example, for
+   a Digital Ocean server with 2 GB RAM:
+
+        cp mem/2g.yml docker-compose.override.yml
+
+1. Upgrade to the latest version, and start. This might take a few minutes
+   the first time (to download Docker images).
+
+        sudo ./scripts/upgrade-backup-restart.sh
+
+1. Schedule daily backups, and deletion old backups:
+
+        sudo ./scripts/schedule-daily-backups.sh
+
+1. Open a browser, go to the website, e.g. http://localhost, or http://www.example.com.
+   Sign up with the email address you specified when you edited `play.conf` earlier (see above).
+
+   If you haven't yet configured any email server, no email-address-verification-email was sent to
+   you. However, you'll find an address verification URL in the server's log file:
+   `sudo docker-compose logs app`. Copy-paste it into the browser.
+
+
+Now point your browser to <http://your-ip-address> or <http://your.hostname> and follow
 the instructions.
 
-(Everything will restart automatically on server reboot.)
+Everything will restart automatically on server reboot.
 
+
+Afterwards: You also need to copy backups off-site regularly. See the Backups section below.
 
 
 Upgrading to newer versions
@@ -162,12 +112,12 @@ everything. When you do this, your forum will unavailable for a short while.
 Upgrade manually like so:
 
     cd /opt/ed/
-    ./upgrade-backup-restart.sh  # TODO check if there is no new version, then do nothing
+    ./scripts/upgrade-backup-restart.sh  # TODO check if there is no new version, then do nothing
 
 
 ### Automatic upgrades
 
-A cron job that runs `./upgrade-backup-restart.sh` randomly once a day? once per hour?
+A cron job that runs `./scripts/upgrade-backup-restart.sh` randomly once a day? once per hour?
 
 
 
@@ -226,12 +176,14 @@ If using Google Compute Engine, then ssh tunnel:
 
 How to open console in Chroem, view messages & post to the E.D. help forum.
 
-View CPU & memory usage: `./stats.sh`
+View CPU & memory usage: `./scripts/stats.sh`
 
 
 
 Directories
 ----------------
+
+- `scripts/`: Installation, backup, and upgrade scripts.
 
 - `conf/`: Container config files, mounted read-only in the containers. Can add to a Git repo.
 
