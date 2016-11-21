@@ -3,5 +3,4 @@
 Todo??
 ----------------
 
-Rename all config variables to `ed.some.thing`.
 

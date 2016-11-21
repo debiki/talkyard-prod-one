@@ -29,12 +29,12 @@ chmod +x /usr/local/bin/docker-compose
 
 echo
 echo
-echo "All done."
+echo "*** Done ***"
 echo
+echo "Docker and Docker-Compose installed."
 echo "Now this should say 'Hello from Docker':"
 echo
 docker run hello-world
-
 
 echo
 echo "And this should say 'docker-compose version 1.8.1 ...' (or later):"

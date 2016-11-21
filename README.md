@@ -40,7 +40,7 @@ Installation instructions
 1. Git-clone this repo:
 
         cd /opt/
-        git clone https://github.com/debiki/ed-prod-one.git ed
+        sudo git clone https://github.com/debiki/ed-prod-one.git ed
         cd ed
 
 1. Install Docker
@@ -63,19 +63,19 @@ Installation instructions
 
 1. Download a submodule that keeps track of the most recent Docker image tag.
 
-        git submodule update --init
+        sudo git submodule update --init
 
 1. Edit config files:
 
-        nano conf/app/play.conf   # edit all config values in the Required Settings section
-        nano docker-compose.yml   # edit the database password
+        sudo nano conf/app/play.conf   # edit all config values in the Required Settings section
+        sudo nano .env                 # edit the database password
 
 1. Depending on how much RAM your server has, choose one of these files:
    mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
    and copy it to ./docker-compose.override.yml. For example, for
    a Digital Ocean server with 2 GB RAM:
 
-        cp mem/2g.yml docker-compose.override.yml
+        sudo cp mem/2g.yml docker-compose.override.yml
 
 1. Upgrade to the latest version, and start. This might take a few minutes
    the first time (to download Docker images).
@@ -156,30 +156,6 @@ See docs/copy-backups-elsewhere.md.
 
 
 
-Troubleshooting and debugging
-----------------
-
-? save Java crash dumps in ./play-crash
-+ tips about how to run jmap? or view in jvisualvm + Idea? jmap -heap PID
-
-How to connect VisualVM
-
-Tips about how to view logs: all logs, app specific logs.
-
-How to jump into a Docker container.
-
-How to connect a debugger: open Docker port, then connect via SSH tunnel (assuming a firewall blocks the port on the host).
-If using Google Compute Engine, then ssh tunnel:
-
-    gcloud compute ssh server-name --ssh-flag=-L9999:127.0.0.1:9999 --ssh-flag=-N
-
-
-How to open console in Chroem, view messages & post to the E.D. help forum.
-
-View CPU & memory usage: `./scripts/stats.sh`
-
-
-
 Directories
 ----------------
 
@@ -188,7 +164,7 @@ Directories
 - `conf/`: Container config files, mounted read-only in the containers. Can add to a Git repo.
 
 - `data/`: Directories mounted read-write in the containers (and sometimes read-only too).
-            Should probably add to any Git repo.
+            Should probably _not_ add to any Git repo.
 
 
 

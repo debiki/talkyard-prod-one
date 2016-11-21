@@ -46,7 +46,7 @@ services:
       - search
     environment:
       CONFIG_FILE: /opt/ed/app-conf/play.conf
-      POSTGRES_PASSWORD: 'changeme'  # edit
+      POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
 
   # SHOULD build my own Redis image for this, so I can auto upgrade the Redis config
   # by bumping the $VERSION_TAG.
@@ -67,7 +67,7 @@ services:
       # then Postgres would refuse to create a db in data/, because data/ wouldn't be empty.)
       - /var/log/postgresql/:/var/log/postgresql/
     environment:
-      POSTGRES_PASSWORD: 'changeme'  # edit (to the same password as above)
+      POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
       # Optionally, streaming replication peer:
       # (but you'll need to rename ./postgres-data/recovery.conf.disabled first — and
       # that file isn't created until you start Postgres)
