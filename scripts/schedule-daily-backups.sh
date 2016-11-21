@@ -1,7 +1,8 @@
 #!/bin/bash
 
-backup_match=`crontab -l | grep -q '/opt/ed .* /backup.sh daily'`
-delete_match=`crontab -l | grep -q '/opt/ed .* /delete-old-backups.sh'`
+backup_match=`crontab -l | grep '/opt/ed.*/backup.sh daily'`
+delete_match=`crontab -l | grep '/opt/ed.*/delete-old-backups.sh'`
+
 
 if [ -z "$backup_match" ]; then
 	crontab -l | { cat; echo '10 2 * * * cd /opt/ed && ./scripts/backup.sh daily >> cron.log 2>&1'; } | crontab -

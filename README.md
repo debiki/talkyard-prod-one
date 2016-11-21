@@ -37,7 +37,7 @@ ARM servers.)
 Installation instructions
 ----------------
 
-1. Git-clone this repo:
+1. Git-clone this repo: (you need to do like this for the backup scripts to work)
 
         cd /opt/
         sudo git clone https://github.com/debiki/ed-prod-one.git ed
