@@ -34,18 +34,20 @@ places to hire servers:
 ARM servers.)
 
 
+
 Installation instructions
 ----------------
 
 1. Git-clone this repo: (you need to do like this for the backup scripts to work)
 
+        sudo -i
         cd /opt/
-        sudo git clone https://github.com/debiki/ed-prod-one.git ed
+        git clone https://github.com/debiki/ed-prod-one.git ed
         cd ed
 
 1. Install Docker
 
-        sudo ./scripts/install-docker-compose.sh
+        ./scripts/install-docker-compose.sh 2>&1 | tee -a maint.log
 
         # Afterwards, this should say "docker-compose version 1.8.0 ..." (or later):
         docker-compose -v
@@ -53,22 +55,22 @@ Installation instructions
 1. Configure Ubuntu: enable automatic security updates, simplify troubleshooting,
    and make ElasticSearch work:
 
-        sudo ./scripts/configure-ubuntu.sh
+        ./scripts/configure-ubuntu.sh 2>&1 | tee -a maint.log
 
 
 1. Start a firewall: (you can skip this if you use Google Cloud Engine; GCE already has a firewall)
 
-        sudo ./scripts/start-firewall.sh
+        ./scripts/start-firewall.sh 2>&1 | tee -a maint.log
 
 
 1. Download a submodule that keeps track of the most recent Docker image tag.
 
-        sudo git submodule update --init
+        git submodule update --init 2>&1 | tee -a maint.log
 
 1. Edit config files:
 
-        sudo nano conf/app/play.conf   # edit all config values in the Required Settings section
-        sudo nano .env                 # edit the database password
+        nano conf/app/play.conf   # edit all config values in the Required Settings section
+        nano .env                 # edit the database password
 
    (If you're using a non-standard port, say 8080, then add `ed.port=8080` to `play.conf`.)
 
@@ -77,48 +79,59 @@ Installation instructions
    and copy it to ./docker-compose.override.yml. For example, for
    a Digital Ocean server with 2 GB RAM:
 
-        sudo cp mem/2g.yml docker-compose.override.yml
+        cp mem/2g.yml docker-compose.override.yml
 
 1. Upgrade to the latest version, and start. This might take a few minutes
    the first time (to download Docker images).
 
-        sudo ./scripts/upgrade-backup-restart.sh
+        ./scripts/upgrade-backup-restart.sh 2>&1 | tee -a maint.log
 
-1. Schedule daily backups, and deletion old backups:
+1. Schedule daily backups (including deletion old backups) and automatic upgrades:
 
-        sudo ./scripts/schedule-daily-backups.sh
+        ./scripts/schedule-daily-backups.sh 2>&1 | tee -a maint.log
+        ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a maint.log
 
 1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
    or <http://localhost>.  In the browser, click _Continue_ and create an admin account
    with the email address you specified when you edited `play.conf` earlier (see above).
 
-   If you didn't configure any email server (in `play.conf`), no email-address-verification-email
-   will be sent to you. However, you'll find an address verification URL in the server's log file,
-   which you can view like so: `sudo docker-compose logs app`. Copy-paste the URL into the browser.
-   You can [send an email again] / [write the URL to the log file again] by clicking
-   the _Send email again_ button.
+   If you didn't configure any email server (in `play.conf`), no
+   email-address-verification-email will be sent to you. However, you'll find
+   an address verification URL in the server's log file, which you can view
+   like so: `sudo docker-compose logs app`. Copy-paste the URL into the
+   browser.  You can [send an email again] / [write the URL to the log file
+   again] by clicking the _Send email again_ button.
 
 
-Everything will restart automatically on server reboot.
+Now you're done. Everything will restart automatically on server reboot.
 
-Afterwards: You also need to copy backups off-site regularly. See the Backups section below.
+Next things for you to do:
+
+- Copy backups off-site, regularly. See the Backups section below.
+- In the browser, follow the getting-started guide.
+
 
 
 Upgrading to newer versions
 ----------------
 
-Upgrading means fetching the lates Docker images, backing up, and restarting
-everything. When you do this, your forum will unavailable for a short while.
+If you followed the instructions above — that is, if you ran these scripts:
+`./scripts/configure-ubuntu.sh` and `./scripts/schedule-automatic-upgrades.sh`
+— then your server should keep itself up-to-date, and ought to require no maintenance,
+_until_ ...
 
-Upgrade manually like so:
 
+... _Until_ one day when I do some unusual tech stack changes, like changing from
+Docker to CoreOS rkt, or upgrading PostgreSQL.
+Then, you will likely need to do things like `git stash save ; git pull origin ;
+git stash pop` and resolve Git edit conflicts, and perhaps run some script.
+
+If you didn't run `./scripts/schedule-automatic-upgrades.sh`, you can upgrade
+manually like so:
+
+    sudo -i
     cd /opt/ed/
-    ./scripts/upgrade-backup-restart.sh  # TODO check if there is no new version, then do nothing
-
-
-### Automatic upgrades
-
-A cron job that runs `./scripts/upgrade-backup-restart.sh` randomly once a day? once per hour?
+    ./scripts/upgrade-backup-restart.sh 2>&1 | tee -a maint.log
 
 
 
@@ -129,6 +142,7 @@ Backups
 
 You can import a Postgres database backup like so:
 
+    sudo -i
     zcat /opt/ed-backups/backup-file.gz | docker exec -i edp_rdb_1 psql postgres postgres
 
 (If you've renamed the Docker project name in the `.env` file, then change
@@ -136,8 +150,8 @@ You can import a Postgres database backup like so:
 
 You can login to Postgres like so:
 
-    docker-compose exec rdb psql postgres postgres  # as user 'postgres'
-    docker-compose exec rdb psql ed ed              # as user 'ed'
+    sudo docker-compose exec rdb psql postgres postgres  # as user 'postgres'
+    sudo docker-compose exec rdb psql ed ed              # as user 'ed'
 
 
 ### Manual backups
@@ -145,8 +159,9 @@ You can login to Postgres like so:
 You should have configured automatic backups already, see the Installation
 Instructions section above. In any case, you can backup manually like so:
 
+    sudo -i
     cd /opt/ed/
-    ./backup.sh manual
+    ./scripts/backup.sh manual 2>&1 | tee -a maint.log
 
 
 ### Copy backups elsewhere
@@ -157,15 +172,13 @@ See docs/copy-backups-elsewhere.md.
 
 
 
-Directories
+Docker mounted directories
 ----------------
-
-- `scripts/`: Installation, backup, and upgrade scripts.
 
 - `conf/`: Container config files, mounted read-only in the containers. Can add to a Git repo.
 
 - `data/`: Directories mounted read-write in the containers (and sometimes read-only too).
-            Should probably _not_ add to any Git repo.
+            Should probably not add to any Git repo.
 
 
 

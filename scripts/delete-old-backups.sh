@@ -3,9 +3,15 @@
 # Delete old daily and weekly dumps.
 # (For now, never delete monthly dumps.)
 
+function log_message {
+  echo "`date --iso-8601=seconds --utc` delete-backups: $1"
+}
+
+
+
 backup_dir=/opt/ed-backups
-echo "`date '+%F %H:%M'` Searching for old backups to delete in $backup_dir/..."
-echo "Doing nothing. Script not yet implemented. Try 'git fetch origin' and see if there's something new."
+log_message "Searching for old backups to delete in $backup_dir/..."
+log_message "Doing nothing. Script not yet implemented. Try 'git fetch origin' and see if there's something new."
 echo
 
 # Fix later ...

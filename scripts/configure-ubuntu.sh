@@ -2,11 +2,18 @@
 
 # This script makes ElasticSearch work, and simplifies troubleshooting.
 
+function log_message {
+  echo "`date --iso-8601=seconds --utc` configure-ubuntu: $1"
+}
+
+echo
+echo
+log_message 'Configuring Ubuntu:'
 
 # Append system config settings, so the ElasticSearch Docker container will work:
 
 if ! grep -q 'EffectiveDiscussions' /etc/sysctl.conf; then
-  echo 'Amending the /etc/sysctl.conf config...'
+  log_message 'Amending the /etc/sysctl.conf config...'
   cat <<-EOF >> /etc/sysctl.conf
 		
 		###################################################################
@@ -17,7 +24,7 @@ if ! grep -q 'EffectiveDiscussions' /etc/sysctl.conf; then
 		vm.max_map_count=262144    # ElasticSearch requires (at least) this, default = 65530
 		EOF
 
-  echo 'Reloading the system config...'
+  log_message 'Reloading the system config...'
   sysctl --system
 fi
 
@@ -25,7 +32,7 @@ fi
 
 # Simplify troubleshooting:
 if ! grep -q 'HISTTIMEFORMAT' ~/.bashrc; then
-  echo 'Adding history settings to .bashrc...'
+  log_message 'Adding history settings to .bashrc...'
   cat <<-EOF >> ~/.bashrc
 		
 		###################################################################
@@ -39,7 +46,7 @@ fi
 
 
 # Automatically apply OS security patches.
-echo 'Configuring automatic security updates and reboots...'
+log_message 'Configuring automatic security updates and reboots...'
 apt-get install -y unattended-upgrades
 apt-get install -y update-notifier-common
 cat <<EOF > /etc/apt/apt.conf.d/20auto-upgrades
@@ -51,10 +58,11 @@ EOF
 
 # Start using any hardware random number generator, in case the server has one.
 # And install 'tree', nice to have.
-echo 'Installing rng-tools, why not...'
+log_message 'Installing rng-tools, why not...'
 apt install rng-tools tree
 
 
-echo 'Done configuring Ubuntu.'
+log_message 'Done configuring Ubuntu.'
+echo
 
 # vim: ts=2 sw=2 tw=0 fo=r list
