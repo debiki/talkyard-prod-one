@@ -172,9 +172,11 @@ Directories
 License
 ----------------
 
-The MIT license (and it's for the instructions and the config files in this
-repository only, not for any Effective Discussions source code.)
+The GNU General Public License, versions 2 — and it's for the instructions and
+scripts etcetera in this repository only, not for any Effective Discussions
+source code or stuff in other repositories.
 
-See [LICENSE.txt](LICENSE.txt)
+See [LICENSE-GPLv2.txt](./LICENSE-GPLv2.txt).
 
-<!-- vim: set et ts=2 sw=2 tw=0 fo=r : -->
+
+<!-- vim: set et ts=2 sw=2 tw=0 fo=r list : -->
