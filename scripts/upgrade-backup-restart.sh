@@ -81,7 +81,7 @@ log_message "Upgrading: Starting new version $NEXT_VERSION..."
 echo $NEXT_VERSION > version-tag
 ./dc up -d
 
-log_message "Done upgrading. Bye."
+log_message "Done. Bye."
 echo
 
 # vim: et ts=2 sw=2 tw=0 fo=r

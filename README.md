@@ -1,5 +1,7 @@
-Effective Discussions (ED) — Production Installation
+Effective Discussions production installation
 ================
+
+For one single server.
 
 Warning 1: As of now, only use this, if you understand Git and Docker (or
 want to take risks & learn).
@@ -81,9 +83,10 @@ Installation instructions
 
         cp mem/2g.yml docker-compose.override.yml
 
-1. Upgrade to the latest version, and start. This might take a few minutes
+1. Install and start the latest version. This might take a few minutes
    the first time (to download Docker images).
 
+        # This script also installs, although named "upgrade–...".
         ./scripts/upgrade-backup-restart.sh 2>&1 | tee -a maint.log
 
 1. Schedule daily backups (including deletion old backups) and automatic upgrades:
@@ -182,14 +185,29 @@ Docker mounted directories
 
 
 
-License
+License (GPLv2)
 ----------------
 
-The GNU General Public License, versions 2 — and it's for the instructions and
+The GNU General Public License, version 2 — and it's for the instructions and
 scripts etcetera in this repository only, not for any Effective Discussions
 source code or stuff in other repositories.
 
-See [LICENSE-GPLv2.txt](./LICENSE-GPLv2.txt).
+    Copyright (C) 2016 Kaj Magnus Lindberg
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, version 2 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+Here's the full license text: [LICENSE-GPLv2.txt](./LICENSE-GPLv2.txt).
 
 
 <!-- vim: set et ts=2 sw=2 tw=0 fo=r list : -->
