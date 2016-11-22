@@ -70,6 +70,8 @@ Installation instructions
         sudo nano conf/app/play.conf   # edit all config values in the Required Settings section
         sudo nano .env                 # edit the database password
 
+   (If you're using a non-standard port, say 8080, then add `ed.port=8080` to `play.conf`.)
+
 1. Depending on how much RAM your server has, choose one of these files:
    mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
    and copy it to ./docker-compose.override.yml. For example, for
@@ -86,19 +88,18 @@ Installation instructions
 
         sudo ./scripts/schedule-daily-backups.sh
 
-1. Open a browser, go to the website, e.g. http://localhost, or http://www.example.com.
-   Sign up with the email address you specified when you edited `play.conf` earlier (see above).
+1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
+   or <http://localhost>.  In the browser, click _Continue_ and create an admin account
+   with the email address you specified when you edited `play.conf` earlier (see above).
 
-   If you haven't yet configured any email server, no email-address-verification-email was sent to
-   you. However, you'll find an address verification URL in the server's log file:
-   `sudo docker-compose logs app`. Copy-paste it into the browser.
+   If you didn't configure any email server (in `play.conf`), no email-address-verification-email
+   will be sent to you. However, you'll find an address verification URL in the server's log file,
+   which you can view like so: `sudo docker-compose logs app`. Copy-paste the URL into the browser.
+   You can [send an email again] / [write the URL to the log file again] by clicking
+   the _Send email again_ button.
 
-
-Now point your browser to <http://your-ip-address> or <http://your.hostname> and follow
-the instructions.
 
 Everything will restart automatically on server reboot.
-
 
 Afterwards: You also need to copy backups off-site regularly. See the Backups section below.
 
