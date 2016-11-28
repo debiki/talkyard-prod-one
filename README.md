@@ -3,21 +3,19 @@ Effective Discussions production installation
 
 For one single server.
 
-Warning 1: As of now, only use this, if you understand Git and Docker (or
+<u>Warning 1:</u> As of now, only use this, if you understand Git and Docker (or
 want to take risks & learn).
 
 Details: You might run into Git edit conflicts, if you and I change the same
 files. Also I'm thinking about somehow switching from Docker to CoreOS' rkt,
-because rkt doesn't require you to have root permissions. — If those previous
-words and phrases sound unfamiliar/confusing to you, then you will likely
-run into problems later on. Perhaps not today, but half a year later.
+because rkt doesn't require you to have root permissions. — If you find
+Docker complicated to use, things might get worse, later.
 
-Warning 2: Please read the license (at the end of this page): all this is
+<u>Warning 2:</u> Please read the license (at the end of this page): all this is
 provided "as-is" without any warranty of any kind. This software is still under
 development — there might be bugs, including security bugs.
 
-Feel free to tell me about problems you find; post a Problem topic here:
-http://www.effectivediscussions.org/forum/latest/support
+Feel free to report problems and ask questions in [our support forum](http://www.effectivediscussions.org/forum/latest/support).
 
 
 
@@ -49,7 +47,7 @@ Installation instructions
 
 1. Install Docker
 
-        ./scripts/install-docker-compose.sh 2>&1 | tee -a maint.log
+        ./scripts/install-docker-compose.sh 2>&1 | tee -a ed-maint.log
 
         # Afterwards, this should say "docker-compose version 1.8.0 ..." (or later):
         docker-compose -v
@@ -57,17 +55,17 @@ Installation instructions
 1. Configure Ubuntu: enable automatic security updates, simplify troubleshooting,
    and make ElasticSearch work:
 
-        ./scripts/configure-ubuntu.sh 2>&1 | tee -a maint.log
+        ./scripts/configure-ubuntu.sh 2>&1 | tee -a ed-maint.log
 
 
 1. Start a firewall: (you can skip this if you use Google Cloud Engine; GCE already has a firewall)
 
-        ./scripts/start-firewall.sh 2>&1 | tee -a maint.log
+        ./scripts/start-firewall.sh 2>&1 | tee -a ed-maint.log
 
 
 1. Download a submodule that keeps track of the most recent Docker image tag.
 
-        git submodule update --init 2>&1 | tee -a maint.log
+        git submodule update --init 2>&1 | tee -a ed-maint.log
 
 1. Edit config files:
 
@@ -87,12 +85,12 @@ Installation instructions
    the first time (to download Docker images).
 
         # This script also installs, although named "upgrade–...".
-        ./scripts/upgrade-backup-restart.sh 2>&1 | tee -a maint.log
+        ./scripts/upgrade-backup-restart.sh 2>&1 | tee -a ed-maint.log
 
 1. Schedule daily backups (including deletion old backups) and automatic upgrades:
 
-        ./scripts/schedule-daily-backups.sh 2>&1 | tee -a maint.log
-        ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a maint.log
+        ./scripts/schedule-daily-backups.sh 2>&1 | tee -a ed-maint.log
+        ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a ed-maint.log
 
 1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
    or <http://localhost>.  In the browser, click _Continue_ and create an admin account
@@ -134,7 +132,7 @@ manually like so:
 
     sudo -i
     cd /opt/ed/
-    ./scripts/upgrade-backup-restart.sh 2>&1 | tee -a maint.log
+    ./scripts/upgrade-backup-restart.sh 2>&1 | tee -a ed-maint.log
 
 
 
@@ -164,7 +162,7 @@ Instructions section above. In any case, you can backup manually like so:
 
     sudo -i
     cd /opt/ed/
-    ./scripts/backup.sh manual 2>&1 | tee -a maint.log
+    ./scripts/backup.sh manual 2>&1 | tee -a ed-maint.log
 
 
 ### Copy backups elsewhere
