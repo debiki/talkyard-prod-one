@@ -17,6 +17,9 @@ development — there might be bugs, including security bugs.
 
 Feel free to report problems and ask questions in [our support forum](http://www.effectivediscussions.org/forum/latest/support).
 
+If you'd like to test install on your laptop / desktop just to test, there's
+[a Vagrantfile here](scripts/Vagrantfile), open it in a text editor, and read,
+for details.
 
 
 Get a server
