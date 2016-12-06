@@ -88,7 +88,7 @@ Installation instructions
    the first time (to download Docker images).
 
         # This script also installs, although named "upgrade–...".
-        ./scripts/upgrade-backup-restart.sh 2>&1 | tee -a ed-maint.log
+        ./scripts/upgrade-if-needed.sh 2>&1 | tee -a ed-maint.log
 
 1. Schedule daily backups (including deletion old backups) and automatic upgrades:
 
@@ -135,7 +135,7 @@ manually like so:
 
     sudo -i
     cd /opt/ed/
-    ./scripts/upgrade-backup-restart.sh 2>&1 | tee -a ed-maint.log
+    ./scripts/upgrade-if-needed.sh 2>&1 | tee -a ed-maint.log
 
 
 
