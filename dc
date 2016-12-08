@@ -1,2 +1,0 @@
-# Specify full path to docker-compose, so works also when run from Cron.
-VERSION_TAG=`cat version-tag` /usr/local/bin/docker-compose "$@"

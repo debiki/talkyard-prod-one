@@ -5,14 +5,16 @@ function log_message {
 }
 
 echo
-log_message "Perhaps upgrading..."
 
 
 # Determine current version
 # ===========================
 
-if [ -f version-tag ]; then
-  CURRENT_VERSION=`cat version-tag`
+CURRENT_VERSION=`sed -nr 's/VERSION_TAG=([a-zA-Z0-9\._-]*).*/\1/p' .env`
+if [ -z "$CURRENT_VERSION" ]; then
+  log_message "Apparently no version currently installed."
+  log_message "Checking for latest version..."
+else
   log_message "Current version: $CURRENT_VERSION"
   log_message "Checking for newer versions..."
 fi
@@ -50,13 +52,14 @@ if [ "$CURRENT_VERSION" == "$NEXT_VERSION" ]; then
 fi
 
 if [ -z "$CURRENT_VERSION" ]; then
-  log_message "No previous version installed."
   log_message "I will install version $NEXT_VERSION."
+  what='Installing'
 else
   log_message "I will upgrade to $NEXT_VERSION."
   log_message "Backing up before upgrading..."
   ./scripts/backup.sh "$CURRENT_VERSION"
   echo "$CURRENT_VERSION" >> previous-version-tags.log
+  what='Upgrading'
 fi
 
 
@@ -72,14 +75,16 @@ VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose pull
 # Upgrade
 # ===========================
 
-log_message "Upgrading: Shutting down old version $CURRENT_VERSION..."
-# Specify full path, so works from Cron. Try both with and without tag, feels safest.
-/usr/local/bin/docker-compose down
-VERSION_TAG=$CURRENT_VERSION /usr/local/bin/docker-compose down
+if [ -n "$CURRENT_VERSION" ]; then
+  log_message "Upgrading: Shutting down old version $CURRENT_VERSION..."
+  /usr/local/bin/docker-compose down
+fi
 
-log_message "Upgrading: Starting new version $NEXT_VERSION..."
-echo $NEXT_VERSION > version-tag
-./dc up -d
+log_message "$what: Setting current version number to $NEXT_VERSION..."
+sed --in-place=.prev-version -r "s/^(VERSION_TAG=)([a-zA-Z0-9\\._-]*)(.*)$/\1$NEXT_VERSION\3/" .env
+
+log_message "$what: Starting version $NEXT_VERSION..."
+/usr/local/bin/docker-compose up -d
 
 log_message "Done. Bye."
 echo

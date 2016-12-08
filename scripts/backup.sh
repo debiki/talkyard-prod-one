@@ -27,7 +27,7 @@ log_message "Backing up Postgres..."
 # (cron's path apparently doesn't include /sur/local/bin/)
 # Specify -T so Docker won't create a tty, because that results in a Docker Compose
 # stack trace and error exit code.
-./dc exec -T rdb pg_dumpall --username=postgres --clean --if-exists | gzip > $postgres_backup_path
+/usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists | gzip > $postgres_backup_path
 #./dc exec -T rdb pg_dump --username=ed --clean --if-exists --create ed | gzip > $postgres_backup_path
 log_message "Backed up Postgres to: $postgres_backup_path"
 
