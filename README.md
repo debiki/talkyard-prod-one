@@ -144,10 +144,15 @@ Backups
 
 ### Importing a backup
 
-You can import a Postgres database backup like so:
+You can import a Postgres database backup like so: (you need to stop the 'app'
+container, otherwise the import will fail because of active database
+connections)
 
     sudo -i
+    docker-compose stop app
     zcat /opt/ed-backups/backup-file.gz | docker exec -i edp_rdb_1 psql postgres postgres
+    # todo: tee -a ed-maint.log — can I just append that and it'll work??
+    docker-compose start app
 
 (If you've renamed the Docker project name in the `.env` file, then change
 `edp_` above to the new name.)
@@ -172,7 +177,7 @@ Instructions section above. In any case, you can backup manually like so:
 
 You should copy the backups to a safety backup server, regularly. Otherwise, if your main server suddenly disappears, or someone breaks into it and ransomware-encrypts everything — then you'd lose all your data.
 
-See docs/copy-backups-elsewhere.md.
+See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
 
 
 

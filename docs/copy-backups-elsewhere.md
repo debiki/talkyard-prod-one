@@ -8,6 +8,9 @@ to a safety backup server, regularly. That's what this document is about.
 (I'd like to simplify all this, by creating an rsync-read-only backup help
 Docker container.)
 
+
+### Create SSH key
+
 On the backup server, preferably located in another datacenter, create a SSH
 key:
 
@@ -17,10 +20,16 @@ You can perhaps skip the passphrase, since the backup server will have
 read-only rsync access only, all backups will be available on the backup server
 anyway. So a passhprase doesn't give any additional security.
 
+
+### Enable rrsync
+
 On the EffectiveDiscussions (ED) server, enable rrsync (restricted rsync):
 
     zcat /usr/share/doc/rsync/scripts/rrsync.gz > /usr/local/bin/rrsync
     chmod ugo+x /usr/local/bin/rrsync
+
+
+### rsync keys
 
 Then create a backup user with an `authorized_keys` file that allows restricted rsync:
 
@@ -42,19 +51,27 @@ Append the public key to the last line in `authorized_keys` on the ED server:
     # as user remotebackup: (!)
     nano ~/.ssh/authorized_keys
 
-    # append the stuff you just copied to the last line (which should be the only line).
+    # append a space and then the stuff you just copied to the last line (which is perhaps the only line).
     # Do not paste it on a new line.
 
 The result should be that the `authorized_keys` file looks like: (and it's a really long line)
 
     command=..... ssh-rsa AAAA................ Automated remote backup
 
+
+### Test
+
 Now, on the backup server, test to copy backups:
 
     # replace 'serveraddress' with the server address
     rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@serveraddress:/ ed-backups/
 
-If it works, then schedule a cron job to do this regularly: (on the backup server)
+		# todo: can I prefix .ssh with ~/ so will work from any directory?
+
+
+### Schedule copying-of-backups
+
+If the above test works, then schedule a cron job to copy backups regularly. Do this on the backup server:
 
     # (replace 'serveraddress' with the server address)
     crontab -l | { cat; echo '@hourly rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@serveraddress:/ ed-backups/ >> cron.log 2>&1'; } | crontab -

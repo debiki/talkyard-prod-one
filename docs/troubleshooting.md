@@ -1,3 +1,5 @@
+(Ignore this document; it's not completed and hard to understand.)
+
 
 Troubleshooting and debugging
 ----------------
@@ -17,7 +19,7 @@ If using Google Compute Engine, then ssh tunnel:
     gcloud compute ssh server-name --ssh-flag=-L9999:127.0.0.1:9999 --ssh-flag=-N
 
 
-How to open console in Chroem, view messages & post to the E.D. help forum.
+How to open console in Chrome, view messages & post to the E.D. help forum.
 
 View CPU & memory usage: `./scripts/stats.sh`
 

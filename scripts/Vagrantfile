@@ -6,16 +6,19 @@
 # Virtual Machine (VM) can be created and configured on your computer,
 # in which you can test install EffectiveDiscussions.
 #
-# Tips: You'll need to add  ed.port=8080  to play.conf (mentioned in README.txt).
+# Tips: You'll need to add  ed.port=8080  to play.conf (mentioned in README.md).
 #
 # Go and read about Vagrant here: https://www.vagrantup.com/ — click
-# "Getting Started" and read that page. Download and install Vagrant. Then:
+# "Getting Started" and read that page. Download and install Vagrant.
+# Also install VirtualBox (or some othervirtualization system), so that
+# there'll be something that can run the VM Vagrant will download for you.
+# Then:
 #
 # 1) Create an empty folder named `ed-prod-test`. Copy this file into it.
 # 2) cd into that folder, and type `vagrant up`
 # 3) Wait for Vagrant do download stuff, and the VM to start.
 # 4) Then type `vagrant ssh`, to open a shelll inside the VM.
-# 5) Follow the instructions in README.txt (but now you have a server already,
+# 5) Follow the instructions in README.md (but now you have a server already,
 #    i.e. the Vagrant VM which you are inside right now).
 # 6) To stop the VM, type CTRL-D to exit Vagrant, then type `vagrant halt`.
 #
