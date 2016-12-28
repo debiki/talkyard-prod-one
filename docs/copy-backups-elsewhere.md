@@ -21,9 +21,9 @@ read-only rsync access only, all backups will be available on the backup server
 anyway. So a passhprase doesn't give any additional security.
 
 
-### Enable rrsync
+### Enable restricted rsync, rrsync
 
-On the EffectiveDiscussions (ED) server, enable rrsync (restricted rsync):
+On the EffectiveDiscussions (ED) server, enable rrsync:
 
     zcat /usr/share/doc/rsync/scripts/rrsync.gz > /usr/local/bin/rrsync
     chmod ugo+x /usr/local/bin/rrsync
@@ -51,7 +51,7 @@ Append the public key to the last line in `authorized_keys` on the ED server:
     # as user remotebackup: (!)
     nano ~/.ssh/authorized_keys
 
-    # append a space and then the stuff you just copied to the last line (which is perhaps the only line).
+    # append a space and then the stuff you just copied to the last line (which is the only line, if the file was just created).
     # Do not paste it on a new line.
 
 The result should be that the `authorized_keys` file looks like: (and it's a really long line)
@@ -67,6 +67,8 @@ Now, on the backup server, test to copy backups:
     rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@serveraddress:/ ed-backups/
 
 		# todo: can I prefix .ssh with ~/ so will work from any directory?
+		# or $HOME, that reportedly works from others dirs: (but add trailing slash?)
+		#   rsync -e "ssh -i $HOME/.ssh/id_remotebackup" -av remotebackup@serveraddress:/ ed-backups
 
 
 ### Schedule copying-of-backups

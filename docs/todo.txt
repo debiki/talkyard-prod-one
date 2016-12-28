@@ -3,4 +3,6 @@
 Todo??
 ----------------
 
+Can `docker-compose` be made to work when run by Cron, regardless of where it's installed?
+In case some distribution installs it in an unusual location? or whatever
 

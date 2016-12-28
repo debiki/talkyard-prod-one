@@ -150,9 +150,10 @@ connections)
 
     sudo -i
     docker-compose stop app
-    zcat /opt/ed-backups/backup-file.gz | docker exec -i edp_rdb_1 psql postgres postgres
-    # todo: tee -a ed-maint.log — can I just append that and it'll work??
+    zcat /opt/ed-backups/BACKUP_FILE.gz | docker exec -i edp_rdb_1 psql postgres postgres | tee -a ed-maint.log
     docker-compose start app
+
+Don't forget to replace `BACKUP_FILE` above with the actual file name.
 
 (If you've renamed the Docker project name in the `.env` file, then change
 `edp_` above to the new name.)
