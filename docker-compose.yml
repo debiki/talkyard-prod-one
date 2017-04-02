@@ -40,6 +40,8 @@ services:
     volumes:
       - ./conf/app/:/opt/ed/app-conf/:ro
       - ./data/uploads/:/opt/ed/uploads/
+      # Mount here so log monitoring agents like fluentd can access the log.
+      - /var/log/ed/:/var/log/ed/
     links:
       - cache
       - rdb

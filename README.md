@@ -60,6 +60,10 @@ Installation instructions
 
         ./scripts/configure-ubuntu.sh 2>&1 | tee -a ed-maint.log
 
+  (If you don't want to run all stuff in this script, you at least need to copy the
+  sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
+  `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
+  won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
 
 1. Start a firewall: (you can skip this if you use Google Cloud Engine; GCE already has a firewall)
 
@@ -151,9 +155,10 @@ connections)
     sudo -i
     docker-compose stop app
     zcat /opt/ed-backups/BACKUP_FILE.gz | docker exec -i edp_rdb_1 psql postgres postgres | tee -a ed-maint.log
+    # TODO or: docker exec -i $(docker-compose ps -q cassandra) < someexample.cql — see https://github.com/docker/compose/issues/3352#issuecomment-284547977
     docker-compose start app
 
-Don't forget to replace `BACKUP_FILE` above with the actual file name.
+Replace `BACKUP_FILE` above with the actual file name.
 
 (If you've renamed the Docker project name in the `.env` file, then change
 `edp_` above to the new name.)
@@ -179,6 +184,20 @@ Instructions section above. In any case, you can backup manually like so:
 You should copy the backups to a safety backup server, regularly. Otherwise, if your main server suddenly disappears, or someone breaks into it and ransomware-encrypts everything — then you'd lose all your data.
 
 See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
+
+
+
+Tips
+----------------
+
+If you'll start running out of disk, one reason can be old patches for automatic operating system security updates.
+You can delete them to free up disk:
+
+```
+sudo apt autoremove --purge
+```
+
+You can also delete old no-longer-needed Docker images: ...TODO...
 
 
 
