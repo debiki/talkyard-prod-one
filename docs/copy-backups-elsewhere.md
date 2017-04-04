@@ -34,7 +34,7 @@ On the EffectiveDiscussions (ED) server, enable rrsync:
 Then create a backup user with an `authorized_keys` file that allows restricted rsync:
 
     # (still on the ED server)
-    useradd -m remotebackup
+    useradd --create-home remotebackup
     su - remotebackup
     mkdir .ssh
     echo 'command="/usr/local/bin/rrsync -ro /opt/ed-backups/",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding' >> .ssh/authorized_keys
@@ -44,7 +44,7 @@ Copy the public key on the backup server:
     # on the backup server:
     cat ~/.ssh/id_remotebackup.pub
 
-   # copy the output
+    # copy the output
 
 Append the public key to the last line in `authorized_keys` on the ED server:
 

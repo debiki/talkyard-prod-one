@@ -8,8 +8,9 @@ want to take risks & learn).
 
 Details: You might run into Git edit conflicts, if you and I change the same
 files. Also I'm thinking about somehow switching from Docker to CoreOS' rkt,
-because rkt doesn't require you to have root permissions. — If you find
-Docker complicated to use, things might get worse, later.
+because rkt doesn't require you to have root permissions. You might then need
+to install an ED tech stack based on rkt on a different server, and backup-restore
+your database to that server.
 
 <u>Warning 2:</u> Please read the license (at the end of this page): all this is
 provided "as-is" without any warranty of any kind. This software is still under
@@ -133,6 +134,8 @@ _until_ ...
 Docker to CoreOS rkt, or upgrading PostgreSQL.
 Then, you will likely need to do things like `git stash save ; git pull origin ;
 git stash pop` and resolve Git edit conflicts, and perhaps run some script.
+Or you might need to provision a new server, install a different tech stack, and import
+a backup of your database.
 
 If you didn't run `./scripts/schedule-automatic-upgrades.sh`, you can upgrade
 manually like so:
