@@ -2,7 +2,6 @@ version: '2'
 services:
   web:
     image: debiki/ed-web:$VERSION_TAG
-    command: nginx
     restart: always
     volumes:
       - ./data/uploads/:/opt/ed/uploads/:ro
