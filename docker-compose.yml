@@ -1,4 +1,4 @@
-version: '2'
+version: '3.1'
 services:
   web:
     image: debiki/ed-web:$VERSION_TAG
@@ -18,20 +18,16 @@ services:
       - '443:443'
     depends_on:
       - app
-
-  # (todo)
-  # This is a tiny Rust web server to which one POSTs /make-cert?domain=www.example.com
-  # and which then calls Bash & certbot. The resulting cert is mounted :ro in Nginx, above.
-  #certbot:
-  #  image: debiki/ed-certbot:$VERSION_TAG
-  #  command: certbot-server
-  #  restart: always
-  #  volumes:
-  #    - ./data/certbot/:/etc/certbot/
-  #    - ./data/certbot-challenges/.well-known/:/opt/webserver/html/.well-known/
-  #
-  # todo:
-  #   docker-compose run --rm certbot certbot ...  ?
+    sysctls:
+      # Up the max backlog queue size (num connections per port), default = 128.
+      # SHOULD check if this has any effect, although the host's /etc/sysctl.conf not changed
+      net.core.somaxconn: 8192
+    # SECURITY COULD drop capabilities, see: http://rhelblog.redhat.com/2016/10/17/secure-your-containers-with-this-one-weird-trick/
+    # Ask at Hacker News: which caps can I drop for an Nginx container? A JVM appserver?
+    # For all containers, not just 'web'.
+    #cap_drop:
+    #  - DAC_OVERRIDE
+    #  ... many more?
 
   app:
     image: debiki/ed-app:$VERSION_TAG
@@ -78,10 +74,28 @@ services:
       # PEER_PASSWORD: '...'
 
   search:
+    # alpha4 unfortunately, because ElasticSearch clients for later versions cause a Netty JAR dependency conflict.
+    # SHOULD upgrade, later: The ES team is creating a client that doesn't use Netty, + the Play Framework people are moving to some Akka HTTP stuff instead, wait for either of these to happen then upgrade.
     image: elasticsearch:5.0.0-alpha4
     restart: always
     volumes:
       - ./conf/search/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
       - ./data/search/:/usr/share/elasticsearch/data/
+    sysctls:
+      vm.max_map_count: 262144
+
+  # (Do this later?)
+  # This is a tiny Rust web server to which one POSTs /make-cert?domain=www.example.com
+  # and which then calls Bash & certbot. The resulting cert is mounted :ro in Nginx, above.
+  #certbot:
+  #  image: debiki/ed-certbot:$VERSION_TAG
+  #  command: certbot-server
+  #  restart: always
+  #  volumes:
+  #    - ./data/certbot/:/etc/certbot/
+  #    - ./data/certbot-challenges/.well-known/:/opt/webserver/html/.well-known/
+  #
+  # todo:
+  #   docker-compose run --rm certbot certbot ...  ?
 
 # vim: et ts=2 sw=2

@@ -20,8 +20,8 @@ if ! grep -q 'EffectiveDiscussions' /etc/sysctl.conf; then
 		# EffectiveDiscussions settings
 		#
 		vm.swappiness=1            # turn off swap, default = 60
-		net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128
-		vm.max_map_count=262144    # ElasticSearch requires (at least) this, default = 65530
+		#net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128
+		#vm.max_map_count=262144    # ElasticSearch requires (at least) this, default = 65530
 		EOF
 
   log_message 'Reloading the system config...'

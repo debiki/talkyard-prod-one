@@ -32,8 +32,7 @@ cd versions
 # Don't upgrade to WIP = work-in-progress versions. Don't upgrade to new software stack versions = 'stack'
 # because in order to do than, one will probably need to run `git pull` and resolve edit conflicts,
 # perhaps run scripts.
-# But for now, do upgr to WIP, just testing: (but not to anything that matches 'stack')
-NEXT_VERSION=`grep -v --regex='stack' version-tags.log | tail -n1`
+NEXT_VERSION=`grep -v --regex='WIP' --regex='stack' version-tags.log | tail -n1`
 cd ..
 
 if [ -z "$NEXT_VERSION" ]; then
@@ -53,13 +52,13 @@ fi
 
 if [ -z "$CURRENT_VERSION" ]; then
   log_message "I will install version $NEXT_VERSION."
-  what='Installing'
+  WHAT='Installing'
 else
   log_message "I will upgrade to $NEXT_VERSION."
   log_message "Backing up before upgrading..."
   ./scripts/backup.sh "$CURRENT_VERSION"
   echo "$CURRENT_VERSION" >> previous-version-tags.log
-  what='Upgrading'
+  WHAT='Upgrading'
 fi
 
 
@@ -80,10 +79,10 @@ if [ -n "$CURRENT_VERSION" ]; then
   /usr/local/bin/docker-compose down
 fi
 
-log_message "$what: Setting current version number to $NEXT_VERSION..."
+log_message "$WHAT: Setting current version number to $NEXT_VERSION..."
 sed --in-place=.prev-version -r "s/^(VERSION_TAG=)([a-zA-Z0-9\\._-]*)(.*)$/\1$NEXT_VERSION\3/" .env
 
-log_message "$what: Starting version $NEXT_VERSION..."
+log_message "$WHAT: Starting version $NEXT_VERSION..."
 /usr/local/bin/docker-compose up -d
 
 log_message "Done. Bye."
