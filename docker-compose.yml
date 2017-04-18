@@ -19,6 +19,8 @@ services:
       - app
     # SECURITY COULD drop capabilities, see: http://rhelblog.redhat.com/2016/10/17/secure-your-containers-with-this-one-weird-trick/
     # Ask at Hacker News: which caps can I drop for an Nginx container? A JVM appserver?
+    # Asked here about Nginx:
+    #   https://stackoverflow.com/questions/43467670/which-capabilities-can-i-drop-in-a-docker-nginx-container
     # For all containers, not just 'web'.
     #cap_drop:
     #  - DAC_OVERRIDE
