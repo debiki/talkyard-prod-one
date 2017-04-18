@@ -41,14 +41,14 @@ add-apt-repository \
 
 apt-get update
 
-apt-get install docker-ce=17.03.0~ce-0~ubuntu-xenial  # ?
+apt-get install docker-ce=17.03.1~ce-0~ubuntu-xenial
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
-HELLO_WORLD="$(docker run hello-world | grep -i 'hello world')"
-if [ -z $"HELLO_WORLD" ]; then
+HELLO_WORLD="$(docker run hello-world | grep -i 'hello ')"
+if [ -z "$HELLO_WORLD" ]; then
 	echo
-	log_message "Error installing or starting Docker: 'docker run hello-world' doesn't work. [EdEDKRBROKEN"
+	log_message "Error installing or starting Docker: 'docker run hello-world' doesn't work. [EdEDKRBROKEN]"
 	log_message "Ask for help in the EffectiveDiscussions forum: https://www.effectivediscussions.org/forum/"
 	log_message "and/or in the Docker forums: https://forums.docker.com/"
 	echo
@@ -59,8 +59,8 @@ log_message "Docker worked fine. Installing Docker-Compose ..."
 
 
 # Is this paragraph still needed?
-#apt-get install linux-image-extra-$(uname -r)
-apt-get install -y linux-image-generic
+##apt-get install linux-image-extra-$(uname -r)
+#apt-get install -y linux-image-generic
 
 service docker start
 

@@ -19,9 +19,10 @@ if ! grep -q 'EffectiveDiscussions' /etc/sysctl.conf; then
 		###################################################################
 		# EffectiveDiscussions settings
 		#
+		net.ipv4.ip_forward        # makes Docker networking work
 		vm.swappiness=1            # turn off swap, default = 60
-		#net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128
-		#vm.max_map_count=262144    # ElasticSearch requires (at least) this, default = 65530
+		net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128. Sync with conf/web/server-listen-http(s).conf.
+		vm.max_map_count=262144    # ElasticSearch requires (at least) this, default = 65530
 		EOF
 
   log_message 'Reloading the system config...'
@@ -56,10 +57,11 @@ Unattended-Upgrade::Automatic-Reboot "true";
 EOF
 
 
-# Start using any hardware random number generator, in case the server has one.
+# Install 'jq', for viewing json logs.
+# And start using any hardware random number generator, in case the server has one.
 # And install 'tree', nice to have.
-log_message 'Installing rng-tools, why not...'
-apt install rng-tools tree
+log_message 'Installing jq, for json logs, and rng-tools, why not...'
+apt install jq rng-tools tree
 
 
 log_message 'Done configuring Ubuntu.'

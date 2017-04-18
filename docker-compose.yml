@@ -17,12 +17,10 @@ services:
       - '443:443'
     depends_on:
       - app
-    sysctls:
-      # Up the max backlog queue size (num connections per port), default = 128.
-      # SHOULD check if this has any effect, although the host's /etc/sysctl.conf not changed
-      net.core.somaxconn: 8192
     # SECURITY COULD drop capabilities, see: http://rhelblog.redhat.com/2016/10/17/secure-your-containers-with-this-one-weird-trick/
     # Ask at Hacker News: which caps can I drop for an Nginx container? A JVM appserver?
+    # Asked here about Nginx:
+    #   https://stackoverflow.com/questions/43467670/which-capabilities-can-i-drop-in-a-docker-nginx-container
     # For all containers, not just 'web'.
     #cap_drop:
     #  - DAC_OVERRIDE
@@ -80,8 +78,6 @@ services:
     volumes:
       - ./conf/search/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
       - ./data/search/:/usr/share/elasticsearch/data/
-    sysctls:
-      vm.max_map_count: 262144
 
   # (Do this later?)
   # This is a tiny Rust web server to which one POSTs /make-cert?domain=www.example.com
