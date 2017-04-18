@@ -1,26 +1,19 @@
 # For servers with 2 GB RAM.
-# (the 'mem_limit's below won't sum to 2 GB, because we leave some memore for the OS cache.)
 
-version: '2'
+# (We don't make use of all RAM here, because ElasticSearch and Postgres wants
+# fairly much memory in the operating system file system cache, e.g.
+# ElasticSearch wants as much mem for the OS cache as for its own heap.
+# Also, there's a Nginx and a Redis container too.)
+
+
+version: '3.1'
 services:
-  web:
-    mem_limit: 100M
-
   app:
-    mem_limit: 850M
     environment:
       # There's also stack memory and permanent-generation memory.
       PLAY_HEAP_MEMORY_MB: 550
 
-  cache:
-    mem_limit: 50M
-
-  rdb:
-    mem_limit: 200M
-
   search:
-    # If there's too little memory, the container will abruptly exit with status 137
-    # and no error message. This is too little: 380M & Xmx260m
-    mem_limit: 500M
     environment:
       ES_JAVA_OPTS: '-Xms300m -Xmx300m'
+

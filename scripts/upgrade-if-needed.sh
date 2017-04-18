@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on any error.
+set -e
+
 function log_message {
   echo "`date --iso-8601=seconds --utc` upgrade-script: $1"
 }

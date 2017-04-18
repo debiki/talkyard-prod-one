@@ -2,7 +2,7 @@
 
 # Doesn't work. The JVM OOM-kills Play Framework all the time.
 
-version: '2'
+version: '3.1'
 services:
   nginx:
     mem_limit: 30M
