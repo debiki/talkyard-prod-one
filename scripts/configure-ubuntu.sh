@@ -57,10 +57,11 @@ Unattended-Upgrade::Automatic-Reboot "true";
 EOF
 
 
-# Start using any hardware random number generator, in case the server has one.
+# Install 'jq', for viewing json logs.
+# And start using any hardware random number generator, in case the server has one.
 # And install 'tree', nice to have.
-log_message 'Installing rng-tools, why not...'
-apt install rng-tools tree
+log_message 'Installing jq, for json logs, and rng-tools, why not...'
+apt install jq rng-tools tree
 
 
 log_message 'Done configuring Ubuntu.'
