@@ -1,25 +1,59 @@
 #!/bin/bash
 
-# Delete old daily and weekly dumps.
-# (For now, never delete monthly dumps.)
-
 function log_message {
   echo "`date --iso-8601=seconds --utc` delete-backups: $1"
 }
 
+log_message "Deleting old backups ..."
+
+backup_archives_dir=/opt/ed-backup/archives
+deleted_backups_log=./deleted-backups.tmp.log
 
 
-backup_dir=/opt/ed-backups
-log_message "Searching for old backups to delete in $backup_dir/..."
-log_message "Doing nothing. Script not yet implemented. Try 'git fetch origin' and see if there's something new."
-echo
+# Delete old Postgres backups
+# -------------------
 
-# Fix later ...
-# find $backup_dir -daystart -mtime 13 -name "*-postgres.sql.gz'  -printf 'Could delete daily dump file:  %p\n'
+# Delete all older than a year.
+find $backup_archives_dir -type f -name '*-postgres.sql.gz' -mtime +366 -print -delete >> $deleted_backups_log
 
-# Keep daily backups 5 days. Then delete 2/3 backups for the next week. Then keep 1/10 backups for the next two months. Keep monthly backups for a year.
-# regex: grep -v 'T20..-..-01' — keep monthly backups
-# regex: grep -v 'T20..-..-[012]1' — keep one in ten backups: the 01'th, 11'th, 21'th (not the 31'th though)
-# regex: grep -v 'T20..-..-[012][148]' — keep 3 of 10 backups.
+# Keep monthly backups, if older than 2 months.
+find $backup_archives_dir -type f -name '*-postgres.sql.gz' -mtime +62 -not -regex '.*\d\d\d\d-\d\d-01T' -print -delete >> $deleted_backups_log
 
-# echo "Done."
+# Keep 1/10 days backups, if older than 4 weeks. (From the 1st, 11th and 21th days each month, but not 31st.)
+find $backup_archives_dir -type f -name '*-postgres.sql.gz' -mtime +28 -not -regex '.*\d\d\d\d-\d\d-[012]1T' -print -delete >> $deleted_backups_log
+
+# Keep 1/3 days backups, if older than 1 week.
+find $backup_archives_dir -type f -name '*-postgres.sql.gz' -mtime +7 -not -regex '.*\d\d\d\d-\d\d-[012][148]T' -print -delete >> $deleted_backups_log
+
+# For the last 7 days, keep all backups.
+
+
+
+# Delete old Redis backups
+# -------------------
+
+# Redis is a cache. No point in keeping backpus for long.
+
+find $backup_archives_dir -daystart -type f -name '*-redis.rdb.gz' -mtime +4 -print -delete >> $deleted_backups_log
+
+
+
+# Delete old uploads backpus
+# -------------------
+
+# We create archives only once per month, and each such archive includes all uploads that existed
+# at the start of the month, + uploads done during that month.
+# Let's keep this for half a year = 6 archives.
+
+find $backup_archives_dir -type f -name '*-uploads-start-*.tar.gz' -mtime +190 -print -delete >> $deleted_backups_log
+
+# Too complicated:
+# find $backup_archives_dir -type f -name '*-uploads-start-*.tar.gz' -mtime +190 -delete
+# find $backup_archives_dir -type f -name '*-uploads-start-*.tar.gz' -mtime +92 -not -regex '.*\d\d\d\d-\d[147]-\d\d' -delete
+
+
+log_message "Deleted these backups: `cat $deleted_backups_log`"
+log_message "Done deleting backups.
+
+rm $deleted_backups_log
+
