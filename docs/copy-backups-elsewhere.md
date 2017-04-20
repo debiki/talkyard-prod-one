@@ -37,7 +37,7 @@ Then create a backup user with an `authorized_keys` file that allows restricted 
     useradd --create-home remotebackup
     su - remotebackup
     mkdir .ssh
-    echo 'command="/usr/local/bin/rrsync -ro /opt/ed-backups/",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding' >> .ssh/authorized_keys
+    echo 'command="/usr/local/bin/rrsync -ro /opt/ed-backup/archives/",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding' >> .ssh/authorized_keys
 
 Copy the public key on the backup server:
 
