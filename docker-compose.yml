@@ -33,6 +33,9 @@ services:
     volumes:
       - ./conf/app/:/opt/ed/app-conf/:ro
       - ./data/uploads/:/opt/ed/uploads/
+      # So backups can be downloaded via the admin web interface. But read-only,
+      # so evil bugs cannot destroy all backups.
+      - /opt/ed-backup/archives/:/opt/ed/backup-archives/:ro
       # Mount here so log monitoring agents like fluentd can access the log.
       - /var/log/ed/:/var/log/ed/
     links:
@@ -80,8 +83,11 @@ services:
       - ./data/search/:/usr/share/elasticsearch/data/
 
   # (Do this later?)
-  # This is a tiny Rust web server to which one POSTs /make-cert?domain=www.example.com
+  # This is a tiny web server to which one POSTs /make-cert?domain=www.example.com
   # and which then calls Bash & certbot. The resulting cert is mounted :ro in Nginx, above.
+  # Or not a web server? Could be just some Bash scripts that looks at a /secure-hosts file that
+  # the 'app' container updates, and the Bash scripts then creates Let's Encrypt certs for those hosts?
+  # Bash scripts = simpler than a web server + API?
   #certbot:
   #  image: debiki/ed-certbot:$VERSION_TAG
   #  command: certbot-server
