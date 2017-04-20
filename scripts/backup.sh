@@ -14,7 +14,7 @@ fi
 
 log_message "Backing up, tag: '$1'"
 
-when="`date '+%FT%H.%MZ' --utc`"
+when="`date '+%FT%H%MZ' --utc`"
 backup_archives_dir=/opt/ed-backup/archives
 backup_uploads_sync_dir=/opt/ed-backup/uploads-sync
 uploads_dir=/opt/ed/data/uploads
@@ -35,8 +35,8 @@ log_message "Backing up Postgres..."
 # (cron's path apparently doesn't include /sur/local/bin/)
 # Specify -T so Docker won't create a tty, because that results in a Docker Compose
 # stack trace and error exit code.
+# Specify --clean to include commands to drop databases, roles, tablespaces before recreating them.
 /usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists | gzip > $postgres_backup_path
-#./dc exec -T rdb pg_dump --username=ed --clean --if-exists --create ed | gzip > $postgres_backup_path
 log_message "Backed up Postgres to: $postgres_backup_path"
 
 
@@ -76,15 +76,13 @@ fi
 # the most recent one contains all files anyway.
 
 days_since_1970=$(($(date --utc --date "$1" +%s) / 3600 / 24))
-since_days=$(( $days_since_1970 % $days_between_uploads_backup_archives * $days_between_uploads_backup_archives ))
-uploads_since_days_tgz="-uploads-since-$since_days.tar.gz"
-uploads_backup_filename=`hostname`-$when-$1$uploads_since_days_tgz
+since_days=$(( $days_since_1970 / $days_between_uploads_backup_archives * $days_between_uploads_backup_archives ))
+uploads_since_days_tgz="uploads-since-$since_days.tar.gz"
+uploads_backup_filename=`hostname`-$when-$1-$uploads_since_days_tgz
 old_archives_same_since_days=$(find $backup_archives_dir -type f -name '*-uploads-*' | grep "`hostname`.+$uploads_since_days_tgz" | grep -v "$uploads_backup_filename")
 
-do_backup='tar -czf $uploads_backup_filename $backup_uploads_sync_dir'
+do_backup="tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_uploads_sync_dir ./"
 
-pushd .
-cd $backup_archives_dir
 if [ -z "$old_archives_same_since_days" ]; then
   # Then we're starting a new since-days period. Ok to 'rsync --delete'.
   rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
@@ -101,7 +99,6 @@ else
   log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
   log_message "(And deleted old backups that contains the same files: $old_archives_same_since_days )"
 fi
-popd
 
 
 # vim: et ts=2 sw=2 tw=0 fo=r
