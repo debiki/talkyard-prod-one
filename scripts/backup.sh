@@ -75,30 +75,28 @@ fi
 # started this backup series. Delete all old backups with the same "since-NNNN" because
 # the most recent one contains all files anyway.
 
-days_since_1970=$(($(date --utc --date "$1" +%s) / 3600 / 24))
-start_days=$(( $days_since_1970 / $days_between_uploads_backup_archives * $days_between_uploads_backup_archives ))
-start_date=`date -d @$(( $start_days * 3600 * 24 )) +%Y-%m-%d`
+start_date=`date +%Y-%m-01`
 uploads_start_date_tgz="uploads-start-$start_date.tar.gz"
 uploads_backup_filename=`hostname`-$when-$1-$uploads_start_date_tgz
-old_archives_same_start_date=$(find $backup_archives_dir -type f -name '*-uploads-*' | grep "`hostname`.+$uploads_start_date_tgz" | grep -v "$uploads_backup_filename")
+other_archives_same_start_date=$( find $backup_archives_dir -type f -name '*-uploads-*' | grep "`hostname`.+$uploads_start_date_tgz" | grep -v "$uploads_backup_filename" )
 
 do_backup="tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_uploads_sync_dir ./"
 
-if [ -z "$old_archives_same_start_date" ]; then
-  # Then we're starting a new start-date period. Ok to 'rsync --delete'.
+if [ -z "$other_archives_same_start_date" ]; then
+  # Then this is a new month and we're starting a new archive series. Ok to 'rsync --delete'.
   rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
   echo "Synced uploads to: $backup_uploads_sync_dir/, without including uploads that have been deleted"
   $do_backup
   log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
 else
-  # We shall include all stuff that existed at start-date + stuff uploaded later. So don't --delete.
+  # Don't --delete, because the archive shall include all stuff uploaded during the month.
   rsync -a $uploads_dir/ $backup_uploads_sync_dir/
   echo "Synced uploads to: $backup_uploads_sync_dir/"
   $do_backup
-  # Don't need to keep these — they're included in the backup archive we just created.
-  echo "$old_archives_same_start_date" | xargs rm
+  # Don't need to keep older backups from the same month — they're included in the backup archive we just created.
+  echo "$other_archives_same_start_date" | xargs rm
   log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
-  log_message "(And deleted old backups that contains the same files: $old_archives_same_start_date )"
+  log_message "(And deleted these old backups; they are included in the most recent backup anyway: $other_archives_same_start_date )"
 fi
 
 
