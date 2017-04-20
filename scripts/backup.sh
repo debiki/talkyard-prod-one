@@ -78,14 +78,14 @@ fi
 start_date=`date +%Y-%m-01`
 uploads_start_date_tgz="uploads-start-$start_date.tar.gz"
 uploads_backup_filename=`hostname`-$when-$1-$uploads_start_date_tgz
-other_archives_same_start_date=$( find $backup_archives_dir -type f -name '*-uploads-*' | grep "`hostname`.+$uploads_start_date_tgz" | grep -v "$uploads_backup_filename" )
+other_archives_same_start_date=$( find $backup_archives_dir -type f -name '*-uploads-*' | egrep "`hostname`.+$uploads_start_date_tgz" )
 
 do_backup="tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_uploads_sync_dir ./"
 
 if [ -z "$other_archives_same_start_date" ]; then
   # Then this is a new month and we're starting a new archive series. Ok to 'rsync --delete'.
   rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
-  echo "Synced uploads to: $backup_uploads_sync_dir/, without including uploads that have been deleted"
+  echo "Synced uploads to: $backup_uploads_sync_dir/, and deleted uploads that have been deleted"
   $do_backup
   log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
 else
