@@ -76,28 +76,29 @@ fi
 # the most recent one contains all files anyway.
 
 days_since_1970=$(($(date --utc --date "$1" +%s) / 3600 / 24))
-since_days=$(( $days_since_1970 / $days_between_uploads_backup_archives * $days_between_uploads_backup_archives ))
-uploads_since_days_tgz="uploads-since-$since_days.tar.gz"
-uploads_backup_filename=`hostname`-$when-$1-$uploads_since_days_tgz
-old_archives_same_since_days=$(find $backup_archives_dir -type f -name '*-uploads-*' | grep "`hostname`.+$uploads_since_days_tgz" | grep -v "$uploads_backup_filename")
+start_days=$(( $days_since_1970 / $days_between_uploads_backup_archives * $days_between_uploads_backup_archives ))
+start_date=`date -d @$(( $start_days * 3600 * 24 )) +%Y-%m-%d`
+uploads_start_date_tgz="uploads-start-$start_date.tar.gz"
+uploads_backup_filename=`hostname`-$when-$1-$uploads_start_date_tgz
+old_archives_same_start_date=$(find $backup_archives_dir -type f -name '*-uploads-*' | grep "`hostname`.+$uploads_start_date_tgz" | grep -v "$uploads_backup_filename")
 
 do_backup="tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_uploads_sync_dir ./"
 
-if [ -z "$old_archives_same_since_days" ]; then
-  # Then we're starting a new since-days period. Ok to 'rsync --delete'.
+if [ -z "$old_archives_same_start_date" ]; then
+  # Then we're starting a new start-date period. Ok to 'rsync --delete'.
   rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
   echo "Synced uploads to: $backup_uploads_sync_dir/, without including uploads that have been deleted"
   $do_backup
   log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
 else
-  # We shall include all stuff that existed at since-days + stuff uploaded later. So don't --delete.
+  # We shall include all stuff that existed at start-date + stuff uploaded later. So don't --delete.
   rsync -a $uploads_dir/ $backup_uploads_sync_dir/
   echo "Synced uploads to: $backup_uploads_sync_dir/"
   $do_backup
   # Don't need to keep these — they're included in the backup archive we just created.
-  echo "$old_archives_same_since_days" | xargs rm
+  echo "$old_archives_same_start_date" | xargs rm
   log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
-  log_message "(And deleted old backups that contains the same files: $old_archives_same_since_days )"
+  log_message "(And deleted old backups that contains the same files: $old_archives_same_start_date )"
 fi
 
 
