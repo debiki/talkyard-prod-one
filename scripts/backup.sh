@@ -18,10 +18,6 @@ when="`date '+%FT%H%MZ' --utc`"
 backup_archives_dir=/opt/ed-backup/archives
 backup_uploads_sync_dir=/opt/ed-backup/uploads-sync
 uploads_dir=/opt/ed/data/uploads
-days_between_uploads_backup_archives=`sed -nr 's/^DAYS_BETWEEN_UPLOADS_BACKUP_ARCHIVES=([0-9]+).*/\1/p' .env`
-if [ -z "$days_between_uploads_backup_archives" ]; then
-  days_between_uploads_backup_archives=20
-fi
 
 mkdir -p $backup_archives_dir
 mkdir -p $backup_uploads_sync_dir
@@ -83,13 +79,12 @@ find $backup_test_dir -type f -mtime +31 -delete
 touch $backup_test_dir/$(date --utc +%FT%H%M)--$(hostname)--$random_value
 
 # Don't want to archive all uploads every day — then we might soon run out of disk (if there're
-# many uploads — they can be huge). Instead, create archives every $days_between_uploads_backup_archives days
-# only, which contains all files uploaded in between.
-# So:
-# Every $days_between_uploads_backup_archives days, start growing a new uploads-backup-archive
-# with a name matching  -uploads-since-NNNN.tar.gz where NNNN is num-days-since-1970 when we
-# started this backup series. Delete all old backups with the same "since-NNNN" because
-# the most recent one contains all files anyway.
+# many uploads — they can be huge). Instead, create archives every month only, which contains
+# all files uploaded in between. So:
+# Every new month, start growing a new uploads-backup-archive
+# with a name matching  -uploads-since-<date>.tar.gz where <date> is the start of the month.
+# Delete all old backups with the same "since-<date>" because the most recent one contains
+# all files in those archives anyway.
 
 start_date=`date +%Y-%m-01`
 uploads_start_date_tgz="uploads-start-$start_date.tar.gz"
@@ -112,7 +107,7 @@ else
   # Don't need to keep older backups from the same month — they're included in the backup archive we just created.
   echo "$other_archives_same_start_date" | xargs rm
   log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
-  log_message "(And deleted these old backups; they are included in the most recent backup anyway: $other_archives_same_start_date )"
+  log_message "Deleted these old backups; their contents is included in the backup we just did: $other_archives_same_start_date"
 fi
 
 
