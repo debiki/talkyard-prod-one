@@ -26,9 +26,16 @@ fi
 mkdir -p $backup_archives_dir
 mkdir -p $backup_uploads_sync_dir
 
+random_value=$( cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 )
+log_message "Generated random test-that-backups-work value: '$random_value'"
+
 
 # Backup Postgres
 # -------------------
+
+# Insert a backup test timestamp, so we somewhere else can check that the contents of the backup is recent.
+docker-compose exec rdb psql ed ed -c \
+    "insert into backup_test_log3 (logged_at, logged_by, random_value) values (now_utc(), '`hostname`', '$random_value');"
 
 postgres_backup_path=$backup_archives_dir/`hostname`-$when-$1-postgres.sql.gz
 log_message "Backing up Postgres..."
@@ -65,6 +72,15 @@ fi
 
 # Backup uploads
 # -------------------
+
+# Insert a backup test timestamp, so we can check that the backup archive contents is fresh.
+# Do this as files with the timestamp in the file name — because then they can be checked for
+# by just listing (but not extracting) the contents of the archive.
+# This creates a file like:  2017-04-21T0425--server-hostname--NxWsTsQvVnp2y0YvN8sb
+backup_test_dir=$uploads_dir/backup-test
+mkdir -p $backup_test_dir
+find $backup_test_dir -type f -mtime +31 -delete
+touch $backup_test_dir/$(date --utc +%FT%H%M)--$(hostname)--$random_value
 
 # Don't want to archive all uploads every day — then we might soon run out of disk (if there're
 # many uploads — they can be huge). Instead, create archives every $days_between_uploads_backup_archives days
