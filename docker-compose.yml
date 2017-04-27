@@ -1,4 +1,4 @@
-version: '2'
+version: '3.1'
 services:
   web:
     image: debiki/ed-web:$VERSION_TAG
@@ -17,20 +17,14 @@ services:
       - '443:443'
     depends_on:
       - app
-
-  # (todo)
-  # This is a tiny Rust web server to which one POSTs /make-cert?domain=www.example.com
-  # and which then calls Bash & certbot. The resulting cert is mounted :ro in Nginx, above.
-  #certbot:
-  #  image: debiki/ed-certbot:$VERSION_TAG
-  #  command: certbot-server
-  #  restart: always
-  #  volumes:
-  #    - ./data/certbot/:/etc/certbot/
-  #    - ./data/certbot-challenges/.well-known/:/opt/webserver/html/.well-known/
-  #
-  # todo:
-  #   docker-compose run --rm certbot certbot ...  ?
+    # SECURITY COULD drop capabilities, see: http://rhelblog.redhat.com/2016/10/17/secure-your-containers-with-this-one-weird-trick/
+    # Ask at Hacker News: which caps can I drop for an Nginx container? A JVM appserver?
+    # Asked here about Nginx:
+    #   https://stackoverflow.com/questions/43467670/which-capabilities-can-i-drop-in-a-docker-nginx-container
+    # For all containers, not just 'web'.
+    #cap_drop:
+    #  - DAC_OVERRIDE
+    #  ... many more?
 
   app:
     image: debiki/ed-app:$VERSION_TAG
@@ -39,6 +33,9 @@ services:
     volumes:
       - ./conf/app/:/opt/ed/app-conf/:ro
       - ./data/uploads/:/opt/ed/uploads/
+      # So backups can be downloaded via the admin web interface. But read-only,
+      # so evil bugs cannot destroy all backups.
+      - /opt/ed-backup/archives/:/opt/ed/backup-archives/:ro
       # Mount here so log monitoring agents like fluentd can access the log.
       - /var/log/ed/:/var/log/ed/
     links:
@@ -77,10 +74,29 @@ services:
       # PEER_PASSWORD: '...'
 
   search:
+    # alpha4 unfortunately, because ElasticSearch clients for later versions cause a Netty JAR dependency conflict.
+    # SHOULD upgrade, later: The ES team is creating a client that doesn't use Netty, + the Play Framework people are moving to some Akka HTTP stuff instead, wait for either of these to happen then upgrade.
     image: elasticsearch:5.0.0-alpha4
     restart: always
     volumes:
       - ./conf/search/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
       - ./data/search/:/usr/share/elasticsearch/data/
+
+  # (Do this later?)
+  # This is a tiny web server to which one POSTs /make-cert?domain=www.example.com
+  # and which then calls Bash & certbot. The resulting cert is mounted :ro in Nginx, above.
+  # Or not a web server? Could be just some Bash scripts that looks at a /secure-hosts file that
+  # the 'app' container updates, and the Bash scripts then creates Let's Encrypt certs for those hosts?
+  # Bash scripts = simpler than a web server + API?
+  #certbot:
+  #  image: debiki/ed-certbot:$VERSION_TAG
+  #  command: certbot-server
+  #  restart: always
+  #  volumes:
+  #    - ./data/certbot/:/etc/certbot/
+  #    - ./data/certbot-challenges/.well-known/:/opt/webserver/html/.well-known/
+  #
+  # todo:
+  #   docker-compose run --rm certbot certbot ...  ?
 
 # vim: et ts=2 sw=2

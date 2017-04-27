@@ -55,7 +55,7 @@ Installation instructions
 
         ./scripts/install-docker-compose.sh 2>&1 | tee -a ed-maint.log
 
-        # Afterwards, this should say "docker-compose version 1.8.0 ..." (or later):
+        # Afterwards, this should say "docker-compose version 1.12.0 ..." (or later):
         docker-compose -v
 
 1. Configure Ubuntu: enable automatic security updates, simplify troubleshooting,

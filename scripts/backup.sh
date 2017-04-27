@@ -14,21 +14,32 @@ fi
 
 log_message "Backing up, tag: '$1'"
 
-when="`date '+%FT%H.%MZ' --utc`"
-backup_dir=/opt/ed-backups
-mkdir -p $backup_dir
+when="`date '+%FT%H%MZ' --utc`"
+backup_archives_dir=/opt/ed-backup/archives
+backup_uploads_sync_dir=/opt/ed-backup/uploads-sync
+uploads_dir=/opt/ed/data/uploads
+
+mkdir -p $backup_archives_dir
+mkdir -p $backup_uploads_sync_dir
+
+random_value=$( cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 )
+log_message "Generated random test-that-backups-work value: '$random_value'"
 
 
 # Backup Postgres
 # -------------------
 
-postgres_backup_path=$backup_dir/`hostname`-$1-$when-postgres.sql.gz
+# Insert a backup test timestamp, so we somewhere else can check that the contents of the backup is recent.
+docker-compose exec rdb psql ed ed -c \
+    "insert into backup_test_log3 (logged_at, logged_by, random_value) values (now_utc(), '`hostname`', '$random_value');"
+
+postgres_backup_path=$backup_archives_dir/`hostname`-$when-$1-postgres.sql.gz
 log_message "Backing up Postgres..."
 # (cron's path apparently doesn't include /sur/local/bin/)
 # Specify -T so Docker won't create a tty, because that results in a Docker Compose
 # stack trace and error exit code.
+# Specify --clean to include commands to drop databases, roles, tablespaces before recreating them.
 /usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists | gzip > $postgres_backup_path
-#./dc exec -T rdb pg_dump --username=ed --clean --if-exists --create ed | gzip > $postgres_backup_path
 log_message "Backed up Postgres to: $postgres_backup_path"
 
 
@@ -41,7 +52,7 @@ log_message "Backed up Postgres to: $postgres_backup_path"
 # See http://redis.io/topics/persistence
 
 if [ -f data/cache/dump.rdb ]; then
-  redis_backup_path=$backup_dir/`hostname`-$1-$when-redis.rdb.gz
+  redis_backup_path=$backup_archives_dir/`hostname`-$when-$1-redis.rdb.gz
   log_message "Backing up Redis..."
   gzip --to-stdout data/cache/dump.rdb > $redis_backup_path
   log_message "Backed up Redis to: $redis_backup_path"
@@ -52,7 +63,52 @@ fi
 
 # Backup ElasticSearch?
 # -------------------
-# ... later ...
+# ... later ... Not important. Can just rebuild the search index.
+
+
+# Backup uploads
+# -------------------
+
+# Insert a backup test timestamp, so we can check that the backup archive contents is fresh.
+# Do this as files with the timestamp in the file name — because then they can be checked for
+# by just listing (but not extracting) the contents of the archive.
+# This creates a file like:  2017-04-21T0425--server-hostname--NxWsTsQvVnp2y0YvN8sb
+backup_test_dir=$uploads_dir/backup-test
+mkdir -p $backup_test_dir
+find $backup_test_dir -type f -mtime +31 -delete
+touch $backup_test_dir/$(date --utc +%FT%H%M)--$(hostname)--$random_value
+
+# Don't want to archive all uploads every day — then we might soon run out of disk (if there're
+# many uploads — they can be huge). Instead, create archives every month only, which contains
+# all files uploaded in between. So:
+# Every new month, start growing a new uploads-backup-archive
+# with a name matching  -uploads-since-<date>.tar.gz where <date> is the start of the month.
+# Delete all old backups with the same "since-<date>" because the most recent one contains
+# all files in those archives anyway.
+
+start_date=`date +%Y-%m-01`
+uploads_start_date_tgz="uploads-start-$start_date.tar.gz"
+uploads_backup_filename=`hostname`-$when-$1-$uploads_start_date_tgz
+other_archives_same_start_date=$( find $backup_archives_dir -type f -name '*-uploads-*' | egrep "`hostname`.+$uploads_start_date_tgz" )
+
+do_backup="tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_uploads_sync_dir ./"
+
+if [ -z "$other_archives_same_start_date" ]; then
+  # Then this is a new month and we're starting a new archive series. Ok to 'rsync --delete'.
+  rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
+  echo "Synced uploads to: $backup_uploads_sync_dir/, and deleted uploads that have been deleted"
+  $do_backup
+  log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
+else
+  # Don't --delete, because the archive shall include all stuff uploaded during the month.
+  rsync -a $uploads_dir/ $backup_uploads_sync_dir/
+  echo "Synced uploads to: $backup_uploads_sync_dir/"
+  $do_backup
+  # Don't need to keep older backups from the same month — they're included in the backup archive we just created.
+  echo "$other_archives_same_start_date" | xargs rm
+  log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
+  log_message "Deleted these old backups; their contents is included in the backup we just did: $other_archives_same_start_date"
+fi
 
 
 # vim: et ts=2 sw=2 tw=0 fo=r
