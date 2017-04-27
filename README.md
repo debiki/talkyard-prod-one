@@ -3,7 +3,7 @@ Effective Discussions production installation
 
 For one single server.
 
-<b>Please wait one week or two before installing this. I'm just in the progress of changing lots of stuff -- you'd better wait until that's been done. See the 'wip' branch (wip = Work In Progress).</b>
+<b>Please wait one week or two before installing this. I just did lots of changes, about to test them for a while now.</b>
 
 <u>Warning 1:</u> As of now, only use this, if you understand Git and Docker (or
 want to take risks & learn).
