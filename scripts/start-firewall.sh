@@ -8,6 +8,8 @@ function log_message {
 echo
 log_message "Enabling firewall..."
 
+apt-get -y install ufw
+
 # Configure a firewall: (not needed if you're using Google Compute Engine)
 ufw allow 22
 ufw allow 80

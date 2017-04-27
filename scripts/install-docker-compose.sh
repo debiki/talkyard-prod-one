@@ -10,7 +10,7 @@ echo
 log_message "Installing Docker and Docker-Compose..."
 
 
-apt-get install \
+apt-get -y install \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -41,7 +41,7 @@ add-apt-repository \
 
 apt-get update
 
-apt-get install docker-ce=17.03.1~ce-0~ubuntu-xenial
+apt-get -y install docker-ce=17.03.1~ce-0~ubuntu-xenial
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
@@ -59,7 +59,7 @@ log_message "Docker worked fine. Installing Docker-Compose ..."
 
 
 # Is this paragraph still needed?
-##apt-get install linux-image-extra-$(uname -r)
+##apt-get install -y linux-image-extra-$(uname -r)
 #apt-get install -y linux-image-generic
 
 service docker start

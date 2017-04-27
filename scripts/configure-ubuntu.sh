@@ -10,6 +10,17 @@ echo
 echo
 log_message 'Configuring Ubuntu:'
 
+
+# Install 'jq', for viewing json logs.
+# And start using any hardware random number generator, in case the server has one.
+# And install 'tree', nice to have.
+log_message 'Installing jq, for json logs. And rng-tools, why not...'
+apt-get -y install jq rng-tools tree
+
+log_message 'Installing add-apt-repository...'
+apt-get -y install software-properties-common
+
+
 # Append system config settings, so the ElasticSearch Docker container will work:
 
 if ! grep -q 'EffectiveDiscussions' /etc/sysctl.conf; then
@@ -47,21 +58,16 @@ fi
 
 
 # Automatically apply OS security patches.
+# The --force-confdef/old tells Apt to not overwrite any existing configuration, and to ask no questions.
+# See e.g.: https://askubuntu.com/a/104912/48382.
 log_message 'Configuring automatic security updates and reboots...'
-apt-get install -y unattended-upgrades
-apt-get install -y update-notifier-common
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
+    unattended-upgrades update-notifier-common
 cat <<EOF > /etc/apt/apt.conf.d/20auto-upgrades
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
-
-
-# Install 'jq', for viewing json logs.
-# And start using any hardware random number generator, in case the server has one.
-# And install 'tree', nice to have.
-log_message 'Installing jq, for json logs. And rng-tools, why not...'
-apt install jq rng-tools tree
 
 
 log_message 'Done configuring Ubuntu.'

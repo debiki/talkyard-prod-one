@@ -4,12 +4,12 @@ services:
     image: debiki/ed-web:$VERSION_TAG
     restart: always
     volumes:
-      - ./data/uploads/:/opt/ed/uploads/:ro
-      - ./conf/web/listen.conf:/etc/nginx/listen.conf:ro
-      #- ./conf/web/default-site/:/etc/nginx/default-site/:ro
+      - ./conf/web/server-listen-http.conf:/etc/nginx/server-listen.conf:ro
+      - ./conf/web/default-site/:/etc/nginx/default-site/:ro
       - ./data/sites-enabled/:/etc/nginx/sites-enabled/:ro
       - ./data/certbot/:/etc/certbot/:ro
       - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro
+      - ./data/uploads/:/opt/ed/uploads/:ro
       # Mount here so standard monitoring tools looking for Nginx logs will work.
       - /var/log/nginx/:/var/log/nginx/
     ports:

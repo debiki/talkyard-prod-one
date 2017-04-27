@@ -44,21 +44,15 @@ ARM servers.)
 Installation instructions
 ----------------
 
-1. Git-clone this repo: (you need to do like this for the backup scripts to work)
+1. Download source code, using a program named Git: (you need to do like this for the backup scripts to work)
 
         sudo -i
+        apt-get -y install git
         cd /opt/
         git clone https://github.com/debiki/ed-prod-one.git ed
         cd ed
 
-1. Install Docker
-
-        ./scripts/install-docker-compose.sh 2>&1 | tee -a ed-maint.log
-
-        # Afterwards, this should say "docker-compose version 1.12.0 ..." (or later):
-        docker-compose -v
-
-1. Configure Ubuntu: enable automatic security updates, simplify troubleshooting,
+1. Configure Ubuntu: install tools, enable automatic security updates, simplify troubleshooting,
    and make ElasticSearch work:
 
         ./scripts/configure-ubuntu.sh 2>&1 | tee -a ed-maint.log
@@ -67,6 +61,13 @@ Installation instructions
   sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
   `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
   won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
+
+1. Install Docker
+
+        ./scripts/install-docker-compose.sh 2>&1 | tee -a ed-maint.log
+
+        # Afterwards, this should say "docker-compose version 1.12.0 ..." (or later):
+        docker-compose -v
 
 1. Start a firewall: (you can skip this if you use Google Cloud Engine; GCE already has a firewall)
 
