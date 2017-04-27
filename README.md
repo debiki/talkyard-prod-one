@@ -47,6 +47,7 @@ Installation instructions
 1. Download source code, using a program named Git: (you need to do like this for the backup scripts to work)
 
         sudo -i
+        apt-get update
         apt-get -y install git
         cd /opt/
         git clone https://github.com/debiki/ed-prod-one.git ed
@@ -65,9 +66,6 @@ Installation instructions
 1. Install Docker
 
         ./scripts/install-docker-compose.sh 2>&1 | tee -a ed-maint.log
-
-        # Afterwards, this should say "docker-compose version 1.12.0 ..." (or later):
-        docker-compose -v
 
 1. Start a firewall: (you can skip this if you use Google Cloud Engine; GCE already has a firewall)
 
