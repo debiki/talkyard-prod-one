@@ -32,10 +32,11 @@ cd versions
 /usr/bin/git checkout master
 /usr/bin/git pull
 
-# Don't upgrade to WIP = work-in-progress versions. Don't upgrade to new software stack versions = 'stack'
+# Don't upgrade to WIP = work-in-progress versions, or 'test' version. And, by default, neither
+# to 'alpha' or 'beta' or 'rc' versions. Don't upgrade to new software stack versions = 'stack'
 # because in order to do than, one will probably need to run `git pull` and resolve edit conflicts,
-# perhaps run scripts.
-NEXT_VERSION=`grep -v --regex='WIP' --regex='stack' version-tags.log | tail -n1`
+# perhaps run scripts or even export the PostgreSQL database and import into another type of database.
+NEXT_VERSION=`grep -v --regex='WIP' --regex='-alpha' --regex='-beta' --regex='-rc' --regex='stack' --regex='test' version-tags.log | tail -n1`
 cd ..
 
 if [ -z "$NEXT_VERSION" ]; then

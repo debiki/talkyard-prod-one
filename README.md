@@ -53,15 +53,15 @@ Installation instructions
         git clone https://github.com/debiki/ed-prod-one.git ed
         cd ed
 
-1. Configure Ubuntu: install tools, enable automatic security updates, simplify troubleshooting,
+1. Prepare Ubuntu: install tools, enable automatic security updates, simplify troubleshooting,
    and make ElasticSearch work:
 
-        ./scripts/configure-ubuntu.sh 2>&1 | tee -a ed-maint.log
+        ./scripts/prepare-ubuntu.sh 2>&1 | tee -a ed-maint.log
 
-  (If you don't want to run all stuff in this script, you at least need to copy the
-  sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
-  `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
-  won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
+   (If you don't want to run all stuff in this script, you at least need to copy the
+   sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
+   `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
+   won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
 
 1. Install Docker
 
