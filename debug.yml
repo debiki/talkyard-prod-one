@@ -1,7 +1,7 @@
 # Opens ports to Docker containers so you can connect and debug. If you make use of this file,
 # be sure to configure a firewall to block these ports, and then access them via an SSH tunnel.
 
-version: '2'
+version: '3.1'
 services:
   app:
     ports:
