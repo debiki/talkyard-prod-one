@@ -82,13 +82,7 @@ services:
       # a directory from the OS okay then? (that's using (parts of) a host's device/volume.
       # https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html#docker-cli-run-prod-mode
       - ./data/search/:/usr/share/elasticsearch/data/
-      - ./data/search-logs/:/usr/share/elasticsearch/logs/
-    ports:
-      - '9200:9200'
-      - '9300:9300'
-    # If too low, the 'search' container will suddenly exit with code 137. No error message
-    # will get logged — instead it just exits, suddenly. Why? OOM-killed? In Docker? Hmm.
-    #mem_limit: 800M
+      - /var/log/elasticsearch/:/usr/share/elasticsearch/logs/
     environment:
       bootstrap.memory_lock: 'true'
       ES_JAVA_OPTS: '-Xms512m -Xmx512m'
@@ -100,21 +94,13 @@ services:
         soft: 65536
         hard: 65536
 
-  # (Do this later?)
-  # This is a tiny web server to which one POSTs /make-cert?domain=www.example.com
-  # and which then calls Bash & certbot. The resulting cert is mounted :ro in Nginx, above.
-  # Or not a web server? Could be just some Bash scripts that looks at a /secure-hosts file that
-  # the 'app' container updates, and the Bash scripts then creates Let's Encrypt certs for those hosts?
-  # Bash scripts = simpler than a web server + API?
-  #certbot:
-  #  image: debiki/ed-certbot:$VERSION_TAG
-  #  command: certbot-server
-  #  restart: always
-  #  volumes:
-  #    - ./data/certbot/:/etc/certbot/
-  #    - ./data/certbot-challenges/.well-known/:/opt/webserver/html/.well-known/
-  #
-  # todo:
-  #   docker-compose run --rm certbot certbot ...  ?
+  certgen:
+    image: debiki/ed-certgen:$VERSION_TAG
+    restart: always
+    volumes:
+      - ./data/sites-enabled/:/etc/nginx/sites-enabled/
+      - ./data/certbot/:/etc/certbot/
+      - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/
+      - /var/log/certgen/:/var/log/certgen/
 
 # vim: et ts=2 sw=2
