@@ -46,14 +46,14 @@ services:
       CONFIG_FILE: /opt/ed/app-conf/play.conf
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
 
-  # SHOULD build my own Redis image for this, so I can auto upgrade the Redis config
-  # by bumping the $VERSION_TAG.
   cache:
-    image: redis:3.0.7-alpine
+    image: debiki/ed-cache:$VERSION_TAG
     restart: always
     volumes:
       - ./data/cache/:/data/
       - /var/log/redis/:/var/log/redis/
+    sysctls:
+      net.core.somaxconn: 511
 
   rdb:
     image: debiki/ed-rdb:$VERSION_TAG
@@ -74,13 +74,31 @@ services:
       # PEER_PASSWORD: '...'
 
   search:
-    # alpha4 unfortunately, because ElasticSearch clients for later versions cause a Netty JAR dependency conflict.
-    # SHOULD upgrade, later: The ES team is creating a client that doesn't use Netty, + the Play Framework people are moving to some Akka HTTP stuff instead, wait for either of these to happen then upgrade.
-    image: elasticsearch:5.0.0-alpha4
+    image: debiki/ed-search:$VERSION_TAG
     restart: always
     volumes:
-      - ./conf/search/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      # COULD_OPTIMIZE Maybe use a Docker volume contanier here instead? What does the docs mean when
+      # they say "Always use a volume bound on /usr/share/elasticsearch/data" — is mapping
+      # a directory from the OS okay then? (that's using (parts of) a host's device/volume.
+      # https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html#docker-cli-run-prod-mode
       - ./data/search/:/usr/share/elasticsearch/data/
+      - ./data/search-logs/:/usr/share/elasticsearch/logs/
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    # If too low, the 'search' container will suddenly exit with code 137. No error message
+    # will get logged — instead it just exits, suddenly. Why? OOM-killed? In Docker? Hmm.
+    #mem_limit: 800M
+    environment:
+      bootstrap.memory_lock: 'true'
+      ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
 
   # (Do this later?)
   # This is a tiny web server to which one POSTs /make-cert?domain=www.example.com

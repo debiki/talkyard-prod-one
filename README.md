@@ -57,6 +57,7 @@ Installation instructions
    and make ElasticSearch work:
 
         ./scripts/prepare-ubuntu.sh 2>&1 | tee -a ed-maint.log
+        export LC_ALL=en_US.UTF-8 # fix harmles but annoying language-missing warnings
 
    (If you don't want to run all stuff in this script, you at least need to copy the
    sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
@@ -67,7 +68,8 @@ Installation instructions
 
         ./scripts/install-docker-compose.sh 2>&1 | tee -a ed-maint.log
 
-1. Start a firewall: (you can skip this if you use Google Cloud Engine; GCE already has a firewall)
+1. Start a firewall: (and answer Yes to the question you'll get. You can skip this if
+   you use Google Cloud Engine; GCE already has a firewall)
 
         ./scripts/start-firewall.sh 2>&1 | tee -a ed-maint.log
 

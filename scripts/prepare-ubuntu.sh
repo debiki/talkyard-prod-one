@@ -11,6 +11,21 @@ echo
 log_message 'Configuring Ubuntu:'
 
 
+# Avoid harmless "warning: Setting locale failed" warnings from Perl:
+# (https://askubuntu.com/questions/162391/how-do-i-fix-my-locale-issue)
+locale-gen 'en_US.UTF-8'
+if ! grep -q 'LC_ALL=' /etc/default/locale; then
+  echo 'Setting LC_ALL to en_US.UTF-8...'
+  echo 'LC_ALL=en_US.UTF-8' >> /etc/default/locale
+  export LC_ALL='en_US.UTF-8'
+fi
+if ! grep -q 'LANG=' /etc/default/locale; then
+  echo 'Setting LANG to en_US.UTF-8...'
+  echo 'LANG=en_US.UTF-8' >> /etc/default/locale
+  export LANG='en_US.UTF-8'
+fi
+
+
 # Install 'jq', for viewing json logs.
 # And start using any hardware random number generator, in case the server has one.
 # And install 'tree', nice to have.
@@ -38,6 +53,20 @@ if ! grep -q 'EffectiveDiscussions' /etc/sysctl.conf; then
 
   log_message 'Reloading the system config...'
   sysctl --system
+fi
+
+
+# Make Redis happier:
+# Redis doesn't want Transparent Huge Pages (THP) enabled, because that creates
+# latency and memory usage issues with Redis. Disable THP now directly, and also
+# after restart: (as recommended by Redis)
+echo 'Disabling Transparent Huge Pages (for Redis)...'
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+if ! grep -q 'transparent_hugepage/enabled' /etc/rc.local; then
+  echo 'Disabling Transparent Huge Pages after reboot, in /etc/rc.local...'
+  # Insert ('i') before the last line ('$') in rc.local, which always? is
+  # 'exit 0' in a new Ubuntu installation.
+  sed -i -e '$i # For EffectiveDiscussions and the Redis Docker container:\necho never > /sys/kernel/mm/transparent_hugepage/enabled\n' /etc/rc.local
 fi
 
 

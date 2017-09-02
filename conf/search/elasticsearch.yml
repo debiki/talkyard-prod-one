@@ -1,8 +1,0 @@
-network.host: 0.0.0.0
-
-# Required, because network.host specified.
-# Should be a quorum of master-eligible nodes: (num_master_eligible_nodes / 2) + 1
-discovery.zen.minimum_master_nodes: 1
-
-action.auto_create_index: false
-
