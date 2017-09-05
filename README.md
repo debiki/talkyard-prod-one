@@ -57,12 +57,15 @@ Installation instructions
    and make ElasticSearch work:
 
         ./scripts/prepare-ubuntu.sh 2>&1 | tee -a ed-maint.log
-        export LC_ALL=en_US.UTF-8 # fix harmles but annoying language-missing warnings
 
    (If you don't want to run all stuff in this script, you at least need to copy the
    sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
    `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
    won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
+
+   Also do this, to avoid harmless but annoying language-missing warnings:
+
+        export LC_ALL=en_US.UTF-8
 
 1. Install Docker
 
@@ -109,9 +112,9 @@ Installation instructions
 
    If you didn't configure any email server (in `play.conf`), no
    email-address-verification-email will be sent to you. However, you'll find
-   an address verification URL in the server's log file, which you can view
-   like so: `sudo docker-compose logs app`. Copy-paste the URL into the
-   browser.  You can [send an email again] / [write the URL to the log file
+   an address verification URL in the application server's log file, which you can view
+   like so: `./view-logs app` (or `./view-logs -f --tail 30 app`). Copy-paste
+   the URL into the browser.  You can [send an email again] / [write the URL to the log file
    again] by clicking the _Send email again_ button.
 
 

@@ -17,6 +17,9 @@ services:
       - '443:443'
     depends_on:
       - app
+    #environment:
+    #  X_PULL_KEY: '...'
+    #  CDN_PULL_KEY: '...'
     # SECURITY COULD drop capabilities, see: http://rhelblog.redhat.com/2016/10/17/secure-your-containers-with-this-one-weird-trick/
     # Ask at Hacker News: which caps can I drop for an Nginx container? A JVM appserver?
     # Asked here about Nginx:
