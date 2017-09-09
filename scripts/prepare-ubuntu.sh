@@ -45,10 +45,11 @@ if ! grep -q 'EffectiveDiscussions' /etc/sysctl.conf; then
 		###################################################################
 		# EffectiveDiscussions settings
 		#
-		net.ipv4.ip_forward        # makes Docker networking work
+		net.ipv4.ip_forward=1      # makes Docker networking work
 		vm.swappiness=1            # turn off swap, default = 60
 		net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128. Sync with conf/web/server-listen-http(s).conf.
-		vm.max_map_count=262144    # ElasticSearch requires (at least) this, default = 65530
+		vm.max_map_count=262144    # ElasticSearch wants this, default = 65530
+		                           # See: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
 		EOF
 
   log_message 'Reloading the system config...'

@@ -1,27 +1,21 @@
-Effective Discussions production installation
+EffectiveDiscussions production installation
 ================
 
 For one single server.
 
-<b>Please wait one week or two before installing this. I just did lots of changes, about to test them for a while now.</b>
+Only use this, if you understand Git and Docker, and are familiar with Linux
+and Bash. Or if you want to take risks & learn new things. Details: You might
+run into Git edit conflicts, if you and I change the same files, and you
+probably need to know how to resolve any such edit conflicts.  Also it'd be
+good for you if you know what Docker containers are, and how to restart them.
 
-<u>Warning 1:</u> As of now, only use this, if you understand Git and Docker (or
-want to take risks & learn).
-
-Details: You might run into Git edit conflicts, if you and I change the same
-files. Also I'm thinking about somehow switching from Docker to CoreOS' rkt,
-because rkt doesn't require you to have root permissions. You might then need
-to install an ED tech stack based on rkt on a different server, and backup-restore
-your database to that server.
-
-<u>Warning 2:</u> Please read the license (at the end of this page): all this is
-provided "as-is" without any warranty of any kind. This software is still under
-development — there might be bugs, including security bugs.
+This is beta software; there might be bugs. Also, in a few cases when upgrading
+to newer versions, maybe you'll need to do some stuff manually.
 
 Feel free to report problems and ask questions in [our support forum](http://www.effectivediscussions.org/forum/latest/support).
 
-If you'd like to test install on your laptop / desktop just to test, there's
-[a Vagrantfile here](scripts/Vagrantfile), open it in a text editor, and read,
+If you'd like to install on your laptop / desktop just to test, there's
+[a Vagrantfile here](scripts/Vagrantfile) — open it in a text editor, and read,
 for details.
 
 
@@ -44,7 +38,7 @@ ARM servers.)
 Installation instructions
 ----------------
 
-1. Download source code, using a program named Git: (you need to do like this for the backup scripts to work)
+1. Download installation scripts: (you need to do like this for the backup scripts to work)
 
         sudo -i
         apt-get update
@@ -67,7 +61,7 @@ Installation instructions
 
         export LC_ALL=en_US.UTF-8
 
-1. Install Docker
+1. Install Docker:
 
         ./scripts/install-docker-compose.sh 2>&1 | tee -a ed-maint.log
 
@@ -86,12 +80,14 @@ Installation instructions
         nano conf/app/play.conf   # edit all config values in the Required Settings section
         nano .env                 # edit the database password
 
-   (If you're using a non-standard port, say 8080, then add `ed.port=8080` to `play.conf`.)
+   Note:
+   - If you don't edit `play.http.secret.key` in file `play.conf`, the server won't start.
+   - If you're using a non-standard port, say 8080, then add `ed.port=8080` to `play.conf`.
 
 1. Depending on how much RAM your server has, choose one of these files:
    mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
    and copy it to ./docker-compose.override.yml. For example, for
-   a Digital Ocean server with 2 GB RAM:
+   a server with 2 GB RAM:
 
         cp mem/2g.yml docker-compose.override.yml
 
@@ -122,8 +118,14 @@ Now you're done. Everything will restart automatically on server reboot.
 
 Next things for you to do:
 
-- Copy backups off-site, regularly. See the Backups section below.
 - In the browser, follow the getting-started guide.
+- Copy backups off-site, regularly. See the Backups section below.
+- Pay for some send-email-service (e.g. https://www.sparkpost.com, they seem
+  inexpensive), and configure email server settings in `conf/app/play.conf`.
+- Configure Gmail and Facebook login — I should write instructions for this.
+- Send an email to `support at ed.community` so we get your address, and can
+  contact you to inform you about security issues and about major softgrade
+  upgrades that might require you to do something manually.
 
 
 
@@ -135,13 +137,11 @@ If you followed the instructions above — that is, if you ran these scripts:
 — then your server should keep itself up-to-date, and ought to require no maintenance,
 _until_ ...
 
-
-... _Until_ one day when I do some unusual tech stack changes, like changing from
-Docker to CoreOS rkt, or upgrading PostgreSQL.
-Then, you will likely need to do things like `git stash save ; git pull origin ;
-git stash pop` and resolve Git edit conflicts, and perhaps run some script.
-Or you might need to provision a new server, install a different tech stack, and import
-a backup of your database.
+... _Until_ one day when I do some unusual tech stack changes, like changing
+from Docker to CoreOS rkt, or upgrading PostgreSQL to a new major version (9.6
+in use now).  Then, you might need to run `git fetch` and resolve edit
+conflicts, and run some Bash commands. Or even provision a new server, install
+a different tech stack, and import a backup of the database and file uploads.
 
 If you didn't run `./scripts/schedule-automatic-upgrades.sh`, you can upgrade
 manually like so:
@@ -149,7 +149,6 @@ manually like so:
     sudo -i
     cd /opt/ed/
     ./scripts/upgrade-if-needed.sh 2>&1 | tee -a ed-maint.log
-
 
 
 Backups
@@ -163,14 +162,14 @@ connections)
 
     sudo -i
     docker-compose stop app
-    zcat /opt/ed-backups/BACKUP_FILE.gz | docker exec -i edp_rdb_1 psql postgres postgres | tee -a ed-maint.log
-    # TODO or: docker exec -i $(docker-compose ps -q cassandra) < someexample.cql — see https://github.com/docker/compose/issues/3352#issuecomment-284547977
+    zcat /opt/ed-backups/BACKUP_FILE.gz \
+      | docker exec -i $(docker-compose ps -q rdb) psql postgres postgres \
+      | tee -a ed-maint.log
     docker-compose start app
 
 Replace `BACKUP_FILE` above with the actual file name.
 
-(If you've renamed the Docker project name in the `.env` file, then change
-`edp_` above to the new name.)
+TODO: Explain how to import the uploaded-files backup archive...
 
 You can login to Postgres like so:
 
@@ -178,7 +177,7 @@ You can login to Postgres like so:
     sudo docker-compose exec rdb psql ed ed              # as user 'ed'
 
 
-### Manual backups
+### Backing up, manually
 
 You should have configured automatic backups already, see the Installation
 Instructions section above. In any case, you can backup manually like so:
@@ -227,7 +226,7 @@ The GNU General Public License, version 2 — and it's for the instructions and
 scripts etcetera in this repository only, not for any Effective Discussions
 source code or stuff in other repositories.
 
-    Copyright (C) 2016 Kaj Magnus Lindberg
+    Copyright (C) 2016-2017 Kaj Magnus Lindberg
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
