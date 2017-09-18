@@ -90,12 +90,23 @@ fi
 # Automatically apply OS security patches.
 # The --force-confdef/old tells Apt to not overwrite any existing configuration, and to ask no questions.
 # See e.g.: https://askubuntu.com/a/104912/48382.
+# APT::Periodic::AutoremoveInterval "14"; = remove auto-installed dependencies that are no longer needed.
+# APT::Periodic::AutocleanInterval "14";  = remove downloaded installation archives that are nowadays out-of-date.
+# APT::Periodic::MinAge "8" = packages won't be deleted until they're these many days old (default is 2).
+# more docs: less /usr/lib/apt/apt.systemd.daily
 log_message 'Configuring automatic security updates and reboots...'
-apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
-    unattended-upgrades update-notifier-common
+DEBIAN_FRONTEND=noninteractive \
+  apt-get install -y \
+    -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold" \
+    unattended-upgrades \
+    update-notifier-common
 cat <<EOF > /etc/apt/apt.conf.d/20auto-upgrades
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutoremoveInterval "14";
+APT::Periodic::AutocleanInterval "14";
+APT::Periodic::MinAge "8"
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
 
