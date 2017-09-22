@@ -84,11 +84,13 @@ if [ -n "$CURRENT_VERSION" ]; then
   /usr/local/bin/docker-compose down
 fi
 
+log_message "$WHAT: Starting version $NEXT_VERSION..."
+VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose up -d
+
+# Bump the current version number, but not until after 'docker-compose up' above
+# has exited successfully so we know it works.
 log_message "$WHAT: Setting current version number to $NEXT_VERSION..."
 sed --in-place=.prev-version -r "s/^(VERSION_TAG=)([a-zA-Z0-9\\._-]*)(.*)$/\1$NEXT_VERSION\3/" .env
-
-log_message "$WHAT: Starting version $NEXT_VERSION..."
-/usr/local/bin/docker-compose up -d
 
 log_message "Done. Bye."
 echo

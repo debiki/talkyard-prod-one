@@ -106,7 +106,7 @@ APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
 APT::Periodic::AutoremoveInterval "14";
 APT::Periodic::AutocleanInterval "14";
-APT::Periodic::MinAge "8"
+APT::Periodic::MinAge "8";
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
 
