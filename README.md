@@ -70,11 +70,6 @@ Installation instructions
 
         ./scripts/start-firewall.sh 2>&1 | tee -a ed-maint.log
 
-
-1. Download a submodule that keeps track of the most recent Docker image tag.
-
-        git submodule update --init 2>&1 | tee -a ed-maint.log
-
 1. Edit config files:
 
         nano conf/app/play.conf   # edit all config values in the Required Settings section

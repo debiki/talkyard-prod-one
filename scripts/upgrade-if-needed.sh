@@ -26,6 +26,11 @@ fi
 # Determine new version
 # ===========================
 
+if [ ! -f versions/version-tags.log ]; then
+  log_message "Downloading version numbers submodule..."
+  git submodule update --init
+fi
+
 # Find out the next app version, by pulling a version list from a Git repo.
 # (The version number changes a bit unpredictably, and also includes the Git hash.)
 cd versions
