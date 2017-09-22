@@ -79,7 +79,7 @@ Installation instructions
    - If you don't edit `play.http.secret.key` in file `play.conf`, the server won't start.
    - If you're using a non-standard port, say 8080, then add `ed.port=8080` to `play.conf`.
 
-1. Depending on how much RAM your server has, choose one of these files:
+1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
    mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
    and copy it to ./docker-compose.override.yml. For example, for
    a server with 2 GB RAM:
@@ -98,7 +98,8 @@ Installation instructions
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a ed-maint.log
 
 1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
-   or <http://localhost>.  In the browser, click _Continue_ and create an admin account
+   or <http://localhost>. Or <http://localhost:8080> if you're testing with Vagrant.
+   In the browser, click _Continue_ and create an admin account
    with the email address you specified when you edited `play.conf` earlier (see above).
 
    If you didn't configure any email server (in `play.conf`), no

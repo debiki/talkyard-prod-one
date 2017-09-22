@@ -77,7 +77,7 @@ fi
 
 # `docker-compose.yml` uses the environment variable `$VERSION_TAG` in the image tags, so it'll pull
 # the version we want.
-log_message "Downloading version $NEXT_VERSION..."
+log_message "Downloading version $NEXT_VERSION... (this might take long)"
 VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose pull
 
 
