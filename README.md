@@ -1,6 +1,10 @@
 EffectiveDiscussions production installation
 ================
 
+Note: The beta version will be released about one week after PostgreSQL 10.0
+has been released, which might be at the end of October (this year, 2017).
+Contact me if you want to install this, before that. (kajmagnus3 at gmail.)
+
 For one single server.
 
 Only use this, if you understand Git and Docker, and are familiar with Linux
