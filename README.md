@@ -7,10 +7,10 @@ Contact me if you want to install this, before that. (kajmagnus3 at gmail.)
 
 For one single server.
 
-Only use this, if you understand Git and Docker, and are familiar with Linux
+Only use this, if you understand Git, and are familiar with Linux
 and Bash. Or if you want to take risks & learn new things. Details: You might
 run into Git edit conflicts, if you and I change the same files, and you
-probably need to know how to resolve any such edit conflicts.  Also it'd be
+probably need to know how to **resolve edit conflicts**.  Also it'd be
 good for you if you know what Docker containers are, and how to restart them.
 
 This is beta software; there might be bugs. Also, in a few cases when upgrading
@@ -37,6 +37,9 @@ places to hire servers:
 (The server should be amd64, not ARM. So you cannot use Scaleway's bare-metal
 ARM servers.)
 
+You'll also need to pay for some send-emails service, and login at Google,
+Facebook, Twitter, GitHub and create OpenAuth apps, so login-with-Google etc
+will work — more about this, later.
 
 
 Installation instructions
@@ -81,7 +84,8 @@ Installation instructions
 
    Note:
    - If you don't edit `play.http.secret.key` in file `play.conf`, the server won't start.
-   - If you're using a non-standard port, say 8080, then add `ed.port=8080` to `play.conf`.
+   - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
+     then add `ed.port=8080` to `play.conf`.
 
 1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
    mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
@@ -105,9 +109,11 @@ Installation instructions
    or <http://localhost>. Or <http://localhost:8080> if you're testing with Vagrant.
    In the browser, click _Continue_ and create an admin account
    with the email address you specified when you edited `play.conf` earlier (see above).
+   (Google and Facebook login won't work yet, because you have not
+   configured OpenAuth settings in `play.conf`.)
 
-   If you didn't configure any email server (in `play.conf`), no
-   email-address-verification-email will be sent to you. However, you'll find
+1. No email-address-verification-email will be sent to you, because you have not
+   yet configured any email server (in `play.conf`).  However, you'll find
    an address verification URL in the application server's log file, which you can view
    like so: `./view-logs app` (or `./view-logs -f --tail 30 app`). Copy-paste
    the URL into the browser.  You can [send an email again] / [write the URL to the log file
@@ -119,13 +125,16 @@ Now you're done. Everything will restart automatically on server reboot.
 Next things for you to do:
 
 - In the browser, follow the getting-started guide.
-- Copy backups off-site, regularly. See the Backups section below.
-- Pay for some send-email-service (e.g. https://www.sparkpost.com, they seem
-  inexpensive), and configure email server settings in `conf/app/play.conf`.
-- Configure Gmail and Facebook login — I should write instructions for this.
 - Send an email to `support at ed.community` so we get your address, and can
   contact you to inform you about security issues and about major softgrade
   upgrades that might require you to do something manually.
+- Copy backups off-site, regularly. See the Backups section below.
+- Pay for some send-email-service (e.g. https://www.sparkpost.com, they seem
+  inexpensive), and configure email server settings in `/opt/ed/conf/app/play.conf`.
+- Configure Gmail and Facebook login:
+  - At Google, Facebook, GitHub and Twitter, login and create OpenAuth apps,
+    then add the API keys and secrets to `play.conf` — I should write
+    instructions for this.
 
 
 
@@ -149,6 +158,7 @@ manually like so:
     sudo -i
     cd /opt/ed/
     ./scripts/upgrade-if-needed.sh 2>&1 | tee -a ed-maint.log
+
 
 
 Backups
