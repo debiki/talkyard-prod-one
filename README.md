@@ -1,9 +1,8 @@
 EffectiveDiscussions production installation
 ================
 
-Note: The beta version will be released about one week after PostgreSQL 10.0
-has been released, which might be at the end of October (this year, 2017).
-Contact me if you want to install this, before that. (kajmagnus3 at gmail.)
+WAIT A LITTLE BIT — I'm renaming E.D. to Talkyard. Some paths and file names
+will be changed. (Today is Jan 14, 2018)
 
 For one single server.
 
@@ -26,7 +25,7 @@ for details.
 Get a server
 ----------------
 
-Provision an Ubuntu 16.04 server with at least 2 GB RAM. Here are two good
+Provision an Ubuntu 16.04 server with at least 2 GB RAM. Here are three
 places to hire servers:
 
 - Digital Ocean: https://www.digitalocean.com/ — easy to use.
@@ -34,12 +33,11 @@ places to hire servers:
 - Google Compute Engine: https://cloud.google.com/compute/
   — for advanced users. You should be a company, because Google says you should pay taxes yourself.
 
-(The server should be amd64, not ARM. So you cannot use Scaleway's bare-metal
-ARM servers.)
+- Scaleway, https://www.scaleway.com/ — inexpensive, just €3, but risky, not so good backups.
+  The server should be X86-64, not ARM (so don't use the BareMetal ARM servers).
 
-You'll also need to pay for some send-emails service, and login at Google,
-Facebook, Twitter, GitHub and create OpenAuth apps, so login-with-Google etc
-will work — more about this, later.
+You'll also need to pay for some send-emails service. And create OpenAuth apps at Google,
+Facebook, Twitter, and GitHub, so login-with-Google etc will work — more about this, later.
 
 
 Installation instructions
@@ -129,8 +127,8 @@ Next things for you to do:
   contact you to inform you about security issues and about major softgrade
   upgrades that might require you to do something manually.
 - Copy backups off-site, regularly. See the Backups section below.
-- Pay for some send-email-service (e.g. https://www.sparkpost.com, they seem
-  inexpensive), and configure email server settings in `/opt/ed/conf/app/play.conf`.
+- Pay for some send-email-service (websearch for "transactional email services")
+  and configure email server settings in `/opt/ed/conf/app/play.conf`.
 - Configure Gmail and Facebook login:
   - At Google, Facebook, GitHub and Twitter, login and create OpenAuth apps,
     then add the API keys and secrets to `play.conf` — I should write
@@ -147,7 +145,7 @@ If you followed the instructions above — that is, if you ran these scripts:
 _until_ ...
 
 ... _Until_ one day when I do some unusual tech stack changes, like changing
-from Docker to CoreOS rkt, or upgrading PostgreSQL to a new major version (9.6
+from Docker to CoreOS rkt, or upgrading PostgreSQL to a new major version (10.0
 in use now).  Then, you might need to run `git fetch` and resolve edit
 conflicts, and run some Bash commands. Or even provision a new server, install
 a different tech stack, and import a backup of the database and file uploads.
