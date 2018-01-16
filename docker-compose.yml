@@ -5,8 +5,8 @@ services:
     restart: always
     volumes:
       - ./conf/web/server-listen-http.conf:/etc/nginx/server-listen.conf:ro
-      - ./conf/web/default-site/:/etc/nginx/default-site/:ro
-      - ./data/sites-enabled/:/etc/nginx/sites-enabled/:ro
+      - ./conf/web/sites-enabled-manual/:/etc/nginx/sites-enabled-manual/:ro
+      - ./data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro
       - ./data/certbot/:/etc/certbot/:ro
       - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro
       - ./data/uploads/:/opt/ed/uploads/:ro
@@ -34,7 +34,7 @@ services:
     restart: always
     stdin_open: true  # otherwise Play Framework exits
     volumes:
-      - ./conf/app/:/opt/ed/app-conf/:ro
+      - ./conf/app/play.conf:/opt/ed/app/conf/app-prod-override.conf:ro  # see [4WDKPU2] in ed-server
       - ./data/uploads/:/opt/ed/uploads/
       # So backups can be downloaded via the admin web interface. But read-only,
       # so evil bugs cannot destroy all backups.
@@ -46,7 +46,6 @@ services:
       - rdb
       - search
     environment:
-      CONFIG_FILE: /opt/ed/app-conf/play.conf
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
 
   cache:
