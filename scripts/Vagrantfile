@@ -14,7 +14,7 @@
 # there'll be something that can run the VM Vagrant will download for you.
 # Then:
 #
-# 1) Create an empty folder named `ed-prod-test`. Copy this file into it.
+# 1) Create an empty folder named `talkyard-prod-test`. Copy this file into it.
 # 2) cd into that folder, and type `vagrant up`
 # 3) Wait for Vagrant do download stuff, and the VM to start.
 # 4) Then type `vagrant ssh`, to open a shelll inside the VM.

@@ -2,7 +2,7 @@
 Copy backups elsewhere
 ======================
 
-After you've installed EffectiveDiscussions, you should copy the backups
+After you've installed Talkyard, you should copy the backups
 to a safety backup server, regularly. That's what this document is about.
 
 (I'd like to simplify all this, by creating an rsync-read-only backup help
@@ -23,7 +23,7 @@ anyway. So a passhprase doesn't give any additional security.
 
 ### Enable restricted rsync, rrsync
 
-On the EffectiveDiscussions (ED) server, enable rrsync:
+On the Talkyard server, enable rrsync:
 
     zcat /usr/share/doc/rsync/scripts/rrsync.gz > /usr/local/bin/rrsync
     chmod ugo+x /usr/local/bin/rrsync
@@ -33,11 +33,11 @@ On the EffectiveDiscussions (ED) server, enable rrsync:
 
 Then create a backup user with an `authorized_keys` file that allows restricted rsync:
 
-    # (still on the ED server)
+    # (still on the Talkyard server)
     useradd --create-home remotebackup
     su - remotebackup
     mkdir .ssh
-    echo 'command="/usr/local/bin/rrsync -ro /opt/ed-backup/archives/",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding' >> .ssh/authorized_keys
+    echo 'command="/usr/local/bin/rrsync -ro /opt/talkyard-backup/archives/",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding' >> .ssh/authorized_keys
 
 Copy the public key on the backup server:
 
@@ -46,7 +46,7 @@ Copy the public key on the backup server:
 
     # copy the output
 
-Append the public key to the last line in `authorized_keys` on the ED server:
+Append the public key to the last line in `authorized_keys` on the Talkyard server:
 
     # as user remotebackup: (!)
     nano ~/.ssh/authorized_keys
@@ -64,11 +64,11 @@ The result should be that the `authorized_keys` file looks like: (and it's a rea
 Now, on the backup server, test to copy backups:
 
     # replace 'serveraddress' with the server address
-    rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@serveraddress:/ ed-backups/
+    rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@serveraddress:/ talkyard-backups/
 
 		# todo: can I prefix .ssh with ~/ so will work from any directory?
 		# or $HOME, that reportedly works from others dirs: (but add trailing slash?)
-		#   rsync -e "ssh -i $HOME/.ssh/id_remotebackup" -av remotebackup@serveraddress:/ ed-backups
+		#   rsync -e "ssh -i $HOME/.ssh/id_remotebackup" -av remotebackup@serveraddress:/ talkyard-backups
 
 
 ### Schedule copying-of-backups
@@ -76,19 +76,19 @@ Now, on the backup server, test to copy backups:
 If the above test works, then schedule a cron job to copy backups regularly. Do this on the backup server:
 
     # (replace 'serveraddress' with the server address)
-    crontab -l | { cat; echo '@hourly rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@serveraddress:/ ed-backups/ >> cron.log 2>&1'; } | crontab -
+    crontab -l | { cat; echo '@hourly rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@serveraddress:/ talkyard-backups/ >> cron.log 2>&1'; } | crontab -
 
-Now you'll have fresh backups of your forum in ~/ed-backups/, in case the ED
+Now you'll have fresh backups of your forum in ~/talkyard-backups/, in case the Talkyard
 server disappears.
 
 (Why do we run the rsync client read-only on the backup server? Well, because
-if we were to let the ED server connect and write to the backup server, then
-someone who breaks in to the ED server could ransomware-encrypt all backups
+if we were to let the Talkyard server connect and write to the backup server, then
+someone who breaks in to the Talkyard server could ransomware-encrypt all backups
 (that is, encrypt everything and tell you "give me money, only then will I
-unencrypt your data so you can read it again"). But when the ED server doesn't
+unencrypt your data so you can read it again"). But when the Talkyard server doesn't
 have access to the backup server, this cannot happen. Note that it should be
 easier to make the backup server safe, because it doesn't need to run the whole
-ED tech stack.)
+Talkyard tech stack.)
 
 
 
