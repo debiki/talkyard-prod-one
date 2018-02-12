@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   web:
-    image: debiki/ed-web:$VERSION_TAG
+    image: debiki/talkyard-web:$VERSION_TAG
     restart: always
     volumes:
       - ./conf/web/server-listen-http.conf:/etc/nginx/server-listen.conf:ro
@@ -9,7 +9,7 @@ services:
       - ./data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro
       - ./data/certbot/:/etc/certbot/:ro
       - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro
-      - ./data/uploads/:/opt/ed/uploads/:ro
+      - ./data/uploads/:/opt/talkyard/uploads/:ro
       # Mount here so standard monitoring tools looking for Nginx logs will work.
       - /var/log/nginx/:/var/log/nginx/
     ports:
@@ -30,17 +30,17 @@ services:
     #  ... many more?
 
   app:
-    image: debiki/ed-app:$VERSION_TAG
+    image: debiki/talkyard-app:$VERSION_TAG
     restart: always
     stdin_open: true  # otherwise Play Framework exits
     volumes:
-      - ./conf/app/play.conf:/opt/ed/app/conf/app-prod-override.conf:ro  # see [4WDKPU2] in ed-server
-      - ./data/uploads/:/opt/ed/uploads/
+      - ./conf/app/play.conf:/opt/talkyard/app/conf/app-prod-override.conf:ro  # see [4WDKPU2] in ed-server
+      - ./data/uploads/:/opt/talkyard/uploads/
       # So backups can be downloaded via the admin web interface. But read-only,
       # so evil bugs cannot destroy all backups.
-      - /opt/ed-backup/archives/:/opt/ed/backup-archives/:ro
+      - /opt/talkyard-backup/archives/:/opt/talkyard/backup-archives/:ro
       # Mount here so log monitoring agents like fluentd can access the log.
-      - /var/log/ed/:/var/log/ed/
+      - /var/log/talkyard/:/var/log/talkyard/
     links:
       - cache
       - rdb
@@ -49,7 +49,7 @@ services:
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
 
   cache:
-    image: debiki/ed-cache:$VERSION_TAG
+    image: debiki/talkyard-cache:$VERSION_TAG
     restart: always
     volumes:
       - ./data/cache/:/data/
@@ -58,7 +58,7 @@ services:
       net.core.somaxconn: 511
 
   rdb:
-    image: debiki/ed-rdb:$VERSION_TAG
+    image: debiki/talkyard-rdb:$VERSION_TAG
     restart: always
     volumes:
       - ./data/rdb/:/var/lib/postgresql/data/
@@ -76,7 +76,7 @@ services:
       # PEER_PASSWORD: '...'
 
   search:
-    image: debiki/ed-search:$VERSION_TAG
+    image: debiki/talkyard-search:$VERSION_TAG
     restart: always
     volumes:
       # COULD_OPTIMIZE Maybe use a Docker volume contanier here instead? What does the docs mean when
@@ -97,7 +97,7 @@ services:
         hard: 65536
 
   certgen:
-    image: debiki/ed-certgen:$VERSION_TAG
+    image: debiki/talkyard-certgen:$VERSION_TAG
     restart: always
     volumes:
       - ./data/sites-enabled/:/etc/nginx/sites-enabled/

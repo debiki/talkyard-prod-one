@@ -1,8 +1,10 @@
-EffectiveDiscussions production installation
+Talkyard production installation
 ================
 
-WAIT A LITTLE BIT — I'm renaming E.D. to Talkyard. Some paths and file names
-will be changed. (Today is Jan 14, 2018)
+WARNING — I've just renamed EffectiveDiscussions to Talkyard. I've changed some
+paths and file names, Docker image names and stuff.  I'm about to test this
+more thoroughly now. Before I've done that, then, with some bad luck, you'll
+run into weird problems.  (Today is February 12, 2018.)
 
 For one single server.
 
@@ -15,7 +17,7 @@ good for you if you know what Docker containers are, and how to restart them.
 This is beta software; there might be bugs. Also, in a few cases when upgrading
 to newer versions, maybe you'll need to do some stuff manually.
 
-Feel free to report problems and ask questions in [our support forum](http://www.effectivediscussions.org/forum/latest/support).
+Feel free to report problems and ask questions in [our support forum](http://www.talkyard.io/forum/latest/support).
 
 If you'd like to install on your laptop / desktop just to test, there's
 [a Vagrantfile here](scripts/Vagrantfile) — open it in a text editor, and read,
@@ -49,13 +51,13 @@ Installation instructions
         apt-get update
         apt-get -y install git
         cd /opt/
-        git clone https://github.com/debiki/ed-prod-one.git ed
-        cd ed
+        git clone https://github.com/debiki/talkyard-prod-one.git talkyard
+        cd talkyard
 
 1. Prepare Ubuntu: install tools, enable automatic security updates, simplify troubleshooting,
    and make ElasticSearch work:
 
-        ./scripts/prepare-ubuntu.sh 2>&1 | tee -a ed-maint.log
+        ./scripts/prepare-ubuntu.sh 2>&1 | tee -a talkyard-maint.log
 
    (If you don't want to run all stuff in this script, you at least need to copy the
    sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
@@ -68,12 +70,12 @@ Installation instructions
 
 1. Install Docker:
 
-        ./scripts/install-docker-compose.sh 2>&1 | tee -a ed-maint.log
+        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
 1. Start a firewall: (and answer Yes to the question you'll get. You can skip this if
    you use Google Cloud Engine; GCE already has a firewall)
 
-        ./scripts/start-firewall.sh 2>&1 | tee -a ed-maint.log
+        ./scripts/start-firewall.sh 2>&1 | tee -a talkyard-maint.log
 
 1. Edit config files:
 
@@ -83,7 +85,7 @@ Installation instructions
    Note:
    - If you don't edit `play.http.secret.key` in file `play.conf`, the server won't start.
    - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
-     then add `ed.port=8080` to `play.conf`.
+     then add `talkyard.port=8080` to `play.conf`.
 
 1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
    mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
@@ -96,12 +98,12 @@ Installation instructions
    the first time (to download Docker images).
 
         # This script also installs, although named "upgrade–...".
-        ./scripts/upgrade-if-needed.sh 2>&1 | tee -a ed-maint.log
+        ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
 1. Schedule daily backups (including deletion old backups) and automatic upgrades:
 
-        ./scripts/schedule-daily-backups.sh 2>&1 | tee -a ed-maint.log
-        ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a ed-maint.log
+        ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
+        ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
 
 1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
    or <http://localhost>. Or <http://localhost:8080> if you're testing with Vagrant.
@@ -128,7 +130,7 @@ Next things for you to do:
   upgrades that might require you to do something manually.
 - Copy backups off-site, regularly. See the Backups section below.
 - Pay for some send-email-service (websearch for "transactional email services")
-  and configure email server settings in `/opt/ed/conf/app/play.conf`.
+  and configure email server settings in `/opt/talkyard/conf/app/play.conf`.
 - Configure Gmail and Facebook login:
   - At Google, Facebook, GitHub and Twitter, login and create OpenAuth apps,
     then add the API keys and secrets to `play.conf` — I should write
@@ -154,8 +156,8 @@ If you didn't run `./scripts/schedule-automatic-upgrades.sh`, you can upgrade
 manually like so:
 
     sudo -i
-    cd /opt/ed/
-    ./scripts/upgrade-if-needed.sh 2>&1 | tee -a ed-maint.log
+    cd /opt/talkyard/
+    ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
 
 
@@ -170,9 +172,9 @@ connections)
 
     sudo -i
     docker-compose stop app
-    zcat /opt/ed-backups/BACKUP_FILE.gz \
+    zcat /opt/talkyard-backups/BACKUP_FILE.gz \
       | docker exec -i $(docker-compose ps -q rdb) psql postgres postgres \
-      | tee -a ed-maint.log
+      | tee -a talkyard-maint.log
     docker-compose start app
 
 Replace `BACKUP_FILE` above with the actual file name.
@@ -182,7 +184,7 @@ TODO: Explain how to import the uploaded-files backup archive...
 You can login to Postgres like so:
 
     sudo docker-compose exec rdb psql postgres postgres  # as user 'postgres'
-    sudo docker-compose exec rdb psql ed ed              # as user 'ed'
+    sudo docker-compose exec rdb psql talkyard talkyard  # as user 'talkyard'
 
 
 ### Backing up, manually
@@ -191,8 +193,8 @@ You should have configured automatic backups already, see the Installation
 Instructions section above. In any case, you can backup manually like so:
 
     sudo -i
-    cd /opt/ed/
-    ./scripts/backup.sh manual 2>&1 | tee -a ed-maint.log
+    cd /opt/talkyard/
+    ./scripts/backup.sh manual 2>&1 | tee -a talkyard-maint.log
 
 
 ### Copy backups elsewhere
@@ -231,7 +233,7 @@ License (GPLv2)
 ----------------
 
 The GNU General Public License, version 2 — and it's for the instructions and
-scripts etcetera in this repository only, not for any Effective Discussions
+scripts etcetera in this repository only, not for any Talkyard
 source code or stuff in other repositories.
 
     Copyright (C) 2016-2017 Kaj Magnus Lindberg

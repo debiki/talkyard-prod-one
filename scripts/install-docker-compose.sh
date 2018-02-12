@@ -35,7 +35,7 @@ if [ -z "$MATCHING_KEY_ROW" ]; then
 	log_message "and show them the output from running this:"
 	log_message "    apt-key fingerprint 0EBFCD88"
 	log_message "and include a link to this script too, here it is:"
-	log_message "    https://github.com/debiki/ed-prod-one/blob/master/scripts/install-docker-compose.sh"
+	log_message "    https://github.com/debiki/talkyard-prod-one/blob/master/scripts/install-docker-compose.sh"
 	echo
 	exit 1
 fi
@@ -49,7 +49,7 @@ add-apt-repository \
 # ------- Install Docker CE:
 
 apt-get update
-apt-get -y install docker-ce=17.06.1~ce-0~ubuntu
+apt-get -y install docker-ce=17.12.0~ce-0~ubuntu
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
@@ -57,7 +57,7 @@ HELLO_WORLD="$(docker run hello-world | grep -i 'hello ')"
 if [ -z "$HELLO_WORLD" ]; then
 	echo
 	log_message "Error installing or starting Docker: 'docker run hello-world' doesn't work. [EdEDKRBROKEN]"
-	log_message "Ask for help in the EffectiveDiscussions forum: https://www.effectivediscussions.org/forum/"
+	log_message "Ask for help in the EffectiveDiscussions forum: https://www.talkyard.io/forum/"
 	log_message "and/or in the Docker forums: https://forums.docker.com/"
 	echo
 	exit 1

@@ -6,7 +6,7 @@ function log_message {
 
 log_message "Deleting old backups ..."
 
-backup_archives_dir=/opt/ed-backup/archives
+backup_archives_dir=/opt/talkyard-backup/archives
 deleted_backups_log=./deleted-backups.tmp.log
 
 

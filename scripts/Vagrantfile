@@ -6,7 +6,7 @@
 # Virtual Machine (VM) can be created and configured on your computer,
 # in which you can test install EffectiveDiscussions.
 #
-# Tips: You'll need to add  ed.port=8080  to play.conf (mentioned in README.md).
+# Tips: You'll need to add  talkyard.port=8080  to play.conf (mentioned in README.md).
 #
 # Go and read about Vagrant here: https://www.vagrantup.com/ — click
 # "Getting Started" and read that page. Download and install Vagrant.
@@ -14,15 +14,13 @@
 # there'll be something that can run the VM Vagrant will download for you.
 # Then:
 #
-# 1) Create an empty folder named `ed-prod-test`. Copy this file into it.
+# 1) Create an empty folder named `talkyard-prod-test`. Copy this file into it.
 # 2) cd into that folder, and type `vagrant up`
 # 3) Wait for Vagrant do download stuff, and the VM to start.
 # 4) Then type `vagrant ssh`, to open a shelll inside the VM.
 # 5) Follow the instructions in README.md (but now you have a server already,
 #    i.e. the Vagrant VM which you are inside right now).
 # 6) To stop the VM, type CTRL-D to exit Vagrant, then type `vagrant halt`.
-#
-# I wish you good luck.
 #===========
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure

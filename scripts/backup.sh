@@ -15,9 +15,9 @@ fi
 log_message "Backing up, tag: '$1'"
 
 when="`date '+%FT%H%MZ' --utc`"
-backup_archives_dir=/opt/ed-backup/archives
-backup_uploads_sync_dir=/opt/ed-backup/uploads-sync
-uploads_dir=/opt/ed/data/uploads
+backup_archives_dir=/opt/talkyard-backup/archives
+backup_uploads_sync_dir=/opt/talkyard-backup/uploads-sync
+uploads_dir=/opt/talkyard/data/uploads
 
 mkdir -p $backup_archives_dir
 mkdir -p $backup_uploads_sync_dir
@@ -30,7 +30,7 @@ log_message "Generated random test-that-backups-work value: '$random_value'"
 # -------------------
 
 # Insert a backup test timestamp, so we somewhere else can check that the contents of the backup is recent.
-/usr/local/bin/docker-compose exec rdb psql ed ed -c \
+/usr/local/bin/docker-compose exec rdb psql talkyard talkyard -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, random_value) values (now_utc(), '`hostname`', 'rdb', '$random_value');"
 
 postgres_backup_path=$backup_archives_dir/`hostname`-$when-$1-postgres.sql.gz
@@ -91,7 +91,7 @@ uploads_start_date_tgz="uploads-start-$start_date.tar.gz"
 uploads_backup_filename=`hostname`-$when-$1-$uploads_start_date_tgz
 other_archives_same_start_date=$( find $backup_archives_dir -type f -name '*-uploads-*' | egrep "`hostname`.+$uploads_start_date_tgz" )
 
-/usr/local/bin/docker-compose exec rdb psql ed ed -c \
+/usr/local/bin/docker-compose exec rdb psql talkyard talkyard -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, random_value) values (now_utc(), '`hostname`', 'uploads', '$random_value');"
 
 do_backup="tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_uploads_sync_dir ./"
