@@ -49,7 +49,7 @@ add-apt-repository \
 # ------- Install Docker CE:
 
 apt-get update
-apt-get -y install docker-ce=17.06.1~ce-0~ubuntu
+apt-get -y install docker-ce=17.12.0~ce-0~ubuntu
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
