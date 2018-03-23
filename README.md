@@ -100,9 +100,11 @@ Installation instructions
         # This script also installs, although named "upgrade–...".
         ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
-1. Schedule daily backups (including deletion old backups) and automatic upgrades:
+1. Schedule daily backups (including deletion old backups), deletion of old log files,
+   and automatic upgrades:
 
         ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
+        ./scripts/schedule-logrotate.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
 
 1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
