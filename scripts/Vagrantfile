@@ -21,6 +21,11 @@
 # 5) Follow the instructions in README.md (but now you have a server already,
 #    i.e. the Vagrant VM which you are inside right now).
 # 6) To stop the VM, type CTRL-D to exit Vagrant, then type `vagrant halt`.
+#
+# Advanced tips: To ssh into the VM and also expose a port on the host inside the VM,
+# do e.g.:   vagrant ssh -- -R 5000:localhost:5000
+# This is useful if you have a local test Docker registry running at localhost:5000
+# on the host, and want to make it available in the VM also at localhost:5000.
 #===========
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure

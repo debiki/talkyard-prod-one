@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   web:
-    image: debiki/talkyard-web:$VERSION_TAG
+    image: $DOCKER_REPOSITORY/talkyard-web:$VERSION_TAG
     restart: always
     volumes:
       - ./conf/web/server-listen-http.conf:/etc/nginx/server-listen.conf:ro
@@ -30,7 +30,7 @@ services:
     #  ... many more?
 
   app:
-    image: debiki/talkyard-app:$VERSION_TAG
+    image: $DOCKER_REPOSITORY/talkyard-app:$VERSION_TAG
     restart: always
     stdin_open: true  # otherwise Play Framework exits
     volumes:
@@ -49,7 +49,7 @@ services:
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
 
   cache:
-    image: debiki/talkyard-cache:$VERSION_TAG
+    image: $DOCKER_REPOSITORY/talkyard-cache:$VERSION_TAG
     restart: always
     volumes:
       - ./data/cache/:/data/
@@ -58,7 +58,7 @@ services:
       net.core.somaxconn: 511
 
   rdb:
-    image: debiki/talkyard-rdb:$VERSION_TAG
+    image: $DOCKER_REPOSITORY/talkyard-rdb:$VERSION_TAG
     restart: always
     volumes:
       - ./data/rdb/:/var/lib/postgresql/data/
@@ -76,7 +76,7 @@ services:
       # PEER_PASSWORD: '...'
 
   search:
-    image: debiki/talkyard-search:$VERSION_TAG
+    image: $DOCKER_REPOSITORY/talkyard-search:$VERSION_TAG
     restart: always
     volumes:
       # COULD_OPTIMIZE Maybe use a Docker volume contanier here instead? What does the docs mean when
@@ -97,7 +97,7 @@ services:
         hard: 65536
 
   certgen:
-    image: debiki/talkyard-certgen:$VERSION_TAG
+    image: $DOCKER_REPOSITORY/talkyard-certgen:$VERSION_TAG
     restart: always
     volumes:
       - ./data/sites-enabled/:/etc/nginx/sites-enabled/

@@ -42,7 +42,7 @@ cd versions
 # Don't upgrade to new software stack versions = 'stack' because in order to do than,
 # one will probably need to run `git pull` and resolve edit conflicts,
 # perhaps run scripts or even export the PostgreSQL database and import into another type of database.
-NEXT_VERSION=`grep -v --regex='WIP' --regex='-alpha' --regex='-beta' --regex='-rc' --regex='-maint' --regex='stack' --regex='test' version-tags.log | tail -n1`
+NEXT_VERSION=`grep -iv --regex='-wip' --regex='-alpha' --regex='-beta' --regex='-rc' --regex='-maint' --regex='stack' --regex='test' version-tags.log | tail -n1`
 cd ..
 
 if [ -z "$NEXT_VERSION" ]; then

@@ -4,7 +4,8 @@ Talkyard production installation
 WARNING — I've just renamed EffectiveDiscussions to Talkyard. I've changed some
 paths and file names, Docker image names and stuff.  I'm about to test this
 more thoroughly now. Before I've done that, then, with some bad luck, you'll
-run into weird problems.  (Today is February 12, 2018.)
+run into weird problems.  (Today is February 12, 2018 ... and now Mars 25. Probably
+I'll remove this warning on May 1.)
 
 For one single server.
 
@@ -45,11 +46,15 @@ Facebook, Twitter, and GitHub, so login-with-Google etc will work — more about
 Installation instructions
 ----------------
 
-1. Download installation scripts: (you need to do like this for the backup scripts to work)
+1. Become root and install Git:
 
         sudo -i
         apt-get update
         apt-get -y install git
+
+1. Download installation scripts: (you need to install in
+   `/opt/talkyard/` for the backup scripts to work)
+
         cd /opt/
         git clone https://github.com/debiki/talkyard-prod-one.git talkyard
         cd talkyard
@@ -100,9 +105,11 @@ Installation instructions
         # This script also installs, although named "upgrade–...".
         ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
-1. Schedule daily backups (including deletion old backups) and automatic upgrades:
+1. Schedule daily backups (including deletion old backups), deletion of old log files,
+   and automatic upgrades:
 
         ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
+        ./scripts/schedule-logrotate.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
 
 1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
