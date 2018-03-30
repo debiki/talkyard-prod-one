@@ -49,7 +49,7 @@ add-apt-repository \
 # ------- Install Docker CE:
 
 apt-get update
-apt-get -y install docker-ce=17.12.0~ce-0~ubuntu
+apt-get -y install docker-ce=18.03.0~ce-0~ubuntu
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
@@ -57,7 +57,7 @@ HELLO_WORLD="$(docker run hello-world | grep -i 'hello ')"
 if [ -z "$HELLO_WORLD" ]; then
 	echo
 	log_message "Error installing or starting Docker: 'docker run hello-world' doesn't work. [EdEDKRBROKEN]"
-	log_message "Ask for help in the EffectiveDiscussions forum: https://www.talkyard.io/forum/"
+	log_message "Ask for help in the Talkyard forum: https://www.talkyard.io/forum/"
 	log_message "and/or in the Docker forums: https://forums.docker.com/"
 	echo
 	exit 1
@@ -66,7 +66,7 @@ fi
 log_message "Docker worked fine. Installing Docker-Compose ..."
 
 
-# Is this still needed?
+# Apparently not needed any longer:
 ##apt-get install -y linux-image-extra-$(uname -r)
 #apt-get install -y linux-image-generic
 
@@ -76,7 +76,7 @@ service docker start
 systemctl enable docker
 
 # Install Docker Compose (see https://github.com/docker/compose/releases)
-curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
 log_message
@@ -85,7 +85,7 @@ log_message "*** Done ***"
 log_message
 log_message "Docker and Docker-Compose installed."
 log_message
-log_message "This should print 'docker-compose version 1.16.0 ...' or later:"
+log_message "This should print 'docker-compose version 1.20.1 ...' or later:"
 log_message "----------------------------"
 docker-compose -v
 log_message "----------------------------"

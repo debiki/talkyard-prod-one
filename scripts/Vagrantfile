@@ -4,7 +4,7 @@
 #===========
 # What is this? This file tells a program named Vagrant how a
 # Virtual Machine (VM) can be created and configured on your computer,
-# in which you can test install EffectiveDiscussions.
+# in which you can test install Talkyard.
 #
 # Tips: You'll need to add  talkyard.port=8080  to play.conf (mentioned in README.md).
 #

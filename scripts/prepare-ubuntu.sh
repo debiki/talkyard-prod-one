@@ -38,12 +38,12 @@ apt-get -y install software-properties-common
 
 # Append system config settings, so the ElasticSearch Docker container will work:
 
-if ! grep -q 'EffectiveDiscussions' /etc/sysctl.conf; then
+if ! grep -q 'Talkyard' /etc/sysctl.conf; then
   log_message 'Amending the /etc/sysctl.conf config...'
   cat <<-EOF >> /etc/sysctl.conf
 		
 		###################################################################
-		# EffectiveDiscussions settings
+		# Talkyard settings
 		#
 		net.ipv4.ip_forward=1      # makes Docker networking work
 		vm.swappiness=1            # turn off swap, default = 60
@@ -67,7 +67,7 @@ if ! grep -q 'transparent_hugepage/enabled' /etc/rc.local; then
   echo 'Disabling Transparent Huge Pages after reboot, in /etc/rc.local...'
   # Insert ('i') before the last line ('$') in rc.local, which always? is
   # 'exit 0' in a new Ubuntu installation.
-  sed -i -e '$i # For EffectiveDiscussions and the Redis Docker container:\necho never > /sys/kernel/mm/transparent_hugepage/enabled\n' /etc/rc.local
+  sed -i -e '$i # For Talkyard and the Redis Docker container:\necho never > /sys/kernel/mm/transparent_hugepage/enabled\n' /etc/rc.local
 fi
 
 
