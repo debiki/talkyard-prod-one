@@ -38,7 +38,7 @@ services:
       - ./data/uploads/:/opt/talkyard/uploads/
       # So backups can be downloaded via the admin web interface. But read-only,
       # so evil bugs cannot destroy all backups.
-      - /opt/talkyard-backup/archives/:/opt/talkyard/backup-archives/:ro
+      - /opt/talkyard-backups/archives/:/opt/talkyard/backup-archives/:ro
       # Mount here so log monitoring agents like fluentd can access the log.
       - /var/log/talkyard/:/var/log/talkyard/
     links:

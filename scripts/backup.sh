@@ -15,8 +15,8 @@ fi
 log_message "Backing up, tag: '$1'"
 
 when="`date '+%FT%H%MZ' --utc`"
-backup_archives_dir=/opt/talkyard-backup/archives
-backup_uploads_sync_dir=/opt/talkyard-backup/uploads-sync
+backup_archives_dir=/opt/talkyard-backups/archives
+backup_uploads_sync_dir=/opt/talkyard-backups/uploads-sync
 uploads_dir=/opt/talkyard/data/uploads
 
 mkdir -p $backup_archives_dir
