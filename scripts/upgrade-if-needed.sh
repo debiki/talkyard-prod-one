@@ -81,6 +81,17 @@ log_message "Downloading version $NEXT_VERSION... (this might take long)"
 VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose pull
 
 
+# Remove old images & containers
+# ===========================
+
+# So won't run out of disk. Let's keep images less than two months old, in case
+# need to downgrade to previous server version because of some bug.
+# Also, do this whilst the old containers are still running, so their images
+# won't be removed (that is, before the Upgrade step below).  24h * 62 = 1488.
+
+docker system prune --all --force --filter "until=1488h"
+
+
 # Upgrade
 # ===========================
 
@@ -96,6 +107,7 @@ VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose up -d
 # has exited successfully so we know it works.
 log_message "$WHAT: Setting current version number to $NEXT_VERSION..."
 sed --in-place=.prev-version -r "s/^(VERSION_TAG=)([a-zA-Z0-9\\._-]*)(.*)$/\1$NEXT_VERSION\3/" .env
+
 
 log_message "Done. Bye."
 echo
