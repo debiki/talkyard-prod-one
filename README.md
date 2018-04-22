@@ -9,20 +9,24 @@ I'll remove this warning on May 1.)
 
 For one single server.
 
-Only use this, if you understand Git, and are familiar with Linux
-and Bash. Or if you want to take risks & learn new things. Details: You might
-run into Git edit conflicts, if you and I change the same files, and you
-probably need to know how to **resolve edit conflicts**.  Also it'd be
-good for you if you know what Docker containers are, and how to restart them.
+You should be familiar with Linux, Bash and Git. Otherwise you might run into
+problems. For example, there might be Git edit conflicts, if you and we change
+the same file — then you need to know how to resolve those edit conflicts.
+Also, knowing a bit about Docker and Docker containers can be good.
 
-This is beta software; there might be bugs. Also, in a few cases when upgrading
-to newer versions, maybe you'll need to do some stuff manually.
+This is beta software; there might be bugs.
 
 Feel free to report problems and ask questions in [our support forum](http://www.talkyard.io/forum/latest/support).
 
 If you'd like to install on your laptop / desktop just to test, there's
 [a Vagrantfile here](scripts/Vagrantfile) — open it in a text editor, and read,
 for details.
+
+We haven't yet written instructions about how to configure Gmail, Facebook, GitHub login (which
+you probably want to do, if you install Talkyard).
+**Send us an email** (address below) and we'll tell you when we've done that:
+
+`hello at talkyard.io`
 
 
 Get a server
@@ -105,11 +109,11 @@ Installation instructions
         # This script also installs, although named "upgrade–...".
         ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
-1. Schedule daily backups (including deletion old backups), deletion of old log files,
+1. Schedule deletion of old log files, daily backups and deletion old backups,
    and automatic upgrades:
 
-        ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-logrotate.sh 2>&1 | tee -a talkyard-maint.log
+        ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
 
 1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
@@ -132,8 +136,8 @@ Now you're done. Everything will restart automatically on server reboot.
 Next things for you to do:
 
 - In the browser, follow the getting-started guide.
-- Send an email to `support at ed.community` so we get your address, and can
-  contact you to inform you about security issues and about major softgrade
+- Send an email to `hello at talkyard.io` so we get your address, and can
+  inform you about security issues and major software
   upgrades that might require you to do something manually.
 - Copy backups off-site, regularly. See the Backups section below.
 - Pay for some send-email-service (websearch for "transactional email services")
@@ -154,7 +158,7 @@ If you followed the instructions above — that is, if you ran these scripts:
 _until_ ...
 
 ... _Until_ one day when I do some unusual tech stack changes, like changing
-from Docker to CoreOS rkt, or upgrading PostgreSQL to a new major version (10.0
+from Docker to CoreOS rkt, or upgrading PostgreSQL to a new major version (10.x
 in use now).  Then, you might need to run `git fetch` and resolve edit
 conflicts, and run some Bash commands. Or even provision a new server, install
 a different tech stack, and import a backup of the database and file uploads.
@@ -230,9 +234,7 @@ Docker mounted directories
 ----------------
 
 - `conf/`: Container config files, mounted read-only in the containers. Can add to a Git repo.
-
-- `data/`: Directories mounted read-write in the containers (and sometimes read-only too).
-            Should probably not add to any Git repo.
+- `data/`: Directories mounted read-write in the containers (and sometimes read-only too). Not for Git.
 
 
 
@@ -243,7 +245,7 @@ The GNU General Public License, version 2 — and it's for the instructions and
 scripts etcetera in this repository only, not for any Talkyard
 source code or stuff in other repositories.
 
-    Copyright (C) 2016-2017 Kaj Magnus Lindberg
+    Copyright (c) 2016-2018 Kaj Magnus Lindberg
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

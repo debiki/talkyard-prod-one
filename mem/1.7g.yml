@@ -1,4 +1,5 @@
-# For servers with 2 GB RAM.
+# For servers with 1.7 GB RAM.
+# E.g. a Google Compute Engine g1-small instance: 1 shared CPU & 1.7 GB mem.
 
 # (We don't make use of all RAM here, because ElasticSearch and Postgres wants
 # fairly much memory in the operating system file system cache, e.g.
@@ -11,9 +12,10 @@ services:
   app:
     environment:
       # There's also stack memory and permanent-generation memory.
-      PLAY_HEAP_MEMORY_MB: 512
+      PLAY_HEAP_MEMORY_MB: 256
 
   search:
     environment:
-      ES_JAVA_OPTS: '-Xms320m -Xmx320m'
+      ES_JAVA_OPTS: '-Xms192m -Xmx192m'
+
 
