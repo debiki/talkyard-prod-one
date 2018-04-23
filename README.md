@@ -1,12 +1,6 @@
 Talkyard production installation
 ================
 
-WARNING — I've just renamed EffectiveDiscussions to Talkyard. I've changed some
-paths and file names, Docker image names and stuff.  I'm about to test this
-more thoroughly now. Before I've done that, then, with some bad luck, you'll
-run into weird problems.  (Today is February 12, 2018 ... and now Mars 25. Probably
-I'll remove this warning on May 1.)
-
 For one single server.
 
 You should be familiar with Linux, Bash and Git. Otherwise you might run into
@@ -22,9 +16,12 @@ If you'd like to install on your laptop / desktop just to test, there's
 [a Vagrantfile here](scripts/Vagrantfile) — open it in a text editor, and read,
 for details.
 
-We haven't yet written instructions about how to configure Gmail, Facebook, GitHub login (which
-you probably want to do, if you install Talkyard).
-**Send us an email** (address below) and we'll tell you when we've done that:
+Ubuntu Server 18.04 (long term support) gets released on April 26, this year 2018.
+I suggest you wait with installing Talkyard, until May 2018. Also, then I will have
+had time to write instructions about sending-emails and how to configure Google &
+Facebook & GitHub & Twitter login. If you **send us an email** (address below) we'll
+tell you when we're done writing the instructions: (you could also mention
+if you want to be one of the first few people who try to follow the instructions, or not)
 
 `hello at talkyard.io`
 
