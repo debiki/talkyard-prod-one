@@ -1,12 +1,6 @@
 Talkyard production installation
 ================
 
-WARNING — I've just renamed EffectiveDiscussions to Talkyard. I've changed some
-paths and file names, Docker image names and stuff.  I'm about to test this
-more thoroughly now. Before I've done that, then, with some bad luck, you'll
-run into weird problems.  (Today is February 12, 2018 ... and now Mars 25. Probably
-I'll remove this warning on May 1.)
-
 For one single server.
 
 You should be familiar with Linux, Bash and Git. Otherwise you might run into
@@ -15,16 +9,22 @@ the same file — then you need to know how to resolve those edit conflicts.
 Also, knowing a bit about Docker and Docker containers can be good.
 
 This is beta software; there might be bugs.
-
-Feel free to report problems and ask questions in [our support forum](http://www.talkyard.io/forum/latest/support).
+You can report problems and ask questions in [our support forum](http://www.talkyard.io/forum/latest/support).
 
 If you'd like to install on your laptop / desktop just to test, there's
 [a Vagrantfile here](scripts/Vagrantfile) — open it in a text editor, and read,
 for details.
 
-We haven't yet written instructions about how to configure Gmail, Facebook, GitHub login (which
-you probably want to do, if you install Talkyard).
-**Send us an email** (address below) and we'll tell you when we've done that:
+Installation overview: You'll rent a virtual private server (VPS) somewhere, then download
+and install Talkyard, then sign up for a send-emails service and configure settings,
+then optionally configure OpenAuth login for Google, Facebook, Twitter, and GitHub. And
+preferably configure off-site backups. — These steps aren't unique to Talkyard. Instead
+it's the same for all self hosted discussion software with social login and emails.
+
+We'll soon write instructions about how to configure email settings and Google &
+Facebook & GitHub & Twitter login. **Send us an email** (address below) and we'll
+tell you when we're done writing the instructions: (you could also mention
+if you want to be one of the first few people who try to follow those instructions, or not)
 
 `hello at talkyard.io`
 
@@ -32,7 +32,7 @@ you probably want to do, if you install Talkyard).
 Get a server
 ----------------
 
-Provision an Ubuntu 16.04 server with at least 2 GB RAM. Here are three
+Provision an Ubuntu 18.04 server with at least 2 GB RAM. Here are three
 places to hire servers:
 
 - Digital Ocean: https://www.digitalocean.com/ — easy to use.
@@ -42,9 +42,6 @@ places to hire servers:
 
 - Scaleway, https://www.scaleway.com/ — inexpensive, just €3, but risky, not so good backups.
   The server should be X86-64, not ARM (so don't use the BareMetal ARM servers).
-
-You'll also need to pay for some send-emails service. And create OpenAuth apps at Google,
-Facebook, Twitter, and GitHub, so login-with-Google etc will work — more about this, later.
 
 
 Installation instructions
@@ -154,14 +151,12 @@ Upgrading to newer versions
 
 If you followed the instructions above — that is, if you ran these scripts:
 `./scripts/configure-ubuntu.sh` and `./scripts/schedule-automatic-upgrades.sh`
-— then your server should keep itself up-to-date, and ought to require no maintenance,
-_until_ ...
+— then your server should keep itself up-to-date, and ought to require no maintenance.
 
-... _Until_ one day when I do some unusual tech stack changes, like changing
-from Docker to CoreOS rkt, or upgrading PostgreSQL to a new major version (10.x
-in use now).  Then, you might need to run `git fetch` and resolve edit
-conflicts, and run some Bash commands. Or even provision a new server, install
-a different tech stack, and import a backup of the database and file uploads.
+In a few cases you might have to do something manually, when upgrading.
+Like, running `git pull` and editing config files, maybe running a shell script.
+For us to be able to tell you about this, please send us an email at
+`hello at talkyard.io`.
 
 If you didn't run `./scripts/schedule-automatic-upgrades.sh`, you can upgrade
 manually like so:
@@ -225,9 +220,6 @@ You can delete them to free up disk:
 ```
 sudo apt autoremove --purge
 ```
-
-You can also delete old no-longer-needed Docker images: ...TODO...
-
 
 
 Docker mounted directories
