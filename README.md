@@ -32,7 +32,7 @@ if you want to be one of the first few people who try to follow those instructio
 Get a server
 ----------------
 
-Provision an Ubuntu 18.04 server with at least 2 GB RAM. Here are three
+Provision an Ubuntu 16.04 server with at least 2 GB RAM. Here are three
 places to hire servers:
 
 - Digital Ocean: https://www.digitalocean.com/ — easy to use.
