@@ -76,7 +76,7 @@ service docker start
 systemctl enable docker
 
 # Install Docker Compose (see https://github.com/docker/compose/releases)
-curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
 log_message

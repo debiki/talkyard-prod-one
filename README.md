@@ -6,27 +6,19 @@ For one single server.
 You should be familiar with Linux, Bash and Git. Otherwise you might run into
 problems. For example, there might be Git edit conflicts, if you and we change
 the same file — then you need to know how to resolve those edit conflicts.
-Also, knowing a bit about Docker and Docker containers can be good.
+Also, knowing a bit about Docker containers can be good.
 
 This is beta software; there might be bugs.
 You can report problems and ask questions in [our support forum](http://www.talkyard.io/forum/latest/support).
 
-If you'd like to install on your laptop / desktop just to test, there's
+If you'd like to test install on your laptop, there's
 [a Vagrantfile here](scripts/Vagrantfile) — open it in a text editor, and read,
 for details.
 
 Installation overview: You'll rent a virtual private server (VPS) somewhere, then download
-and install Talkyard, then sign up for a send-emails service and configure settings,
-then optionally configure OpenAuth login for Google, Facebook, Twitter, and GitHub. And
-preferably configure off-site backups. — These steps aren't unique to Talkyard. Instead
-it's the same for all self hosted discussion software with social login and emails.
-
-We'll soon write instructions about how to configure email settings and Google &
-Facebook & GitHub & Twitter login. **Send us an email** (address below) and we'll
-tell you when we're done writing the instructions: (you could also mention
-if you want to be one of the first few people who try to follow those instructions, or not)
-
-`hello at talkyard.io`
+and install Talkyard, then sign up for a send-emails service and configure email settings.
+Then optionally configure OpenAuth login for Google, Facebook, Twitter, GitHub.
+And off-site backups.
 
 
 Get a server
@@ -115,35 +107,115 @@ Installation instructions
 
 1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
    or <http://localhost>. Or <http://localhost:8080> if you're testing with Vagrant.
+
    In the browser, click _Continue_ and create an admin account
    with the email address you specified when you edited `play.conf` earlier (see above).
-   (Google and Facebook login won't work yet, because you have not
-   configured OpenAuth settings in `play.conf`.)
+   Follow the getting-started guide.
 
-1. No email-address-verification-email will be sent to you, because you have not
-   yet configured any email server (in `play.conf`).  However, you'll find
-   an address verification URL in the application server's log file, which you can view
-   like so: `./view-logs app` (or `./view-logs -f --tail 30 app`). Copy-paste
-   the URL into the browser.  You can [send an email again] / [write the URL to the log file
-   again] by clicking the _Send email again_ button.
+Everything will restart automatically on server reboot.
 
+Next steps:
 
-Now you're done. Everything will restart automatically on server reboot.
-
-Next things for you to do:
-
-- In the browser, follow the getting-started guide.
+- Sign up for a send-email-service — see the section just below.
 - Send an email to `hello at talkyard.io` so we get your address, and can
   inform you about security issues and major software
   upgrades that might require you to do something manually.
 - Copy backups off-site, regularly. See the Backups section below.
-- Pay for some send-email-service (websearch for "transactional email services")
-  and configure email server settings in `/opt/talkyard/conf/app/play.conf`.
-- Configure Gmail and Facebook login:
-  - At Google, Facebook, GitHub and Twitter, login and create OpenAuth apps,
-    then add the API keys and secrets to `play.conf` — I should write
-    instructions for this.
+- Configure Gmail, Facebook, Twitter, GitHub login,
+    by creating OpenAuth apps over at their sites, and adding API keys and secrets
+    to `play.conf`. See below, just after the next section, about email.
 
+
+Configuring email
+----------------
+
+If you don't have a mail server already, then sign up for a transactional email
+service, for example Mailgun, Elastic Email, SendGrid, Mailjet or Amazon SES.
+(Signing up, and verifying your sender email address and domain, is a bit complicated
+— nothing you do in five minutes.)
+
+Then, configure email settings in `/opt/talkyard/conf/app/play.conf`, that is, fill in these values:
+
+```
+talkyard.smtp.host="..."
+talkyard.smtp.port="587"
+talkyard.smtp.sslPort="465"
+talkyard.smtp.user="..."
+talkyard.smtp.useSslOrTls: true
+talkyard.smtp.password="...."
+talkyard.smtp.fromAddress="someone@yourwebsite.com"
+```
+
+(Google Cloud Engine blocks outgoing ports 587 and 465 (at least it did in the past).
+Probably you email provider has made other ports available for you to use,
+e.g. Amazon SES: ports 2587 and 2465.)
+
+
+OpenAuth login
+----------------
+
+Probably you want login with Facebook, Gmail and maybe Twitter and GitHub to work. Here's how.
+
+However, we haven't written easy to follow instructions for this yet.
+Send us an email: `hello at talkyard.io`, mention OpenAuth, and we'll hurry up.
+
+<small>(There are very very brief instructions in this the markdown source but they might be out of date,
+or there might be typos,
+so they're hidden unless you are a tech person who knows how to view the source.)</small>
+
+<!-- The "hidden" instructons.
+You can try to follow the instructions below, and maybe won't be easy.
+
+The login callbacks that you will need to fill in, are
+`http(s)://your.website.com/-/login-auth-callback/NAME` where *NAME* is
+one of `google`, `twitter`, `facebook`, `github`.
+
+The "copy-paste" instructions below are for `/opt/talkyard/conf/app/play.conf`,
+at the end of the file.
+
+Facebook:
+
+ - Go to https://developers.facebook.com, and sign up or log in
+ - Select the **My Apps** menu to the upper right
+ - Click **Add New App**
+ - Create a *Products | Facebook Login* app. (We should write more about this and
+   add screenshots.)
+ - Copy-paste the Facebook app id into `#facebook.clientID="..."` and `#facebook.clientSecret="..."`
+   (instead of the `...`), and activate ("comment in") each line by removing the `#`.
+
+Gmail:
+
+ - Go to https://console.developers.google.com
+ - Click API & Services
+ - Click Credentials, create an OAuth app for websites
+ - Click Libraries, enable Google+ (not Google+ Domains, don't know what that is)
+ - Copy-paste your client ID and secret into `#google.clientID="..."` and `#google.clientSecret="..."`,
+   and remove the `#`.
+
+Twitter:
+ - Go to https://apps.twitter.com, sign up or log in.
+ - Click **Create New App**
+ - As callback URL, specify: `https://your.website.com/-/login-auth-callback/twitter`
+ - Copy-paste your key and secret into `#twitter.consumerKey="..."` and `#twitter.consumerSecret="..."`,
+   and remove the `#`.
+
+GitHub:
+ - Log in to GitHub. Click your avatar menu. Then Settings, then Developer Settings, OAuth Apps.
+ - Copy-paste your client ID and secret into `#github.clientID="..."` and `#github.clientSecret="..."`,
+   and remove the `#`.
+-->
+
+
+Viewing log files
+----------------
+
+Change directory to `/opt/talkyard/`.
+
+Then, view the application server logs like so: `./view-logs app`
+or `./view-logs -f --tail 30 app`.  
+The web server: `tail -f /var/log/nginx/{access,error}.log` (mounted on the Docker host in docker-compose.yml)  
+The database: `less /var/log/postgres/LOG_FILE_NAME`  
+The search engine: `./view-logs search`.
 
 
 Upgrading to newer versions
