@@ -139,13 +139,13 @@ Then, configure email settings in `/opt/talkyard/conf/app/play.conf`, that is, f
 ```
 talkyard.smtp.host="..."
 talkyard.smtp.port="587"
-talkyard.smtp.tlsPort="465"
-talkyard.smtp.useTls=true
 talkyard.smtp.requireStartTls=true
+#talkyard.smtp.tlsPort="465"
+#talkyard.smtp.connectWithTls=true
 talkyard.smtp.checkServerIdentity=true
 talkyard.smtp.user="..."
-talkyard.smtp.password="...."
-talkyard.smtp.fromAddress="someone@your-organization.com"
+talkyard.smtp.password="..."
+talkyard.smtp.fromAddress="support@your-organization.com"
 ```
 
 (Google Cloud Engine blocks outgoing ports 587 and 465 (at least it did in the past).
