@@ -20,6 +20,9 @@ and install Talkyard, then sign up for a send-emails service and configure email
 Then optionally configure OpenAuth login for Google, Facebook, Twitter, GitHub.
 And off-site backups.
 
+Dockerfiles, build scripts and source code are in another repo: https://github.com/debiki/talkyard.
+Have a look in `./docker-compose.yml` for details and links.
+
 
 Get a server
 ----------------

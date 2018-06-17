@@ -1,7 +1,15 @@
+# Dockerfiles for the Docker images are in another Git repo:
+# https://github.com/debiki/talkyard
+# located at:  docker/(container-name)/Dockerfile
+#
+# The build script (which runs `docker build` and `push` to create these images) is here:
+# https://github.com/debiki/talkyard/blob/master/s/build-and-release.sh
+
 version: '3.1'
 services:
   web:
     image: $DOCKER_REPOSITORY/talkyard-web:$VERSION_TAG
+    # dockerfile: https://github.com/debiki/talkyard/blob/master/docker/web/Dockerfile
     restart: always
     volumes:
       - ./conf/web/server-listen-http.conf:/etc/nginx/server-listen.conf:ro
@@ -31,6 +39,7 @@ services:
 
   app:
     image: $DOCKER_REPOSITORY/talkyard-app:$VERSION_TAG
+    # dockerfile: https://github.com/debiki/talkyard/blob/master/docker/app-prod/Dockerfile
     restart: always
     stdin_open: true  # otherwise Play Framework exits
     volumes:
@@ -50,6 +59,7 @@ services:
 
   cache:
     image: $DOCKER_REPOSITORY/talkyard-cache:$VERSION_TAG
+    # dockerfile: https://github.com/debiki/talkyard/blob/master/docker/cache/Dockerfile
     restart: always
     volumes:
       - ./data/cache/:/data/
@@ -59,6 +69,7 @@ services:
 
   rdb:
     image: $DOCKER_REPOSITORY/talkyard-rdb:$VERSION_TAG
+    # dockerfile: https://github.com/debiki/talkyard/blob/master/docker/rdb/Dockerfile
     restart: always
     volumes:
       - ./data/rdb/:/var/lib/postgresql/data/
@@ -77,6 +88,7 @@ services:
 
   search:
     image: $DOCKER_REPOSITORY/talkyard-search:$VERSION_TAG
+    # dockerfile: https://github.com/debiki/talkyard/blob/master/docker/search/Dockerfile
     restart: always
     volumes:
       # COULD_OPTIMIZE Maybe use a Docker volume contanier here instead? What does the docs mean when
@@ -98,6 +110,7 @@ services:
 
   certgen:
     image: $DOCKER_REPOSITORY/talkyard-certgen:$VERSION_TAG
+    # dockerfile: https://github.com/debiki/talkyard/blob/master/docker/certgen/Dockerfile
     restart: always
     volumes:
       - ./data/sites-enabled/:/etc/nginx/sites-enabled/
