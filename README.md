@@ -8,8 +8,8 @@ problems. For example, there might be Git edit conflicts, if you and we change
 the same file — then you need to know how to resolve those edit conflicts.
 Also, knowing a bit about Docker containers can be good.
 
+Ask questions and report problems in **[our support forum](http://www.talkyard.io/forum/latest/support)**.
 This is beta software; there might be bugs.
-You can report problems and ask questions in [our support forum](http://www.talkyard.io/forum/latest/support).
 
 If you'd like to test install on your laptop, there's
 [a Vagrantfile here](scripts/Vagrantfile) — open it in a text editor, and read,
