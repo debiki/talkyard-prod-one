@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This installs Docker and Docker-Compose on a totally new & blank Ubuntu 16.04 server,
+# This installs Docker and Docker-Compose on a totally new & blank Ubuntu 18.04 server,
 # based on: https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/
 
 function log_message {
@@ -49,7 +49,7 @@ add-apt-repository \
 # ------- Install Docker CE:
 
 apt-get update
-apt-get -y install docker-ce=18.03.0~ce-0~ubuntu
+apt-get -y install docker-ce=18.06.0~ce~3-0~ubuntu
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
@@ -66,17 +66,13 @@ fi
 log_message "Docker worked fine. Installing Docker-Compose ..."
 
 
-# Apparently not needed any longer:
-##apt-get install -y linux-image-extra-$(uname -r)
-#apt-get install -y linux-image-generic
-
 service docker start
 
 # Make everything start automatically on server startup:
 systemctl enable docker
 
 # Install Docker Compose (see https://github.com/docker/compose/releases)
-curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
 log_message
@@ -85,7 +81,7 @@ log_message "*** Done ***"
 log_message
 log_message "Docker and Docker-Compose installed."
 log_message
-log_message "This should print 'docker-compose version 1.20.1 ...' or later:"
+log_message "This should print 'docker-compose version 1.22.0 ...' or later:"
 log_message "----------------------------"
 docker-compose -v
 log_message "----------------------------"

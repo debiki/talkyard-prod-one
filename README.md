@@ -1,7 +1,7 @@
 Talkyard production installation
 ================
 
-For one single server.
+For one single server: Ubuntu 18.04 with at least 2 GB RAM.
 
 You should be familiar with Linux, Bash and Git. Otherwise you might run into
 problems. For example, there might be Git edit conflicts, if you and we change
@@ -27,10 +27,12 @@ Have a look in `./docker-compose.yml` for details and links.
 Get a server
 ----------------
 
-Provision an Ubuntu 16.04 server with at least 2 GB RAM. Here are three
-places to hire servers:
+Provision an Ubuntu 18.04 server with at least 2 GB RAM. Here are
+some places to hire servers:
 
-- Digital Ocean: https://www.digitalocean.com/ — easy to use.
+- [Vultr](https://www.vultr.com/),
+  [Digital Ocean](https://www.digitalocean.com/),
+  [Linode](https://www.linode.com).
 
 - Google Compute Engine: https://cloud.google.com/compute/
   — for advanced users. You should be a company, because Google says you should pay taxes yourself.
@@ -291,7 +293,7 @@ See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
 Tips
 ----------------
 
-If you'll start running out of disk, one reason can be old patches for automatic operating system security updates.
+If you start running out of disk, one reason can be old patches for automatic operating system security updates.
 You can delete them to free up disk:
 
 ```
