@@ -12,8 +12,7 @@ services:
     # dockerfile: https://github.com/debiki/talkyard/blob/master/docker/web/Dockerfile
     restart: always
     volumes:
-      - ./conf/web/server-listen-http.conf:/etc/nginx/server-listen.conf:ro
-      - ./conf/web/sites-enabled-manual/:/etc/nginx/sites-enabled-manual/:ro
+      - ./conf/sites-enabled-manual/:/etc/nginx/sites-enabled-manual/:ro
       - ./data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro
       - ./data/certbot/:/etc/certbot/:ro
       - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro
@@ -43,7 +42,7 @@ services:
     restart: always
     stdin_open: true  # otherwise Play Framework exits
     volumes:
-      - ./conf/app/play.conf:/opt/talkyard/app/conf/app-prod-override.conf:ro  # see [4WDKPU2] in ed-server
+      - ./conf/play-framework.conf:/opt/talkyard/app/conf/app-prod-override.conf:ro  # see [4WDKPU2] in ed-server
       - ./data/uploads/:/opt/talkyard/uploads/
       # So backups can be downloaded via the admin web interface. But read-only,
       # so evil bugs cannot destroy all backups.

@@ -46,21 +46,21 @@ Installation instructions
 
 1. Become root and install Git:
 
-        sudo -i
-        apt-get update
-        apt-get -y install git
+       sudo -i
+       apt-get update
+       apt-get -y install git
 
 1. Download installation scripts: (you need to install in
    `/opt/talkyard/` for the backup scripts to work)
 
-        cd /opt/
-        git clone https://github.com/debiki/talkyard-prod-one.git talkyard
-        cd talkyard
+       cd /opt/
+       git clone https://github.com/debiki/talkyard-prod-one.git talkyard
+       cd talkyard
 
 1. Prepare Ubuntu: install tools, enable automatic security updates, simplify troubleshooting,
    and make ElasticSearch work:
 
-        ./scripts/prepare-ubuntu.sh 2>&1 | tee -a talkyard-maint.log
+       ./scripts/prepare-ubuntu.sh 2>&1 | tee -a talkyard-maint.log
 
    (If you don't want to run all stuff in this script, you at least need to copy the
    sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
@@ -69,26 +69,28 @@ Installation instructions
 
    Also do this, to avoid harmless but annoying language-missing warnings:
 
-        export LC_ALL=en_US.UTF-8
+       export LC_ALL=en_US.UTF-8
 
 1. Install Docker:
 
-        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
+       ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
 1. Start a firewall: (and answer Yes to the question you'll get. You can skip this if
    you use Google Cloud Engine; GCE already has a firewall)
 
-        ./scripts/start-firewall.sh 2>&1 | tee -a talkyard-maint.log
+       ./scripts/start-firewall.sh 2>&1 | tee -a talkyard-maint.log
 
 1. Edit config files:
 
-        nano conf/app/play.conf   # edit all config values in the Required Settings section
-        nano .env                 # edit the database password
+   ```
+   nano conf/play-framework.conf   # edit config values in the Required Settings section
+   nano .env                       # edit the database password
+   ```
 
    Note:
-   - If you don't edit `play.http.secret.key` in file `play.conf`, the server won't start.
+   - If you don't edit `play.http.secret.key` in file `play-framework.conf`, the server won't start.
    - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
-     then add `talkyard.port=8080` to `play.conf`.
+     then add `talkyard.port=8080` to `play-framework.conf`.
 
 1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
    mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
@@ -114,7 +116,7 @@ Installation instructions
    or <http://localhost>. Or <http://localhost:8080> if you're testing with Vagrant.
 
    In the browser, click _Continue_ and create an admin account
-   with the email address you specified when you edited `play.conf` earlier (see above).
+   with the email address you specified when you edited `play-framework.conf` earlier (see above).
    Follow the getting-started guide.
 
 Everything will restart automatically on server reboot.
@@ -129,7 +131,7 @@ Next steps:
 - Copy backups off-site, regularly. See the Backups section below.
 - Configure Gmail, Facebook, Twitter, GitHub login,
     by creating OpenAuth apps over at their sites, and adding API keys and secrets
-    to `play.conf`. See below, just after the next section, about email.
+    to `play-framework.conf`. See below, just after the next section, about email.
 
 
 Configuring email
@@ -140,7 +142,7 @@ service, for example Mailgun, Elastic Email, SendGrid, Mailjet or Amazon SES.
 (Signing up, and verifying your sender email address and domain, is a bit complicated
 — nothing you do in five minutes.)
 
-Then, configure email settings in `/opt/talkyard/conf/app/play.conf`, that is, fill in these values:
+Then, configure email settings in `/opt/talkyard/conf/play-framework.conf`, that is, fill in these values:
 
 ```
 talkyard.smtp.host="..."
@@ -178,7 +180,7 @@ The login callbacks that you will need to fill in, are
 `http(s)://your.website.com/-/login-auth-callback/NAME` where *NAME* is
 one of `google`, `twitter`, `facebook`, `github`.
 
-The "copy-paste" instructions below are for `/opt/talkyard/conf/app/play.conf`,
+The "copy-paste" instructions below are for `/opt/talkyard/conf/play-framework.conf`,
 at the end of the file.
 
 Facebook:

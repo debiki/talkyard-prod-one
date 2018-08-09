@@ -6,7 +6,8 @@
 # Virtual Machine (VM) can be created and configured on your computer,
 # in which you can test install Talkyard.
 #
-# Tips: You'll need to add  talkyard.port=8080  to play.conf (mentioned in README.md).
+# Tips: You'll need to add  talkyard.port=8080  to play-framework.conf
+# (mentioned in README.md).
 #
 # Go and read about Vagrant here: https://www.vagrantup.com/ — click
 # "Getting Started" and read that page. Download and install Vagrant.

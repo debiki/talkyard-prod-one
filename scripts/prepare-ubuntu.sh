@@ -36,7 +36,8 @@ log_message 'Installing add-apt-repository...'
 apt-get -y install software-properties-common
 
 
-# Append system config settings, so the ElasticSearch Docker container will work:
+# Append system config settings, so the ElasticSearch Docker container will work,
+# and so Nginx can handle more connections. [BACKLGSZ]
 
 if ! grep -q 'Talkyard' /etc/sysctl.conf; then
   log_message 'Amending the /etc/sysctl.conf config...'
