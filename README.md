@@ -121,6 +121,7 @@ Everything will restart automatically on server reboot.
 
 Next steps:
 
+- Do not enable HTTP2, currently doesn't work with Nginx + the Lua module (apparently [this](https://github.com/openresty/lua-nginx-module/blob/52af63a5b949d6da2289e2de3fb839e2aba4cbfd/src/ngx_http_lua_headers.c#L116) error happens).
 - Sign up for a send-email-service — see the section just below.
 - Send an email to `hello at talkyard.io` so we get your address, and can
   inform you about security issues and major software
