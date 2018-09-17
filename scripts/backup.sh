@@ -82,8 +82,8 @@ touch $backup_test_dir/$(date --utc +%FT%H%M)--$(hostname)--$random_value
 # many uploads — they can be huge). Instead, create archives every month only, which contains
 # all files uploaded in between. So:
 # Every new month, start growing a new uploads-backup-archive
-# with a name matching  -uploads-since-<date>.tar.gz where <date> is the start of the month.
-# Delete all old backups with the same "since-<date>" because the most recent one contains
+# with a name matching  -uploads-start-<date>.tar.gz where <date> is the start of the month.
+# Delete all old backups with the same "start-<date>" because the most recent one contains
 # all files in those archives anyway.
 
 start_date=`date +%Y-%m-01`
@@ -98,13 +98,13 @@ do_backup="tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_upl
 
 if [ -z "$other_archives_same_start_date" ]; then
   # Then this is a new month and we're starting a new archive series. Ok to 'rsync --delete'.
-  rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
+  /usr/bin/rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
   echo "Synced uploads to: $backup_uploads_sync_dir/, and deleted uploads that have been deleted"
   $do_backup
   log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
 else
   # Don't --delete, because the archive shall include all stuff uploaded during the month.
-  rsync -a $uploads_dir/ $backup_uploads_sync_dir/
+  /usr/bin/rsync -a $uploads_dir/ $backup_uploads_sync_dir/
   echo "Synced uploads to: $backup_uploads_sync_dir/"
   $do_backup
   # Don't need to keep older backups from the same month — they're included in the backup archive we just created.

@@ -8,7 +8,7 @@ problems. For example, there might be Git edit conflicts, if you and we change
 the same file — then you need to know how to resolve those edit conflicts.
 Also, knowing a bit about Docker containers can be good.
 
-Ask questions and report problems in **[our support forum](http://www.talkyard.io/forum/latest/support)**.
+Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 This is beta software; there might be bugs.
 
 If you'd like to test install on your laptop, there's
@@ -44,11 +44,13 @@ some places to hire servers:
 Installation instructions
 ----------------
 
-1. Become root and install Git:
+1. Become root: `sudo -i`, then install Git and English: (can be missing, in minimal Ubuntu builds)
 
-       sudo -i
+       # As root:
        apt-get update
-       apt-get -y install git
+       apt-get -y install git vim locales
+       locale-gen en_US.UTF-8                      # installs English
+       export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
 
 1. Download installation scripts: (you need to install in
    `/opt/talkyard/` for the backup scripts to work)
@@ -62,20 +64,16 @@ Installation instructions
 
        ./scripts/prepare-ubuntu.sh 2>&1 | tee -a talkyard-maint.log
 
-   (If you don't want to run all stuff in this script, you at least need to copy the
+   (If you don't want to run this whole script, you at least need to copy the
    sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
    `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
    won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
-
-   Also do this, to avoid harmless but annoying language-missing warnings:
-
-       export LC_ALL=en_US.UTF-8
 
 1. Install Docker:
 
        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
-1. Start a firewall: (and answer Yes to the question you'll get. You can skip this if
+1. Install a firewall, namely *ufw*: (and answer Yes to the question you'll get. You can skip this if
    you use Google Cloud Engine; GCE already has a firewall)
 
        ./scripts/start-firewall.sh 2>&1 | tee -a talkyard-maint.log
@@ -321,7 +319,7 @@ License (GPLv2)
 
 The GNU General Public License, version 2 — and it's for the instructions and
 scripts etcetera in this repository only, not for any Talkyard
-source code or stuff in other repositories.
+source code or things in other repositories.
 
     Copyright (c) 2016-2018 Kaj Magnus Lindberg
 

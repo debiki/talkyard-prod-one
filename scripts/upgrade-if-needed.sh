@@ -28,7 +28,7 @@ fi
 
 if [ ! -f versions/version-tags.log ]; then
   log_message "Downloading version numbers submodule..."
-  git submodule update --init
+  /usr/bin/git submodule update --init
 fi
 
 # Find out the next app version, by pulling a version list from a Git repo.
@@ -38,11 +38,11 @@ cd versions
 /usr/bin/git pull
 
 # Don't upgrade to WIP = work-in-progress versions, or 'test' version. And, by default, neither
-# to 'alpha' or 'beta' or 'rc' versions, or 'maint'enance versions.
+# to 'alpha' or 'beta' or 'tp' (tech preview) 'rc' (release candidate) or 'maint'enance versions.
 # Don't upgrade to new software stack versions = 'stack' because in order to do than,
 # one will probably need to run `git pull` and resolve edit conflicts,
 # perhaps run scripts or even export the PostgreSQL database and import into another type of database.
-NEXT_VERSION=`grep -iv --regex='-wip' --regex='-alpha' --regex='-beta' --regex='-rc' --regex='-maint' --regex='stack' --regex='test' version-tags.log | tail -n1`
+NEXT_VERSION=`grep -iv --regex='-wip' --regex='-tp' --regex='-alpha' --regex='-beta' --regex='-rc' --regex='-maint' --regex='stack' --regex='test' version-tags.log | tail -n1`
 cd ..
 
 if [ -z "$NEXT_VERSION" ]; then
@@ -72,6 +72,17 @@ else
 fi
 
 
+# Remove old images & containers
+# ===========================
+
+# So won't run out of disk. Let's keep images less than three months old, in case
+# need to downgrade to previous server version because of some bug.
+# Also, do this whilst the old containers are still running, so their images
+# won't be removed (that is, before the Upgrade step below).  24h * 92 = 2208.
+
+/usr/bin/docker system prune --all --force --filter "until=2208h"
+
+
 # Download new version
 # ===========================
 
@@ -79,17 +90,6 @@ fi
 # the version we want.
 log_message "Downloading version $NEXT_VERSION... (this might take long)"
 VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose pull
-
-
-# Remove old images & containers
-# ===========================
-
-# So won't run out of disk. Let's keep images less than two months old, in case
-# need to downgrade to previous server version because of some bug.
-# Also, do this whilst the old containers are still running, so their images
-# won't be removed (that is, before the Upgrade step below).  24h * 62 = 1488.
-
-docker system prune --all --force --filter "until=1488h"
 
 
 # Upgrade
