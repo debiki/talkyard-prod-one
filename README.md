@@ -87,6 +87,9 @@ Installation instructions
 
    Note:
    - If you don't edit `play.http.secret.key` in file `play-framework.conf`, the server won't start.
+   - A PostgreSQL database user, named *talkyard*, gets created automatically,
+     by the *rdb* Docker container, with the password you typed in the `.env` file
+     (in `nano .env` above). You don't need to do anything.
    - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
      then add `talkyard.port=8080` to `play-framework.conf`.
 
