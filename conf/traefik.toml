@@ -1,0 +1,43 @@
+# static cert, see: https://docs.traefik.io/configuration/entrypoints/#static-certificates
+# dns + http challenges:  https://github.com/containous/traefik/issues/3378
+
+debug = false
+
+logLevel = "INFO"
+defaultEntryPoints = ["https","http"]
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+  [entryPoints.https.tls]
+
+[retry]
+
+# Shows a Traefik dashboard at port 8080, which is, by default, blocked by a firewall
+# in Talkyard's installation script.
+[api]
+
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+watch = true
+exposedByDefault = false
+
+[acme]
+email = "your-email-here@my-awesome-app.org"
+storage = "acme.json"
+entryPoint = "https"
+acmeLogging = true
+
+# This generates a Let's Encrypt certificate during the first HTTPS request on a new domain.
+# This will be a biteslow when requesting a hostname certificate for the first time.
+# There's also the onHostRule directive, which you can use instead, but then you need to
+# add your hostname rule in a 'web' docker-compose.yml container label.
+onDemand = true
+
+  [acme.httpChallenge]
+  entryPoint = "http"
+

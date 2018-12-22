@@ -5,8 +5,41 @@
 # The build script (which runs `docker build` and `push` to create these images) is here:
 # https://github.com/debiki/talkyard/blob/master/s/build-and-release.sh
 
+# traefik: don't forget:
+#touch data/traefik/acme.json
+#chmod 600 data/traefik/acme.json
+
+
 version: '3.1'
+
+networks:
+  # These will get prefixed with 'talkyard_', by Docker (7RJPW2).
+  web_net:
+  internal_net:
+
 services:
+  proxy:
+    image: $DOCKER_REPOSITORY/talkyard-proxy:$VERSION_TAG
+    #image: traefik:1.7.6
+    ports:
+      - 80:80
+      - 443:443
+      # The Web UI, enabled by --api. Don't expose publicly (a firewall should block
+      # everything but ports 22, 80 and 443)
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./conf/traefik.toml:/traefik.toml
+      # mkdir -p data/traefik
+      #touch /opt/traefik/acme.json && chmod 600 /opt/traefik/acme.json
+      #touch /opt/traefik/traefik.toml
+      - ./data/traefik/acme.json:/acme.json
+    networks:
+      - web_net
+      - internal_net
+    #container_name: traefik
+    restart: always
+
   web:
     image: $DOCKER_REPOSITORY/talkyard-web:$VERSION_TAG
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/web/Dockerfile
@@ -19,11 +52,19 @@ services:
       - ./data/uploads/:/opt/talkyard/uploads/:ro
       # Mount here so standard monitoring tools looking for Nginx logs will work.
       - /var/log/nginx/:/var/log/nginx/
-    ports:
-      - '80:80'
-      - '443:443'
+    networks:
+      - web_net
+      - internal_net
     depends_on:
       - app
+    labels:
+      # The network name got prefixed with 'talkyard_', by Docker (7RJPW2).
+      - "traefik.docker.network=talkyard_web_net"
+      - "traefik.enable=true"
+      # Send everything to this server.
+      - "traefik.web.frontend.rule=PathPrefix:/"
+      - "traefik.web.port=80"
+      - "traefik.web.protocol=http"
     #environment:
     #  X_PULL_KEY: '...'
     #  CDN_PULL_KEY: '...'
@@ -53,6 +94,8 @@ services:
       - cache
       - rdb
       - search
+    networks:
+      - internal_net
     environment:
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
 
@@ -63,6 +106,8 @@ services:
     volumes:
       - ./data/cache/:/data/
       - /var/log/redis/:/var/log/redis/
+    networks:
+      - internal_net
     sysctls:
       net.core.somaxconn: 511
 
@@ -76,6 +121,8 @@ services:
       # (Inside the container, we don't mount in /var/lib/postgresql/data/pg_log/ because
       # then Postgres would refuse to create a db in data/, because data/ wouldn't be empty.)
       - /var/log/postgresql/:/var/log/postgresql/
+    networks:
+      - internal_net
     environment:
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
       # Optionally, streaming replication peer:
@@ -96,6 +143,8 @@ services:
       # https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html#docker-cli-run-prod-mode
       - ./data/search/:/usr/share/elasticsearch/data/
       - /var/log/elasticsearch/:/usr/share/elasticsearch/logs/
+    networks:
+      - internal_net
     environment:
       bootstrap.memory_lock: 'true'
       ES_JAVA_OPTS: '-Xms512m -Xmx512m'

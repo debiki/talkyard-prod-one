@@ -49,7 +49,12 @@ add-apt-repository \
 # ------- Install Docker CE:
 
 apt-get update
+
+# 18.09.0 won't work, it has a bug with 'docker prune ...until=...' [1809DKRBUG]
+#apt-get -y install docker-ce=5:18.09.0~3-0~ubuntu-bionic
+
 apt-get -y install docker-ce=18.06.0~ce~3-0~ubuntu
+
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
@@ -72,7 +77,7 @@ service docker start
 systemctl enable docker
 
 # Install Docker Compose (see https://github.com/docker/compose/releases)
-curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
 log_message
@@ -81,7 +86,7 @@ log_message "*** Done ***"
 log_message
 log_message "Docker and Docker-Compose installed."
 log_message
-log_message "This should print 'docker-compose version 1.22.0 ...' or later:"
+log_message "This should print 'docker-compose version 1.23.0 ...' or later:"
 log_message "----------------------------"
 docker-compose -v
 log_message "----------------------------"

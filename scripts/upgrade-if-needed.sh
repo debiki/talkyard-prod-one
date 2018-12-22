@@ -80,6 +80,7 @@ fi
 # Also, do this whilst the old containers are still running, so their images
 # won't be removed (that is, before the Upgrade step below).  24h * 92 = 2208.
 
+# Docker 18.09.0 errors out, because of until= ... [1809DKRBUG]
 /usr/bin/docker system prune --all --force --filter "until=2208h"
 
 
