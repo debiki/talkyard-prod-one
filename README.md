@@ -94,7 +94,7 @@ Installation instructions
      then add `talkyard.port=8080` to `play-framework.conf`.
 
 1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
-   mem/1g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
+   mem/1.7g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
    and copy it to ./docker-compose.override.yml. For example, for
    a server with 2 GB RAM:
 
