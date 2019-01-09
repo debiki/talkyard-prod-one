@@ -1,7 +1,11 @@
 Setting up HTTPS for your Talkyard server
 -----
 
-These instructions will:
+**Edit:** You can skip all this. Nowadays, HTTPS certs are generated automatically (we added
+Traefik to the tech stack). However, in case you want to remove Traefik and configure
+things yourself instead, then, you can continue reading below.  **/Edit**
+
+These instructions will:  (**Edit:** As mentioned above, you can skip all this. **/Edit**)
  
  - Generate a free HTTPS cert (using Let'sEncrypt)
  - Start using the cert

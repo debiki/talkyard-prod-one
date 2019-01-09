@@ -82,7 +82,8 @@ Installation instructions
 
    ```
    nano conf/play-framework.conf   # edit config values in the Required Settings section
-   nano .env                       # edit the database password
+   nano .env                       # edit the database password, and
+                                   # fill in your email address
    ```
 
    Note:
@@ -116,19 +117,22 @@ Installation instructions
 1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
    or <http://localhost>. Or <http://localhost:8080> if you're testing with Vagrant.
 
-   In the browser, click _Continue_ and create an admin account
-   with the email address you specified when you edited `play-framework.conf` earlier (see above).
-   Follow the getting-started guide ...
+1. Wait for a HTTPS certificate. You should see a warning about the current HTTPS certificate
+   being invalid. Wait for half a minute, then, refresh the web page. Eventually, a HTTPS cert
+   should have been generated.  (Unless you access via IP address or localhost — then you
+   need to click past the browser's security warnings.)
 
-   <i>... Or maybe you'd like to <b>enable HTTPS</b> before you click Continue
-   and submit your email address? See the Next Steps just below.</i>
+1. In the browser, click _Continue_ and create an admin account
+   with the email address you specified when you edited `play-framework.conf` earlier (see above).
+   Follow the getting-started guide.
 
 Everything will restart automatically on server reboot.
 
 Next steps:
 
 - Do not enable HTTP2, currently doesn't work with Nginx + the Lua module (apparently [this](https://github.com/openresty/lua-nginx-module/blob/52af63a5b949d6da2289e2de3fb839e2aba4cbfd/src/ngx_http_lua_headers.c#L116) error happens).
-- Enable HTTPS, see [docs/setup-https.md](docs/setup-https.md).
+<!-- Now using Traefik insted:
+- Enable HTTPS, see [docs/setup-https.md](docs/setup-https.md).  -->
 - Sign up for a send-email-service — see the section just below.
 - Send an email to `hello at talkyard.io` so we get your address, and can
   inform you about security issues and major software

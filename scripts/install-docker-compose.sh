@@ -51,7 +51,8 @@ add-apt-repository \
 apt-get update
 
 # 18.09.0 won't work, it has a bug with 'docker prune ...until=...' [1809DKRBUG]
-#apt-get -y install docker-ce=5:18.09.0~3-0~ubuntu-bionic
+# see: https://github.com/moby/moby/pull/38238 and https://github.com/docker/engine/pull/122
+#apt-get -y install docker-ce=5:18.09.0~3-0~ubuntu-bionic   # 18.09.1 will work though
 
 apt-get -y install docker-ce=18.06.0~ce~3-0~ubuntu
 
