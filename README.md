@@ -317,29 +317,14 @@ Docker mounted directories
 
 
 
-License (GPLv2)
+License (MIT)
 ----------------
 
-The GNU General Public License, version 2 — and it's for the instructions and
+The MIT license, see `LICENSE-MIT.txt` — and that's for the instructions and
 scripts etcetera in this repository only, not for any Talkyard
 source code or things in other repositories.
 
-    Copyright (c) 2016-2018 Kaj Magnus Lindberg
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, version 2 of the License.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-Here's the full license text: [LICENSE-GPLv2.txt](./LICENSE-GPLv2.txt).
+Copyright (c) 2016-2019 Debiki AB and Kaj Magnus Lindberg.
 
 
 <!-- vim: set et ts=2 sw=2 tw=0 fo=r list : -->
