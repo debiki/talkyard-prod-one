@@ -48,8 +48,15 @@ add-apt-repository \
 
 # ------- Install Docker CE:
 
+# List versions: apt-cache madison docker-ce
+# Upgrade:
+#   service docker stop
+#   apt-get update
+#   apt-get upgrade   # will it upgr Docker too? if installed via docker-ce=VERSION?
+#   apt-get -y install docker-ce=VERSION   # or is this needed?
+
 apt-get update
-apt-get -y install docker-ce=18.06.0~ce~3-0~ubuntu
+apt-get -y install docker-ce=5:18.09.1~3-0~ubuntu-bionic
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
@@ -72,7 +79,7 @@ service docker start
 systemctl enable docker
 
 # Install Docker Compose (see https://github.com/docker/compose/releases)
-curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
 log_message

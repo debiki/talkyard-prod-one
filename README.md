@@ -78,20 +78,19 @@ Installation instructions
 
        ./scripts/start-firewall.sh 2>&1 | tee -a talkyard-maint.log
 
-1. Edit config files:
+1. Edit config values:
 
    ```
-   nano conf/play-framework.conf   # edit config values in the Required Settings section
-   nano .env                       # edit the database password
+   nano .env   # fill in values in the Required Settings section
    ```
 
    Note:
-   - If you don't edit `play.http.secret.key` in file `play-framework.conf`, the server won't start.
+   - If you don't edit `PLAY_SECRET_KEY`, the server won't start.
    - A PostgreSQL database user, named *talkyard*, gets created automatically,
-     by the *rdb* Docker container, with the password you typed in the `.env` file
-     (in `nano .env` above). You don't need to do anything.
+     by the *rdb* Docker container, with the password you choose in the `.env` file.
+     You don't need to do anything.
    - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
-     then add `talkyard.port=8080` to `play-framework.conf`.
+     then add `TALKYARD_PORT=8080` to `.env`.
 
 1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
    mem/1.7g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,

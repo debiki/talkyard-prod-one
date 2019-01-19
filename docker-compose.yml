@@ -1,14 +1,22 @@
 # Dockerfiles for the Docker images are in another Git repo:
-# https://github.com/debiki/talkyard
-# located at:  images/(image-name)/Dockerfile
+# https://github.com/debiki/talkyard, at: images/(image-name)/Dockerfile
 #
-# The build script (which runs `docker build` and `push` to create these images) is here:
-# https://github.com/debiki/talkyard/blob/master/s/build-and-release.sh
+# There's an image build script: https://github.com/debiki/talkyard/blob/master/Makefile,
+# the `prod-images` and `tag-and-push-latest-images` targets.
 
-version: '3.1'
+version: '3.7'
+
+networks:
+  # This netw name get prefixed with COMPOSE_PROJECT_NAME  = 'talkyard_' by Docker, from .env.
+  internal_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${INTERNAL_NET_SUBNTET}
+
 services:
   web:
-    image: $DOCKER_REPOSITORY/talkyard-web:$VERSION_TAG
+    image: ${DOCKER_REPOSITORY}/talkyard-web:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/web/Dockerfile
     restart: always
     volumes:
@@ -22,6 +30,9 @@ services:
     ports:
       - '80:80'
       - '443:443'
+    networks:
+      internal_net:
+        ipv4_address: ${INTERNAL_NET_WEB_IP}
     depends_on:
       - app
     #environment:
@@ -37,7 +48,7 @@ services:
     #  ... many more?
 
   app:
-    image: $DOCKER_REPOSITORY/talkyard-app:$VERSION_TAG
+    image: ${DOCKER_REPOSITORY}/talkyard-app:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/app/Dockerfile.prod
     restart: always
     stdin_open: true  # otherwise Play Framework exits
@@ -46,10 +57,13 @@ services:
       - ./data/uploads/:/opt/talkyard/uploads/
       # So backups can be downloaded via the admin web interface. But read-only,
       # so evil bugs cannot destroy all backups.
-      - /opt/talkyard-backups/archives/:/opt/talkyard/backup-archives/:ro
+      - /opt/talkyard-backups/:/opt/talkyard-backups/:ro
       # Mount here so log monitoring agents like fluentd can access the log.
       - /var/log/talkyard/:/var/log/talkyard/
-    links:
+    networks:
+      internal_net:
+        ipv4_address: ${INTERNAL_NET_APP_IP}
+    depends_on:
       - cache
       - rdb
       - search
@@ -57,17 +71,20 @@ services:
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
 
   cache:
-    image: $DOCKER_REPOSITORY/talkyard-cache:$VERSION_TAG
+    image: ${DOCKER_REPOSITORY}/talkyard-cache:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/cache/Dockerfile
     restart: always
     volumes:
       - ./data/cache/:/data/
       - /var/log/redis/:/var/log/redis/
+    networks:
+      internal_net:
+        ipv4_address: ${INTERNAL_NET_CACHE_IP}
     sysctls:
       net.core.somaxconn: 511
 
   rdb:
-    image: $DOCKER_REPOSITORY/talkyard-rdb:$VERSION_TAG
+    image: ${DOCKER_REPOSITORY}/talkyard-rdb:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/rdb/Dockerfile
     restart: always
     volumes:
@@ -76,6 +93,9 @@ services:
       # (Inside the container, we don't mount in /var/lib/postgresql/data/pg_log/ because
       # then Postgres would refuse to create a db in data/, because data/ wouldn't be empty.)
       - /var/log/postgresql/:/var/log/postgresql/
+    networks:
+      internal_net:
+        ipv4_address: ${INTERNAL_NET_RDB_IP}
     environment:
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
       # Optionally, streaming replication peer:
@@ -86,7 +106,7 @@ services:
       # PEER_PASSWORD: '...'
 
   search:
-    image: $DOCKER_REPOSITORY/talkyard-search:$VERSION_TAG
+    image: ${DOCKER_REPOSITORY}/talkyard-search:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/search/Dockerfile
     restart: always
     volumes:
@@ -96,6 +116,9 @@ services:
       # https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html#docker-cli-run-prod-mode
       - ./data/search/:/usr/share/elasticsearch/data/
       - /var/log/elasticsearch/:/usr/share/elasticsearch/logs/
+    networks:
+      internal_net:
+        ipv4_address: ${INTERNAL_NET_SEARCH_IP}
     environment:
       bootstrap.memory_lock: 'true'
       ES_JAVA_OPTS: '-Xms512m -Xmx512m'
