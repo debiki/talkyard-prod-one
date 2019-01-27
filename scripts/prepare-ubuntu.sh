@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This script makes ElasticSearch work, and simplifies troubleshooting.
+# This script makes ElasticSearch work, simplifies troubleshooting,
+# and configures automatic security updates, with reboots.
 
 function log_message {
   echo "`date --iso-8601=seconds --utc` configure-ubuntu: $1"
@@ -46,7 +47,6 @@ if ! grep -q 'Talkyard' /etc/sysctl.conf; then
 		###################################################################
 		# Talkyard settings
 		#
-		net.ipv4.ip_forward=1      # makes Docker networking work
 		vm.swappiness=1            # turn off swap, default = 60
 		net.core.somaxconn=8192    # Up the max backlog queue size (num connections per port), default = 128. Sync with conf/web/server-listen-http(s).conf.
 		vm.max_map_count=262144    # ElasticSearch wants this, default = 65530
