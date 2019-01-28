@@ -82,16 +82,17 @@ Installation instructions
 1. Edit config values:
 
    ```
-   nano .env   # fill in values in the Required Settings section
+   nano conf/play-framework.conf  # fill in values in the Required Settings section
+   nano .env                      # type a database password
    ```
 
    Note:
-   - If you don't edit `PLAY_SECRET_KEY`, the server won't start.
+   - If you don't edit `play.http.secret.key` in `play-framework.conf`, the server won't start.
    - A PostgreSQL database user, named *talkyard*, gets created automatically,
-     by the *rdb* Docker container, with the password you choose in the `.env` file.
+     by the *rdb* Docker container, with the password you type in the `.env` file.
      You don't need to do anything.
    - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
-     then add `TALKYARD_PORT=8080` to `.env`.
+     then comment in `talkyard.port=8080` in `play-framework.conf`.
 
 1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
    mem/1.7g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
@@ -320,11 +321,13 @@ Docker mounted directories
 License (MIT)
 ----------------
 
+```
 Copyright (c) 2016-2019 Debiki AB and Kaj Magnus Lindberg.
 
-Licensed under the MIT license, see `LICENSE-MIT.txt` — and that's for the
-instructions and scripts etcetera in this repository only, not for Talkyard
-source code or things in other repositories.
+Licensed under the MIT license, see `LICENSE-MIT.txt` — and this is for the
+instructions and scripts in this repository only, not for Talkyard source code
+or things in other repositories.
+```
 
 
 <!-- vim: set et ts=2 sw=2 tw=0 fo=r list : -->
