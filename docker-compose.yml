@@ -53,7 +53,7 @@ services:
     restart: always
     stdin_open: true  # otherwise Play Framework exits
     volumes:
-      - ./conf/play-framework.conf:/opt/talkyard/app/conf/app-prod-override.conf:ro  # see [4WDKPU2] in ed-server
+      - ./conf/play-framework.conf:/opt/talkyard/app/conf/app-prod-override.conf:ro  # see [4WDKPU2] in debiki/talkyard
       - ./data/uploads/:/opt/talkyard/uploads/
       # So backups can be downloaded via the admin web interface. But read-only,
       # so evil bugs cannot destroy all backups.
@@ -68,7 +68,11 @@ services:
       - rdb
       - search
     environment:
-      POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
+      - PLAY_SECRET_KEY
+      - TALKYARD_SECURE
+      - POSTGRES_PASSWORD
+      - TALKYARD_HOSTNAME
+      - BECOME_OWNER_EMAIL_ADDRESS
 
   cache:
     image: ${DOCKER_REPOSITORY}/talkyard-cache:${VERSION_TAG}

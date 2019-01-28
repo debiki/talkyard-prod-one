@@ -6,7 +6,7 @@ For one single server: Ubuntu 18.04 with at least 2 GB RAM.
 You should be familiar with Linux, Bash and Git. Otherwise you might run into
 problems. For example, there might be Git edit conflicts, if you and we change
 the same file — then you need to know how to resolve those edit conflicts.
-Also, knowing a bit about Docker containers can be good.
+Also, knowing a bit about Docker can be good.
 
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 This is beta software; there might be bugs.
@@ -18,10 +18,14 @@ for details.
 Installation overview: You'll rent a virtual private server (VPS) somewhere, then download
 and install Talkyard, then sign up for a send-emails service and configure email settings.
 Then optionally configure OpenAuth login for Google, Facebook, Twitter, GitHub.
-And off-site backups.
+And off-site backups. ...
+
+... However, if you already have a Docker-Compose or Docker Swarm installation, and
+want to add Talkyard to it (rather than installing Talkyard on its own dedicated server),
+then instead have a look at: https://github.com/debiki/talkyard-prod-swarm
 
 Dockerfiles, build scripts and source code are in another repo: https://github.com/debiki/talkyard.
-Have a look in `./docker-compose.yml` for details and links.
+Have a look in `./docker-compose.yml` (in this repo) for details and links.
 
 
 Get a server
@@ -36,9 +40,6 @@ some places to hire servers:
 
 - Google Compute Engine: https://cloud.google.com/compute/
   — for advanced users. You should be a company, because Google says you should pay taxes yourself.
-
-- Scaleway, https://www.scaleway.com/ — inexpensive, just €3, but risky, not so good backups.
-  The server should be X86-64, not ARM (so don't use the BareMetal ARM servers).
 
 
 Installation instructions
@@ -319,11 +320,11 @@ Docker mounted directories
 License (MIT)
 ----------------
 
-The MIT license, see `LICENSE-MIT.txt` — and that's for the instructions and
-scripts etcetera in this repository only, not for any Talkyard
-source code or things in other repositories.
-
 Copyright (c) 2016-2019 Debiki AB and Kaj Magnus Lindberg.
+
+Licensed under the MIT license, see `LICENSE-MIT.txt` — and that's for the
+instructions and scripts etcetera in this repository only, not for Talkyard
+source code or things in other repositories.
 
 
 <!-- vim: set et ts=2 sw=2 tw=0 fo=r list : -->

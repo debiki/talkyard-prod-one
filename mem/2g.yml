@@ -6,7 +6,7 @@
 # Also, there're Nginx and Redis containers too.)
 
 
-version: '3.1'
+version: '3.7'
 services:
   app:
     environment:
