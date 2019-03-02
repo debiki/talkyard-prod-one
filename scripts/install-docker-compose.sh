@@ -56,7 +56,7 @@ add-apt-repository \
 #   apt-get -y install docker-ce=VERSION   # or is this needed?
 
 apt-get update
-apt-get -y install docker-ce=5:18.09.1~3-0~ubuntu-bionic
+apt-get -y install docker-ce=5:18.09.3~3-0~ubuntu-bionic
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
@@ -88,7 +88,7 @@ log_message "*** Done ***"
 log_message
 log_message "Docker and Docker-Compose installed."
 log_message
-log_message "This should print 'docker-compose version 1.22.0 ...' or later:"
+log_message "This should print 'docker-compose version 1.23.0 ...' or later:"
 log_message "----------------------------"
 docker-compose -v
 log_message "----------------------------"
