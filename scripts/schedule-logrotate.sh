@@ -22,7 +22,7 @@ fi
 cron_match=`crontab -l | grep '/opt/talkyard.*/delete-old-logs.sh'`
 
 if [ -z "$cron_match" ]; then
-    crontab -l | { cat; echo '5 0 * * * cd /opt/talkyard && ./scripts/delete-old-logs.sh >> talkyard-maint.log 2>&1'; } | crontab -
+    crontab -l | { cat; echo '10 0 * * * cd /opt/talkyard && ./scripts/delete-old-logs.sh >> talkyard-maint.log 2>&1'; } | crontab -
     log_message "Added delete-old-logs.sh cron job."
     did_something='yes'
 fi
