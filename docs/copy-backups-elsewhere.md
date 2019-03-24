@@ -61,22 +61,18 @@ The result should be that the `authorized_keys` file looks like: (and it's a rea
 
 ### Test
 
-Now, on the backup server, test to copy backups:
+Now, on the backup server, test copying backups:
 
-    # replace 'serveraddress' with the server address
-    rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@serveraddress:/ talkyard-backups/
-
-		# todo: can I prefix .ssh with ~/ so will work from any directory?
-		# or $HOME, that reportedly works from others dirs: (but add trailing slash?)
-		#   rsync -e "ssh -i $HOME/.ssh/id_remotebackup" -av remotebackup@serveraddress:/ talkyard-backups
+    # replace 'SERVERADDRESS' with your Talkyard server address
+    rsync -e "ssh -i $HOME/.ssh/id_remotebackup" -av remotebackup@SERVERADDRESS:/ $HOME/talkyard-backups/
 
 
 ### Schedule copying-of-backups
 
 If the above test works, then schedule a cron job to copy backups regularly. Do this on the backup server:
 
-    # (replace 'serveraddress' with the server address)
-    crontab -l | { cat; echo '@hourly rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@serveraddress:/ talkyard-backups/ >> cron.log 2>&1'; } | crontab -
+    # again, replace 'SERVERADDRESS' with your Talkyard server address
+    crontab -l | { cat; echo '@hourly rsync -e "ssh -i .ssh/id_remotebackup" -av remotebackup@SERVERADDRESS:/ talkyard-backups/ >> cron.log 2>&1'; } | crontab -
 
 Now you'll have fresh backups of your forum in ~/talkyard-backups/, in case the Talkyard
 server disappears.

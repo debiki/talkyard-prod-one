@@ -2,14 +2,21 @@ Talkyard production installation
 ================
 
 For one single server: Ubuntu 18.04 with at least 2 GB RAM.
-(If you already have a Docker-Compose or Docker Swarm installation
+
+Docker based installation. Automatic upgrades.
+You can configure HTTPS via LetsEncrypt.
+One installation can host many sites.
+
+If however you already have a Docker-Compose or Docker Swarm installation
 with a HTTPS reverse proxy, and want to add Talkyard to it,
-then have a look at: https://github.com/debiki/talkyard-prod-swarm)
+then have a look at: https://github.com/debiki/talkyard-prod-swarm.
+
 
 You should be familiar with Linux, Bash and Git. Otherwise you might run into
 problems. For example, there might be Git edit conflicts, if you and we change
 the same file — then you need to know how to resolve those edit conflicts.
 Also, knowing a bit about Docker can be good.
+See https://www.talkyard.io/plans for alternatives to installing yourself.
 
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 This is beta software; there might be bugs.
@@ -30,15 +37,7 @@ Have a look in `./docker-compose.yml` (in this repo) for details and links.
 Get a server
 ----------------
 
-Provision an Ubuntu 18.04 server with at least 2 GB RAM. Here are
-some places to hire servers:
-
-- [Digital Ocean](https://www.digitalocean.com/),
-  [Vultr](https://www.vultr.com/),
-  [Linode](https://www.linode.com).
-
-- Google Compute Engine: https://cloud.google.com/compute/
-  — for advanced users. You should be a company, because Google says you should pay taxes yourself.
+Provision an Ubuntu 18.04 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
 
 
 Installation instructions
