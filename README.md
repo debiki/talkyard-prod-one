@@ -312,7 +312,7 @@ But static IPs is simpler.
 You can choose the network IP range in the `.env` file — there's this variable:
 
 ```
-INTERNAL_NET_SUBNTET=172.26.0.0/25
+INTERNAL_NET_SUBNET=172.26.0.0/25
 ```
 
 
