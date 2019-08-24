@@ -105,6 +105,9 @@ Installation instructions
         # This script also installs, although named "upgrade–...".
         ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
+   (This creates a new Docker network — you can choose the IP range; see the
+   section *A New Docker Network* below.)
+
 1. Schedule deletion of old log files, daily backups and deletion old backups,
    and automatic upgrades:
 
@@ -168,7 +171,7 @@ e.g. Amazon SES: ports 2587 and 2465.)
 OpenAuth login
 ----------------
 
-Probably you want login with Facebook, Gmail and maybe Twitter and GitHub to work. Here's how.
+You want login with Facebook, Gmail and maybe Twitter and GitHub to work? Here's how.
 
 However, we haven't written easy to follow instructions for this yet.
 Send us an email: `hello at talkyard.io`, mention OpenAuth, and we'll hurry up.
@@ -294,6 +297,23 @@ Instructions section above. In any case, you can backup manually like so:
 You should copy the backups to a safety backup server, regularly. Otherwise, if your main server suddenly disappears, or someone breaks into it and ransomware-encrypts everything — then you'd lose all your data.
 
 See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
+
+
+A new Docker network
+----------------
+
+Talkyard creates its own Docker network, and assigns static IPs to the containers.
+Otherwise, if a container restarts, Docker might give it a new IP,
+and the other containers then couldn't find it it. —
+Unless they're also restarted, so all things that have cached the old stale IP,
+picks up the new IP instead. Or unless one starts using something like Traefik.
+But static IPs is simpler.
+
+You can choose the network IP range in the `.env` file — there's this variable:
+
+```
+INTERNAL_NET_SUBNTET=172.26.0.0/25
+```
 
 
 
