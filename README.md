@@ -202,12 +202,41 @@ Facebook:
 
 Gmail:
 
- - Go to https://console.developers.google.com
- - Click API & Services
- - Click Credentials, create an OAuth app for websites
- - Click Libraries, enable Google+ (not Google+ Domains, don't know what that is)
- - Copy-paste your client ID and secret into `#google.clientID="..."` and `#google.clientSecret="..."`,
-   and remove the `#`.
+First, conider visiting https://developers.google.com/people/v1/getting-started#1.-get-a-google-account
+  and reading the instructions.
+
+Then let's get started for real:
+- Go to Google's People API setup tool: https://console.developers.google.com/start/api?id=people.googleapis.com&credential=client_key
+- Select an existing project of yours, or create a new one.
+- Click Continue.
+- You should see a message "People API has been enabled" in the upper left corner.
+- Click "Go to credentials"
+- You should see: "Find out what kind of credentials you need".
+  (If you get lost, you can go back to here, by clicking the upper left corner
+  hamburger menu, then choosing "APIs & Services", then clicking "Credentials",
+  then in the "Create credentials" dropdown, selecting "Help me choose". )
+
+- In the "Which API are you using?" dropdown, select "People API".
+- In the "Where will you be calling the API from?" dropdown, select "Web server".
+- Below "What data will you be accessing?", select "User data".
+- Click "What credentials do I need", and proceed with creating credentials if needed.
+
+- Now you need to fill in fields for an OAuth Consent dialog. This dialog is where
+  your users see your organization's name, URL and logo, and can read about
+  how you handle their data — you need to add a link to a Privacy Policy,
+  and Terms of Use. If you don't have your own Privacy Policy and ToU, then,
+  you can use these:
+    https://YOUR_TALKYARD_SERVER/-/privacy-policy
+    https://YOUR_TALKYARD_SERVER/-/terms-of-use
+
+- You'll get to a page "Client ID for Web application".
+  There, in the "Authorized redirect URIs" field, type:
+    https://YOUR_TALKYARD_SERVER/-/login-auth-callback/google
+
+    (Ignore the "Authorized JavaScript origins" field.)
+
+- (Old? blog post w photos:
+    https://medium.com/@pablo127/google-api-authentication-with-oauth-2-on-the-example-of-gmail-a103c897fd98 )
 
 Twitter:
  - Go to https://apps.twitter.com, sign up or log in.
