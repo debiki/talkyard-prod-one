@@ -14,6 +14,8 @@ fi
 
 log_message "Backing up, tag: '$1'"
 
+so_nice="nice -n19"
+
 when="`date '+%FT%H%MZ' --utc`"
 backup_archives_dir=/opt/talkyard-backups/archives
 backup_uploads_sync_dir=/opt/talkyard-backups/uploads-sync
@@ -33,14 +35,44 @@ log_message "Generated random test-that-backups-work value: '$random_value'"
 /usr/local/bin/docker-compose exec rdb psql talkyard talkyard -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, random_value) values (now_utc(), '`hostname`', 'rdb', '$random_value');"
 
-postgres_backup_path=$backup_archives_dir/`hostname`-$when-$1-postgres.sql.gz
-log_message "Backing up Postgres..."
-# (cron's path apparently doesn't include /sur/local/bin/)
+postgres_backup_path=$backup_archives_dir/`hostname`-$when-$1-postgres.sql
+postgres_backup_path_gz=$postgres_backup_path.gz
+log_message "Backing up Postgres to: $postgres_backup_path ..."
+
+# Don't pipe to gzip — that can spike the CPU to 100%, making the kernel panic.
+# It then logs:
+#
+#    watchdog: BUG: soft lockup - CPU#0 stuck for 22s!
+#    Kernel panic - not syncing: softlockup: hung tasks
+#    ... thread stacks ...
+#    ...
+#    Rebooting in 10 seconds..
+#
+# And then this script continues, until the server reboots 10 seconds later.
+#
+# (This happened with a Google Compute Engine VM, after some Ubuntu Server
+# software upgrade 2020-01-09?. Machine type n1-standard-1: 1 vCPU,
+# 3.75 GB memory.)
+#
+# Instead, run gzip as a separate step — then the CPU load in the above case
+# (the GCE VM) stays okay low — compared to 100% + panic crash.
+#
 # Specify -T so Docker won't create a tty, because that results in a Docker Compose
 # stack trace and error exit code.
-# Specify --clean to include commands to drop databases, roles, tablespaces before recreating them.
-/usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists | gzip > $postgres_backup_path
-log_message "Backed up Postgres to: $postgres_backup_path"
+#
+# Specify --clean to include commands to drop databases, roles, tablespaces
+# before recreating them.
+#
+# (cron's path apparently doesn't include /sur/local/bin/)
+#
+/usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists > $postgres_backup_path
+$so_nice gzip $postgres_backup_path
+log_message "Backed up Postgres, and gzipped to: $postgres_backup_path_gz"
+
+# If you need to backup really manually:
+# /usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists \
+#   | nice -n19 gzip \
+#   > "/opt/talkyard-backups/archives/$(hostname)-$(date '+%FT%H%MZ' --utc)-cmdline-postgres.sql.gz"
 
 
 # Backup Redis
@@ -54,7 +86,7 @@ log_message "Backed up Postgres to: $postgres_backup_path"
 if [ -f data/cache/dump.rdb ]; then
   redis_backup_path=$backup_archives_dir/`hostname`-$when-$1-redis.rdb.gz
   log_message "Backing up Redis..."
-  gzip --to-stdout data/cache/dump.rdb > $redis_backup_path
+  $so_nice gzip --to-stdout data/cache/dump.rdb > $redis_backup_path
   log_message "Backed up Redis to: $redis_backup_path"
 else
   log_message "No Redis dump.rdb to backup."
@@ -94,17 +126,17 @@ other_archives_same_start_date=$( find $backup_archives_dir -type f -name '*-upl
 /usr/local/bin/docker-compose exec rdb psql talkyard talkyard -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, random_value) values (now_utc(), '`hostname`', 'uploads', '$random_value');"
 
-do_backup="tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_uploads_sync_dir ./"
+do_backup="$so_nice tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_uploads_sync_dir ./"
 
 if [ -z "$other_archives_same_start_date" ]; then
   # Then this is a new month and we're starting a new archive series. Ok to 'rsync --delete'.
-  /usr/bin/rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
+  $so_nice /usr/bin/rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
   echo "Synced uploads to: $backup_uploads_sync_dir/, and deleted uploads that have been deleted"
   $do_backup
   log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
 else
   # Don't --delete, because the archive shall include all stuff uploaded during the month.
-  /usr/bin/rsync -a $uploads_dir/ $backup_uploads_sync_dir/
+  $so_nice /usr/bin/rsync -a $uploads_dir/ $backup_uploads_sync_dir/
   echo "Synced uploads to: $backup_uploads_sync_dir/"
   $do_backup
   # Don't need to keep older backups from the same month — they're included in the backup archive we just created.
