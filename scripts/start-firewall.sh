@@ -16,7 +16,9 @@ ufw allow 80
 ufw allow 443
 
 log_message "You can answer Yes to the question below, unless you know you've done something very special:"
+echo
 ufw enable  # will ask you to confirm
+echo
 
 # Make the firewall work with Docker: (not needed in Google Compute Engine)
 # 1) Change forward policy to accept: DEFAULT_FORWARD_POLICY="ACCEPT"

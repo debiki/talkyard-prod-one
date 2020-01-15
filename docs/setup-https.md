@@ -7,7 +7,29 @@ These instructions will:
  - Start using the cert
  - Redirect HTTP to HTTPS
  - Auto renew the cert
- 
+
+### Port 80 and a reverse proxy?
+
+For this to work, your Talkyard server needs to listen on port 80, HTTP.
+(And 443, HTTPS.)
+Otherwise LetsEncrypt cannot verify that you own the domain name. [1]
+
+If you have some other thing running on the server where you install Talkyard,
+and that other thing listens on port 80,
+then you need to add a reverse proxy in front of Talkyard and that other thing.
+This reverse proxy should then listen on port 80 on behalf of both Talkyard
+and that other thing, and look at the HOST header and send the traffic to the
+correct destination.
+
+You can use Apache or Nginx as revese proxies, for example.
+With Apache, you'd configure `<vhost>` blocks — one for Talkyard, and one for
+that other thing.
+With Nginx, you'd instead configure a `server { ... }` blocks,
+to send the traffic to Talkayrd or that other thing.
+
+
+### Instructions
+
  Do as follows: (takes maybe 25 minutes, if DNS server already configured)
 
 1. Update your DNS server, so your community hostname, say, `forum.example.com`, points to your Talkyard server's IP address. You might need to wait for a few hours, for the DNS changes to take effect.
@@ -88,3 +110,13 @@ All done.
 
 You can ask questions here: <https://www.talkyard.io/forum/>
 
+
+<br><br>
+[1]:
+If you're curious about why LetsEncrypt needs your server to listen on port 80,
+have a look here:
+https://community.letsencrypt.org/t/renew-certificate-using-https-port-443-or-alternative-port-eg-8000/66981/6.
+In short, some sharing hosting providers might, if using HTTPS for verification
+(instead of HTTP port 80), allow one customer to reply to a LetsEncrypt challenge
+for another customer’s domain name, and pretend to be the owner
+of that other domain name.
