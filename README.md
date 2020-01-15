@@ -7,9 +7,11 @@ Docker based installation. Automatic upgrades.
 You can configure HTTPS via LetsEncrypt.
 One installation can host many sites.
 
+<!-- NO, Swarm is abandonware
 If however you already have a Docker-Compose or Docker Swarm installation
 with a HTTPS reverse proxy, and want to add Talkyard to it,
 then have a look at: https://github.com/debiki/talkyard-prod-swarm.
+-->
 
 
 You should be familiar with Linux, Bash and Git. Otherwise you might run into

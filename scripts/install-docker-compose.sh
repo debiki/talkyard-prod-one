@@ -19,6 +19,7 @@ apt-get -y install \
     apt-transport-https \
     ca-certificates \
     curl \
+    gnupg-agent \
     software-properties-common
 
 # Add Docker’s official GPG key:
@@ -29,7 +30,7 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 MATCHING_KEY_ROW="`apt-key fingerprint 0EBFCD88 | grep '9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88'`"
 if [ -z "$MATCHING_KEY_ROW" ]; then
 	echo
-	log_message "ERROR: Bad Docker GPG key fingerprint. [EdEDKRFNGRPRNT]"
+	log_message "ERROR: Bad Docker GPG key fingerprint. [TyEDKRFNGR]"
 	log_message "Don't continue installing."
 	log_message "Instead, ask for help in the Docker forums: https://forums.docker.com/,"
 	log_message "and show them the output from running this:"
@@ -52,11 +53,11 @@ add-apt-repository \
 # Upgrade:
 #   service docker stop
 #   apt-get update
-#   apt-get upgrade   # will it upgr Docker too? if installed via docker-ce=VERSION?
+#   apt-get upgrade  # hmm seems to upgrade Docker too, also if installed via docker-ce=...
 #   apt-get -y install docker-ce=VERSION   # or is this needed?
 
 apt-get update
-apt-get -y install docker-ce=5:18.09.3~3-0~ubuntu-bionic
+apt-get -y install docker-ce=5:19.03.5~3-0~ubuntu-bionic
 
 log_message "Testing Docker: running 'docker run hello-world' ..."
 
@@ -79,7 +80,8 @@ service docker start
 systemctl enable docker
 
 # Install Docker Compose (see https://github.com/docker/compose/releases)
-curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+
+curl -L https://github.com/docker/compose/releases/download/1.25.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
 log_message
@@ -88,7 +90,7 @@ log_message "*** Done ***"
 log_message
 log_message "Docker and Docker-Compose installed."
 log_message
-log_message "This should print 'docker-compose version 1.23.0 ...' or later:"
+log_message "This should print 'docker-compose version 1.25.0 ...' or later:"
 log_message "----------------------------"
 docker-compose -v
 log_message "----------------------------"
