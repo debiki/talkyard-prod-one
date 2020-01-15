@@ -14,15 +14,15 @@ fi
 
 log_message "Backing up, tag: '$1'"
 
+# See the comment mentioning gzip and "soft lockup" below.
 so_nice="nice -n19"
 
 when="`date '+%FT%H%MZ' --utc`"
 backup_archives_dir=/opt/talkyard-backups/archives
-backup_uploads_sync_dir=/opt/talkyard-backups/uploads-sync
+backup_config_temp_dir=/opt/talkyard-backups/config-temp
 uploads_dir=/opt/talkyard/data/uploads
 
 mkdir -p $backup_archives_dir
-mkdir -p $backup_uploads_sync_dir
 
 random_value=$( cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 )
 log_message "Generated random test-that-backups-work value: '$random_value'"
@@ -75,6 +75,23 @@ log_message "Backed up Postgres, and gzipped to: $postgres_backup_path_gz"
 #   > "/opt/talkyard-backups/archives/$(hostname)-$(date '+%FT%H%MZ' --utc)-cmdline-postgres.sql.gz"
 
 
+
+# Backup config
+# -------------------
+
+rm -fr $backup_config_temp_dir
+mkdir -p $backup_config_temp_dir/data
+
+cp -a /opt/talkyard/conf $backup_config_temp_dir/
+cp -a /opt/talkyard/data/certbot $backup_config_temp_dir/data/
+cp -a /opt/talkyard/data/sites-enabled-auto-gen $backup_config_temp_dir/data/
+
+config_backup_path="$backup_archives_dir/`hostname`-$when-$1-config.tar.gz"
+
+$so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
+
+
+
 # Backup Redis
 # -------------------
 # """Redis is very data backup friendly since you can copy RDB files while the
@@ -113,37 +130,48 @@ touch $backup_test_dir/$(date --utc +%FT%H%M)--$(hostname)--$random_value
 # Don't want to archive all uploads every day — then we might soon run out of disk (if there're
 # many uploads — they can be huge). Instead, create archives every month only, which contains
 # all files uploaded in between. So:
-# Every new month, start growing a new uploads-backup-archive
-# with a name matching  -uploads-start-<date>.tar.gz where <date> is the start of the month.
-# Delete all old backups with the same "start-<date>" because the most recent one contains
-# all files in those archives anyway.
+# Every new month, start growing a new uploads-backup-archive with a name
+# matching  -uploads-up-to-incl-<yyyy-mm>.d. They will
+# contain all files uploaded previous months that haven't been deleted,
+# plus all files from the curent <yyyy-mm> month (e.g. 2020-01 = Jan 2020) also
+# if they were later deleted this current month.
+# (But such deleted files won't appear in the *next* month's archive.)
 
-start_date=`date +%Y-%m-01`
-uploads_start_date_tgz="uploads-start-$start_date.tar.gz"
-uploads_backup_filename=`hostname`-$when-$1-$uploads_start_date_tgz
-other_archives_same_start_date=$( find $backup_archives_dir -type f -name '*-uploads-*' | egrep "`hostname`.+$uploads_start_date_tgz" )
+uploads_backup_d="`hostname`-uploads-up-to-incl-`date +%Y-%m`.d"
+$so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup_d/
+
+# Bump the mtime, so scripts/delete-old-backups.sh won't delete it too soon.
+# (Otherwise rsync will have preserved the creation date of the uploads dir,
+# which might be years ago.)
+touch $backup_archives_dir/$uploads_backup_d
+
+log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_d"
+
+
+#  start_date=`date +%Y-%m-01`
+#  uploads_start_date_tgz="uploads-start-$start_date.tar.gz"
+#  uploads_backup_filename="`hostname`-latest-$uploads_start_date_tgz"
+#  other_archives_same_start_date=$( find $backup_archives_dir -type f -name '*-uploads-*' | egrep "`hostname`.+$uploads_start_date_tgz" )
 
 /usr/local/bin/docker-compose exec rdb psql talkyard talkyard -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, random_value) values (now_utc(), '`hostname`', 'uploads', '$random_value');"
 
-do_backup="$so_nice tar -czf $backup_archives_dir/$uploads_backup_filename -C $backup_uploads_sync_dir ./"
 
-if [ -z "$other_archives_same_start_date" ]; then
-  # Then this is a new month and we're starting a new archive series. Ok to 'rsync --delete'.
-  $so_nice /usr/bin/rsync -a --delete $uploads_dir/ $backup_uploads_sync_dir/
-  echo "Synced uploads to: $backup_uploads_sync_dir/, and deleted uploads that have been deleted"
-  $do_backup
-  log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
-else
-  # Don't --delete, because the archive shall include all stuff uploaded during the month.
-  $so_nice /usr/bin/rsync -a $uploads_dir/ $backup_uploads_sync_dir/
-  echo "Synced uploads to: $backup_uploads_sync_dir/"
-  $do_backup
-  # Don't need to keep older backups from the same month — they're included in the backup archive we just created.
-  echo "$other_archives_same_start_date" | xargs rm
-  log_message "Backed up uploads to: $backup_archives_dir/$uploads_backup_filename"
-  log_message "Deleted these old backups; their contents is included in the backup we just did: $other_archives_same_start_date"
-fi
+
+# Help file about restoring backups
+# -------------------
+
+# Where's a better place to document how to restore backups, than in the
+# backup directory itself? Because it should get rsynced to an off-site
+# extra backup server — and then, when someone logs in at that other off-site
+# server to restore the backups, hen will find the instructions on how to
+# actually do that.
+
+cp docs/how-restore-backup.md $backup_archives_dir/HOW-RESTORE-BACKUPS.md
+
+# Touch it so it'll be the first thing you see, when you type 'ls -halt'.
+touch $backup_archives_dir/HOW-RESTORE-BACKUPS.md
+
 
 
 # vim: et ts=2 sw=2 tw=0 fo=r

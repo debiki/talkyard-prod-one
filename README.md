@@ -290,20 +290,8 @@ Backups
 
 ### Importing a backup
 
-You can import a Postgres database backup like so: (you need to stop the 'app'
-container, otherwise the import will fail because of active database
-connections)
+See [docs/how-restore-backups.md](./docs/how-restore-backups.md).
 
-    sudo -i
-    docker-compose stop app
-    zcat /opt/talkyard-backups/BACKUP_FILE.gz \
-      | docker exec -i $(docker-compose ps -q rdb) psql postgres postgres \
-      | tee -a talkyard-maint.log
-    docker-compose start app
-
-Replace `BACKUP_FILE` above with the actual file name.
-
-TODO: Explain how to import the uploaded-files backup archive...
 
 You can login to Postgres like so:
 
