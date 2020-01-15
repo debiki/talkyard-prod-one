@@ -10,22 +10,19 @@ These instructions will:
 
 ### Port 80 and a reverse proxy?
 
-For this to work, your Talkyard server needs to listen on port 80, HTTP.
-(And 443, HTTPS.)
+Your Talkyard server needs to listen on port 80, HTTP. (And 443, HTTPS.)
 Otherwise LetsEncrypt cannot verify that you own the domain name. [1]
 
-If you have some other thing running on the server where you install Talkyard,
-and that other thing listens on port 80,
-then you need to add a reverse proxy in front of Talkyard and that other thing.
-This reverse proxy should then listen on port 80 on behalf of both Talkyard
-and that other thing, and look at the HOST header and send the traffic to the
-correct destination.
+If you have some other thing listening on port 80 on the same server, then:
+You'll need to add a reverse proxy in front of Talkyard and that other thing,
+which listens on port 80 on behalf of both Talkyard and that other thing.
+It should look at the HOST header and send the traffic to the
+correct destination (i.e. to Talkyard or to the other thing).
 
-You can use Apache or Nginx as revese proxies, for example.
+You can use for example Apache or Nginx as a revese proxy.
 With Apache, you'd configure `<vhost>` blocks — one for Talkyard, and one for
 that other thing.
-With Nginx, you'd instead configure a `server { ... }` blocks,
-to send the traffic to Talkayrd or that other thing.
+With Nginx, you'd configure `server { ... }` blocks.
 
 
 ### Instructions
@@ -97,7 +94,7 @@ to send the traffic to Talkayrd or that other thing.
 
 1. Go to `http://your-forum-hostname` (note: `http` not `https`). This should now redirect to `https`.
 
-1. Enable automatic renewal of HTTPS certificates: *(this is a bit untested, as of August 11, 2018)*
+1. Enable automatic renewal of HTTPS certificates:
 
    ```
    cd /opt/talkyard/
@@ -116,7 +113,7 @@ You can ask questions here: <https://www.talkyard.io/forum/>
 If you're curious about why LetsEncrypt needs your server to listen on port 80,
 have a look here:
 https://community.letsencrypt.org/t/renew-certificate-using-https-port-443-or-alternative-port-eg-8000/66981/6.
-In short, some sharing hosting providers might, if using HTTPS for verification
-(instead of HTTP port 80), allow one customer to reply to a LetsEncrypt challenge
-for another customer’s domain name, and pretend to be the owner
-of that other domain name.
+In short, some sharing hosting providers (unrelated to Talkyard) might,
+if using HTTPS for verification (instead of HTTP port 80), allow one customer
+to reply to a LetsEncrypt challenge for another customer’s domain name,
+and pretend to be the owner of that other domain name.

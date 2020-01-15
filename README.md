@@ -204,7 +204,7 @@ Facebook:
 
 Gmail:
 
-First, conider visiting https://developers.google.com/people/v1/getting-started#1.-get-a-google-account
+First, consider visiting https://developers.google.com/people/v1/getting-started#1.-get-a-google-account
   and reading the instructions.
 
 Then let's get started for real:
@@ -292,7 +292,7 @@ Backups
 
 ### Importing a backup
 
-See [docs/how-restore-backups.md](./docs/how-restore-backups.md).
+See [docs/how-restore-backups.md](./docs/how-restore-backup.md).
 
 
 You can login to Postgres like so:
