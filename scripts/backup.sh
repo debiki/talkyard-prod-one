@@ -13,8 +13,9 @@ if [ $# -ne 1 ]; then
 fi
 
 when="`date '+%FT%H%MZ' --utc`"
+hostname=$(hostname)
 
-log_message "Backing up,  when: '$when',  tag: '$1'"
+log_message "Backing up '$hostname', when: '$when', tag: '$1' ..."
 
 # See the comment mentioning gzip and "soft lockup" below.
 so_nice="nice -n19"
@@ -29,15 +30,29 @@ random_value=$( cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 )
 log_message "Generated random test-that-backups-work value: '$random_value'"
 
 
+# A random value
+# -------------------
+
+# Include a file with a per backup random value. We'll insert this random value
+# into the PostgreSQL database and uploads directory too. Then, on an off-site
+# backup server, we can check that this value is indeed included in the backups.
+# If it's not, the backups are broken, and we could send an email [BADBKPEML].
+
+echo "$random_value" >> "$backup_archives_dir/$hostname-$when-$1-random-value.txt"
+
+
 # Backup Postgres
 # -------------------
 
-# Insert a backup test timestamp, so we somewhere else can check that the contents of the backup is recent.
-/usr/local/bin/docker-compose exec rdb psql talkyard talkyard -c \
-    "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, random_value) values (now_utc(), '`hostname`', 'rdb', '$random_value');"
+postgres_backup_file_name="`hostname`-$when-$1-postgres.sql"
 
-postgres_backup_path=$backup_archives_dir/`hostname`-$when-$1-postgres.sql
-postgres_backup_path_gz=$postgres_backup_path.gz
+# Insert a backup test timestamp, and the random value, so we can check, on an
+# off-site backup server, that the contents of the backup is recent and okay.
+/usr/local/bin/docker-compose exec rdb psql edm edm -c \
+    "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '$hostname', 'rdb', '$postgres_backup_file_name', '$random_value');"
+
+postgres_backup_path="$backup_archives_dir/$postgres_backup_file_name"
+postgres_backup_path_gz="$postgres_backup_path.gz"
 log_message "Backing up Postgres to: $postgres_backup_path_gz ..."
 
 # Don't pipe to gzip — that can spike the CPU to 100%, making the kernel panic.
@@ -139,7 +154,7 @@ log_message "Backing up uploads to: $backup_archives_dir/$uploads_backup_d ..."
 backup_test_dir="$uploads_dir/backup-test"
 mkdir -p $backup_test_dir
 find $backup_test_dir -type f -mtime +31 -delete
-touch $backup_test_dir/$(date --utc +%FT%H%M)--$(hostname)--$random_value
+touch $backup_test_dir/$when--$hostname--$random_value
 
 # Don't archive all uploads every day — then we might soon run out of disk
 # (if there're many uploads — they can be huge). Instead, every new month,
@@ -163,7 +178,7 @@ log_message "Done backing up uploads."
 
 # Keep track of what we've backed up:
 /usr/local/bin/docker-compose exec rdb psql talkyard talkyard -c \
-    "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, random_value) values (now_utc(), '`hostname`', 'uploads', '$random_value');"
+    "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '`hostname`', 'uploads', '$uploads_backup_d', '$random_value');"
 
 
 

@@ -87,5 +87,23 @@ easier to make the backup server safe, because it doesn't need to run the whole
 Talkyard tech stack.)
 
 
+### Get an email, if backups stop working
 
+On the remote backup server, copy the contents of the script
+[scripts/check-talkyard-backups.sh](../scripts/check-talkyard-backups.sh)
+to your home directory. Edit the script and fill in email server (SMTP)
+credentials.
+
+Then, test run the script:
+
+    cd $HOME
+    ./check-talkyard-backups.sh --send-email-if-bad talkyard-backups/
+
+And test send an email:
+
+    ./check-talkyard-backups.sh --send-test-email
+
+If seems to work, run daily via Cron:
+
+    crontab -l | { cat; echo '@daily ./check-talkyard-backups.sh --send-email-if-bad talkyard-backups/ >> cron.log 2>&1'; } | crontab -
 

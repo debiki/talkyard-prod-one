@@ -313,7 +313,12 @@ Instructions section above. In any case, you can backup manually like so:
 
 ### Copy backups elsewhere
 
-You should copy the backups to a safety backup server, regularly. Otherwise, if your main server suddenly disappears, or someone breaks into it and ransomware-encrypts everything — then you'd lose all your data.
+You should copy the backups to a safety off-site backup server, regularly.
+Otherwise, if your main server suddenly disappears, or someone breaks into it
+and ransomware-encrypts everything — you'd lose all data.
+
+There's also a script you can copy-paste to that off-site backup server,
+and run daily via Cron, to get notified via email if backups stop working.
 
 See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
 
