@@ -15,6 +15,22 @@ networks:
         - subnet: ${INTERNAL_NET_SUBNET}
 
 services:
+  proxy:
+    image: nginx:1.16.1-alpine
+    restart: always
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./proxy/var-log-nginx/:/var/log/nginx/
+      - ./proxy/letsencrypt/:/etc/letsencrypt/
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      internal_net:
+        ipv4_address: ${INTERNAL_NET_PROXY_IP}
+    depends_on:
+      - web
+
   web:
     image: ${DOCKER_REPOSITORY}/talkyard-web:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/web/Dockerfile
@@ -28,8 +44,8 @@ services:
       # Mount here so standard monitoring tools looking for Nginx logs will work.
       - /var/log/nginx/:/var/log/nginx/
     ports:
-      - '80:80'
-      - '443:443'
+      - '8080:80'
+      - '8443:443'
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_WEB_IP}
