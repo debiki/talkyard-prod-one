@@ -36,8 +36,11 @@ services:
     depends_on:
       - app
     #environment:
+    #  # Max uploaded file size, e.g. uploaded images or backups to restore:
+    #  TY_NGX_LIMIT_REQ_BODY_SIZE: '50m'
     #  X_PULL_KEY: '...'
     #  CDN_PULL_KEY: '...'
+    #
     # SECURITY COULD drop capabilities, see: http://rhelblog.redhat.com/2016/10/17/secure-your-containers-with-this-one-weird-trick/
     # Ask at Hacker News: which caps can I drop for an Nginx container? A JVM appserver?
     # Asked here about Nginx:
