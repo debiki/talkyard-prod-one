@@ -37,7 +37,7 @@ services:
       - app
     #environment:
     #  # Max uploaded file size, e.g. uploaded images or backups to restore:
-    #  TY_NGX_LIMIT_REQ_BODY_SIZE: '50m'
+    #  TY_NGX_LIMIT_REQ_BODY_SIZE: '25m'
     #  X_PULL_KEY: '...'
     #  CDN_PULL_KEY: '...'
     #

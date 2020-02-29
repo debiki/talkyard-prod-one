@@ -14,10 +14,10 @@ Your Talkyard server needs to listen on port 80, HTTP. (And 443, HTTPS.)
 Otherwise LetsEncrypt cannot verify that you own the domain name. [1]
 
 If you have some other thing listening on port 80 on the same server, then:
-You'll need to add a reverse proxy in front of Talkyard and that other thing,
-which listens on port 80 on behalf of both Talkyard and that other thing.
-It should look at the HOST header and send the traffic to the
-correct destination (i.e. to Talkyard or to the other thing).
+You'll need to add a reverse proxy in front of Talkyard and that other thing.
+This proxy would then listen on port 80 on behalf of both Talkyard and that
+other thing. The proxy should look at the HOST header and send the traffic
+to the correct destination (i.e. to Talkyard or to the other thing).
 
 You can use for example Apache or Nginx as a revese proxy.
 With Apache, you'd configure `<vhost>` blocks — one for Talkyard, and one for

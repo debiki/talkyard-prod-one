@@ -89,6 +89,8 @@ Talkyard tech stack.)
 
 ### Get an email, if backups stop working
 
+*NOT YET IMPLEMENTED* ` [BADBKPEML]`, the following does not yet work:
+
 On the remote backup server, copy the contents of the script
 [scripts/check-talkyard-backups.sh](../scripts/check-talkyard-backups.sh)
 to your home directory. Edit the script and fill in email server (SMTP)

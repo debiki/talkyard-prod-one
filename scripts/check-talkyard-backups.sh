@@ -12,7 +12,7 @@ fi
 
 backup_dir="$2"
 
-echo "Not yet implemented.  Bye."
+echo "Not yet implemented.  Bye.  [BADBKPEML]"
 exit
 
 # echo "Checking daily backups in $2:"

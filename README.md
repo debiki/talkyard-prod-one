@@ -318,7 +318,8 @@ Otherwise, if your main server suddenly disappears, or someone breaks into it
 and ransomware-encrypts everything — you'd lose all data.
 
 There's also a script you can copy-paste to that off-site backup server,
-and run daily via Cron, to get notified via email if backups stop working.
+and run daily via Cron, to get notified via email if backups stop working
+— but no, not yet implmented `[BADBKPEML]`.
 
 See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
 
@@ -364,7 +365,7 @@ License (MIT)
 ----------------
 
 ```
-Copyright (c) 2016-2019 Debiki AB and Kaj Magnus Lindberg.
+Copyright (c) 2016-2020 Debiki AB and Kaj Magnus Lindberg.
 
 Licensed under the MIT license, see `LICENSE-MIT.txt` — and this is for the
 instructions and scripts in this repository only, not for Talkyard source code
