@@ -23,9 +23,24 @@ See https://www.talkyard.io/plans for alternatives to installing yourself.
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 This is beta software; there might be bugs.
 
-If you'd like to test install on your laptop, there's
-[a Vagrantfile here](scripts/Vagrantfile) — open it in a text editor, and read,
-for details.
+
+### Test install on your laptop?
+
+Here's [a Vagrantfile here](scripts/Vagrantfile) if you want to test install on a laptop
+— open the Vagrantfile in a text editor, and read, for details.
+
+
+### Install behind Nginx reverse proxy?
+
+If you want to install Talkyard on a Ubuntu server
+with a Nginx reverse proxy in front of it, with a LetsEncrypt cert — then,
+[here's a mini tutorial](https://www.talkyard.io/-389/talkyard-with-nginx-as-reverse-proxy-and-letsencrypt-for-https-mini-tutorial).
+The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
+
+
+### Install on a new server
+
+The rest of this document is about how to install Talkyard on a new server.
 
 Installation overview: You'll rent a virtual private server (VPS) somewhere, then download
 and install Talkyard, then sign up for a send-emails service and configure email settings.
