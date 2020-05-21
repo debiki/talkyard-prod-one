@@ -6,6 +6,7 @@
 # This is useful, if email hasn't yet been configured. Then one
 # can login as root, and run this script instead.
 #
+# Sync with this: [GETADMLNK].
 
 dc="/usr/local/bin/docker-compose"
 
