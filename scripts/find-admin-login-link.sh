@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# This prints admin one-time login links, generated via:
-#   http://ty-server/-/admin-login
+# This prints admin one-time login links, and admin reset password links,
+# generated via:  http://ty-server/-/admin-login
+# or via the Reset Password buttons.
 #
 # This is useful, if email hasn't yet been configured. Then one
 # can login as root, and run this script instead.
 #
-# Sync with this: [GETADMLNK].
+# Sync with this: [GETADMLNK] and [RSTPWDLNK].
 
 dc="/usr/local/bin/docker-compose"
 
@@ -41,7 +42,8 @@ echo
 
 # Print admin one time login links.
 
-echo "Looking in Talkyard's database for admin login link emails ..."
+echo "Looking in Talkyard's database for admin login link emails"
+echo "and reset password emails ..."
 
 emails=$($dc exec rdb $psql -c "
     select
@@ -50,8 +52,8 @@ emails=$($dc exec rdb $psql -c "
        regexp_replace(body_html, '[\\n\\r]+', ' ', 'g' ) || '\n'
     from emails_out3
     where
-      -- This is EmailType.OneTimeLoginLink.
-      type = 23
+      -- This is EmailType.ResetPassword = 22 and OneTimeLoginLink = 23.
+      type in (22, 23)
       -- One day should be enough?
       and sent_on > now_utc() - interval '1 day'
       order by sent_on asc
@@ -69,9 +71,10 @@ if [ -z "$name_urls" ]; then
 else
   how_many=$(echo "$name_urls" | wc --lines)
   echo
-  echo "Found $how_many recent admin login links, most recent last:"
+  echo "Found $how_many recent admin login or reset password links, most recent last:"
   echo
   echo "$name_urls"
+  echo "                                    ^---- this last link is the most recent"
   echo
   echo "Copy-paste the links into your browser address bar."
   echo "Each link works only once."
