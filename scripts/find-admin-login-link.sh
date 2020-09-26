@@ -11,9 +11,15 @@
 
 dc="/usr/local/bin/docker-compose"
 
+db_user="$1"
+
+if [ -z "$db_user" ]; then
+  db_user="talkyard"
+fi
+
 # Set  pager=off  otherwise psql prints "More..." and waits for you to
 # hit Space.
-psql="psql -P pager=off talkyard talkyard"
+psql="psql -P pager=off $db_user $db_user"
 
 
 # Print admin emails, in case one doesn't remember one's admin email — e.g.
@@ -42,7 +48,7 @@ echo
 
 # Print admin one time login links.
 
-echo "Looking in Talkyard's database for admin login link emails"
+echo "Looking in $db_user's database for admin login link emails"
 echo "and reset password emails ..."
 
 emails=$($dc exec rdb $psql -c "
