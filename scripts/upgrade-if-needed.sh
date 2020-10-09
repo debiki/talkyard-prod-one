@@ -75,12 +75,12 @@ fi
 # Remove old images & containers
 # ===========================
 
-# So won't run out of disk. Let's keep images less than three months old, in case
+# So won't run out of disk. Let's keep images less than four months old, in case
 # need to downgrade to previous server version because of some bug.
 # Also, do this whilst the old containers are still running, so their images
-# won't be removed (that is, before the Upgrade step below).  24h * 92 = 2208.
+# won't be removed (that is, before the Upgrade step below).  30 * 4 * 24h = 2880.
 
-/usr/bin/docker system prune --all --force --filter "until=2208h"
+/usr/bin/docker system prune --all --force --filter "until=2880h"
 
 
 # Download new version
@@ -97,7 +97,14 @@ VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose pull
 
 if [ -n "$CURRENT_VERSION" ]; then
   log_message "Upgrading: Shutting down old version $CURRENT_VERSION..."
+  # Stop 'app' before 'web', otherwise Play Framework (in 'app') logs warnings
+  # about "ConnectionClosed PeerClosed". Better stop 'search' first of all, in case
+  # ElasticSearch is a bit slow with reacting — so 'app' continues handling requests,
+  # meanwhile.
+  /usr/local/bin/docker-compose stop search
+  /usr/local/bin/docker-compose stop app
   /usr/local/bin/docker-compose down
+  log_message "Upgrading: Done shutting down."
 fi
 
 log_message "$WHAT: Starting version $NEXT_VERSION..."
