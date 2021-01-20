@@ -10,6 +10,30 @@ function log_message {
 echo
 
 
+# Determine release channel
+# ===========================
+
+RELEASE_CHANNEL_LINE=`egrep '^ *RELEASE_CHANNEL=.*$' .env`
+RELEASE_CHANNEL=`sed -nr 's/^RELEASE_CHANNEL= *([^# ]+) *$/\1/p' .env`
+if [ -z "$RELEASE_CHANNEL" ]; then
+  if [ -n "$RELEASE_CHANNEL_LINE" ]; then
+    log_message "ERROR: Weird RELEASE_CHANNEL=... line: (between ---)"
+    log_message "----"
+    log_message "$RELEASE_CHANNEL_LINE"
+    log_message "----"
+    exit 1
+  fi
+  RELEASE_CHANNEL='master'
+  log_message "Using release channel: $RELEASE_CHANNEL, same as tyse-v0-regular."
+else
+  log_message "Using release channel: $RELEASE_CHANNEL."
+fi
+
+# Later: Check if doing a crazy channel change, like, from tyse-v1-x and *downwards*
+# to tyse-v0-x.  But wait until has ported all this from Bash to Deno. [bash2deno]
+# And if >= 2 RELEASE_CHANNEL lines.  And CURRENT_VERSION sanity checks too. [ty_v1]
+
+
 # Determine current version
 # ===========================
 
@@ -34,7 +58,8 @@ fi
 # Find out the next app version, by pulling a version list from a Git repo.
 # (The version number changes a bit unpredictably, and also includes the Git hash.)
 cd versions
-/usr/bin/git checkout master
+/usr/bin/git fetch origin
+/usr/bin/git checkout --track origin/$RELEASE_CHANNEL
 /usr/bin/git pull
 
 # Don't upgrade to WIP = work-in-progress versions, or 'test' version. And, by default, neither
