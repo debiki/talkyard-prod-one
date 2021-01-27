@@ -59,8 +59,11 @@ fi
 # (The version number changes a bit unpredictably, and also includes the Git hash.)
 cd versions
 /usr/bin/git fetch origin
-/usr/bin/git checkout --track origin/$RELEASE_CHANNEL
-/usr/bin/git pull
+# This creates a branch named $RELEASE_CHANNEL if it didn't already exist.
+# Then checks out that branch, and hard-resets it to origin/$RELEASE_CHANNEL.
+# And sets it to track that origin branch (which isn't really needed since we
+# hard-reset here anyway).
+/usr/bin/git checkout -B $RELEASE_CHANNEL --track origin/$RELEASE_CHANNEL
 
 # Don't upgrade to WIP = work-in-progress versions, or 'test' version. And, by default, neither
 # to 'alpha' or 'beta' or 'tp' (tech preview) 'rc' (release candidate) or 'maint'enance versions.
