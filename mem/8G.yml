@@ -1,0 +1,18 @@
+# For servers with 8 GB RAM.
+
+# (We don't make use of all RAM here, because ElasticSearch and Postgres wants
+# fairly much memory in the operating system file system cache, e.g.
+# ElasticSearch wants as much mem for the OS cache as for its own heap.
+# Also, there's a Nginx and a Redis container too.)
+
+version: '3.7'
+services:
+  app:
+    environment:
+      # There's also stack memory and permanent-generation memory.
+      PLAY_HEAP_MEMORY_MB: 1500
+
+  search:
+    environment:
+      ES_JAVA_OPTS: '-Xms1300m -Xmx1300m'
+

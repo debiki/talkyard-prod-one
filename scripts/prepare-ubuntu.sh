@@ -29,9 +29,8 @@ fi
 
 # Install 'jq', for viewing json logs.
 # And start using any hardware random number generator, in case the server has one.
-# And install 'tree', nice to have.
 log_message 'Installing jq, for json logs. And rng-tools, why not...'
-apt-get -y install jq rng-tools tree
+apt-get -y install jq rng-tools
 
 log_message 'Installing add-apt-repository...'
 apt-get -y install software-properties-common

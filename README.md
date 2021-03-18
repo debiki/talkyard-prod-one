@@ -54,7 +54,7 @@ Have a look in `./docker-compose.yml` (in this repo) for details and links.
 Get a server
 ----------------
 
-Provision an Ubuntu 18.04 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
+Provision an Ubuntu 20.04 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
 
 
 Installation instructions
@@ -65,6 +65,7 @@ Installation instructions
        # As root:
        apt-get update
        apt-get -y install git vim locales
+       apt-get -y install tree ncdu                # nice to have
        locale-gen en_US.UTF-8                      # installs English
        export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
 
