@@ -32,7 +32,10 @@ Here's [a Vagrantfile here](scripts/Vagrantfile) if you want to test install on 
 
 ### Install behind Nginx reverse proxy?
 
-If you want to install Talkyard on a Ubuntu server
+If you don't know what a reverse proxy is, then SKIP this section,
+and instead continue below, the section "Install on a new server".
+
+Ok. If you want to install Talkyard on a Ubuntu server
 with a Nginx reverse proxy in front of it, with a LetsEncrypt cert — then,
 [here's a mini tutorial](https://www.talkyard.io/-389/talkyard-with-nginx-as-reverse-proxy-and-letsencrypt-for-https-mini-tutorial).
 The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
@@ -51,10 +54,12 @@ Dockerfiles, build scripts and source code are in another repo: https://github.c
 Have a look in `./docker-compose.yml` (in this repo) for details and links.
 
 
-Get a server
+Get a server and a Web address
 ----------------
 
 Provision an Ubuntu 20.04 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
+
+Point a domain name, say, `talkyard.your-website.com`, to the server's IP.
 
 
 Installation instructions
@@ -109,6 +114,8 @@ Installation instructions
      You don't need to do anything.
    - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
      then comment in `talkyard.port=8080` in `play-framework.conf`.
+   - If you don't have a hostname, or use a non-standard port, change
+     `talkyard.secure=true` to `talkyard.secure=false` instead.
 
 1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
    mem/1.7g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
@@ -133,10 +140,24 @@ Installation instructions
         ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
 
-1. Point a browser to the server address, e.g. <http://your-ip-addresss> or <http://www.example.com>
-   or <http://localhost>. Or <http://localhost:8080> if you're testing with Vagrant.
+1. Open a browser; go to <https://talkyard.your-website.com> — note: **https**
+   not http.
 
-   In the browser, click _Continue_ and create an admin account
+   Your browser should show a warning about the connection not being secure.
+   Talkyard and LetsEncrypt will start generating a HTTPS certificate for you,
+   automatically.
+   Wait 20 seconds, reload the page, and thereafter HTTPS should work.
+
+   However, 1/2: If you don't have a domain name, maybe just an IP address, then, HTTPS
+   won't work. Then, edit `play-framework.conf` and set `talkyard.secure=false`,
+   and: `cd /opt/talkyard ; docker-compose restart app`. Thereafter you can
+   access the server over HTTP via its IP address. But this is insecure!)
+
+   And, however, 2/2: If you're testing on localhost or with Vagrant,
+   instead go to <http://localhost> or <http://localhost:8080>, respectively. And set `talkyard.secure=false`
+   as described in the previous paragraph.
+
+1. In the browser, click _Continue_ and create an admin account
    with the email address you specified when you edited `play-framework.conf` earlier (see above).
    Follow the getting-started guide ...
 
@@ -147,16 +168,22 @@ Everything will restart automatically on server reboot.
 
 Next steps:
 
+<!--
 - Do not enable HTTP2, currently doesn't work with Nginx + the Lua module (apparently [this](https://github.com/openresty/lua-nginx-module/blob/52af63a5b949d6da2289e2de3fb839e2aba4cbfd/src/ngx_http_lua_headers.c#L116) error happens).
-- Enable HTTPS, see [docs/setup-https.md](docs/setup-https.md).
+-->
 - Sign up for a send-email-service — see the section just below.
 - Send an email to `hello at talkyard.io` so we get your address, and can
   inform you about security issues and major software
   upgrades that might require you to do something manually.
+  Or subscribe to the Announcements category over at https://www.talkyard.io/forum/.
 - Copy backups off-site, regularly. See the Backups section below.
 - Configure Gmail, Facebook, Twitter, GitHub login,
     by creating OpenAuth apps over at their sites, and adding API keys and secrets
     to `play-framework.conf`. See below, just after the next section, about email.
+- (If you for some reason want to run LetsEncrypt's Certbot yourself to generate
+  a HTTPS cert, see [docs/setup-https.md](docs/setup-https.md),
+  and have a look at the commented out `server {}` block at the bottom of
+  `/opt/talkyard/conf/sites-enabled-manual/talkyard-servers.conf`. )
 
 
 Configuring email

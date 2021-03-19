@@ -1,6 +1,14 @@
 Setting up HTTPS for your Talkyard server
 -----
 
+You can skip this. Nowadays (Mars 2021) Talkyard automatically generates
+HTTPS certificate for you, as long as you access Talkyard via a domain name
+(but not an IP addresss).
+
+This happens via LetsEncrypt, OpenResty and a certain *lua-resty-acme* plugin.
+
+Anyway, if for some reason you want to run Certbot manually instead, read on.
+
 These instructions will:
  
  - Generate a free HTTPS cert (using Let'sEncrypt)

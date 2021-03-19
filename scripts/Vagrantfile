@@ -19,9 +19,14 @@
 # 2) cd into that folder, and type `vagrant up`
 # 3) Wait for Vagrant do download stuff, and the VM to start.
 # 4) Then type `vagrant ssh`, to open a shelll inside the VM.
-# 5) Follow the instructions in README.md (but now you have a server already,
+# 5) Edit /opt/talkyard/conf/play-framework.conf:
+#    Add:  talkyard.port=8080
+#    and change this:  talkyard.secure=true
+#    to:  talkyard.secure=false
+#    since we'll access Talkyard via http://localhost:8080 — no https cert.
+# 6) Follow the instructions in README.md (but now you have a server already,
 #    i.e. the Vagrant VM which you are inside right now).
-# 6) To stop the VM, type CTRL-D to exit Vagrant, then type `vagrant halt`.
+# 7) To stop the VM, type CTRL-D to exit Vagrant, then type `vagrant halt`.
 #
 # Advanced tips: To ssh into the VM and also expose a port on the host inside the VM,
 # do e.g.:   vagrant ssh -- -R 5000:localhost:5000

@@ -23,8 +23,26 @@ apt-get -y install \
     lsb-release \
     software-properties-common
 
-# Add Docker’s official GPG key:
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+# Add Docker’s official GPG key.
+# And check its sha256 hash — in case the Docker servers has been compromised?
+# (Note that the Debian packages are later downloaded from the same server,
+# that is, download.docker.com, so, an attacker might be able to modify
+# both the packages, and the keyring file, at the same time?)
+d_gpg="/usr/share/keyrings/docker-archive-keyring.gpg"
+if [ ! -f $d_gpg ]; then
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o $d_gpg
+
+  # As of 2021-03-19.
+  gpg_hash_expected="a09e26b72228e330d55bf134b8eaca57365ef44bf70b8e27c5f55ea87a8b05e2"
+  gpg_hash_actual="$(sha256sum $d_gpg)"
+  if [[ ! $gpg_hash_actual =~ $gpg_hash_expected ]]; then
+    echo "Unexpected SHA256 hash of: $d_gpg"
+    echo "Expected: $gpg_hash_expected"
+    echo "But sha256sum says:"
+    echo "  $gpg_hash_actual"
+    exit 1
+  fi
+fi
 
 
 # Check that the fingerprint is correct:
@@ -43,10 +61,13 @@ if [ -z "$MATCHING_KEY_ROW" ]; then
 	exit 1
 fi
 
-echo \
-  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" \
-  | sudo tee /etc/apt/sources.list.d/docker.list
+if [ ! -f /etc/apt/sources.list.d/docker.list ]; then
+  echo \
+    "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
+https://download.docker.com/linux/ubuntu \
+$(lsb_release -cs) stable" \
+    | sudo tee /etc/apt/sources.list.d/docker.list
+fi
 
 
 # ------- Install Docker CE:
@@ -109,9 +130,31 @@ fi
 
 
 # Install Docker Compose (see https://github.com/docker/compose/releases)
+#
+# And verify it's the right file — check the sha256 hash.
 
-curl -L "https://github.com/docker/compose/releases/download/1.28.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
+dc_file="/usr/local/bin/docker-compose"
+if [ -f $dc_file ]; then
+  log_message "Docker-Compose already installed at: $dc_file"
+else
+  log_message "Installing Docker-Compose ..."
+  curl -L "https://github.com/docker/compose/releases/download/1.28.5/docker-compose-$(uname -s)-$(uname -m)" -o $dc_file
+
+  # The file name is docker-compose-Linux-x86_64 (renamed to docker-compose) —
+  # probably on almost all Linux distros? So this hash should almost always work?
+  # Version 1.28.5, as of 2021-03-19:
+  dc_hash_expected="46406eb5d8443cc0163a483fcff001d557532a7fad5981e268903ad40b75534c"
+  dc_hash_actual="$(sha256sum $dc_file)"
+  if [[ ! $dc_hash_actual =~ $dc_hash_expected ]]; then
+    echo "Bad SHA256 hash of: $dc_file"
+    echo "Expected hash: $dc_hash_expected"
+    echo "But sha256sum says:"
+    echo "  $dc_hash_actual"
+    exit 1
+  fi
+  chmod +x $dc_file
+  log_message
+fi
 
 log_message
 log_message
