@@ -1,10 +1,10 @@
 Talkyard production installation
 ================
 
-For one single server: Ubuntu 18.04 with at least 2 GB RAM.
+For one single server: Ubuntu 20.04 with at least 2 GB RAM.
 
 Docker based installation. Automatic upgrades.
-You can configure HTTPS via LetsEncrypt.
+Automatic HTTPS cert (via LetsEncrypt).
 One installation can host many sites.
 
 <!-- NO, Swarm is abandonware
@@ -24,18 +24,18 @@ Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/
 This is beta software; there might be bugs.
 
 
-### Test install on your laptop?
+### Install on your laptop?
 
 Here's [a Vagrantfile here](scripts/Vagrantfile) if you want to test install on a laptop
 — open the Vagrantfile in a text editor, and read, for details.
 
 
-### Install behind Nginx reverse proxy?
+### Install behind an Nginx reverse proxy?
 
-If you don't know what a reverse proxy is, then SKIP this section,
-and instead continue below, the section "Install on a new server".
-
-Ok. If you want to install Talkyard on a Ubuntu server
+<!-- Someone tried to do this, although in his case, there was *no* reverse proxy. -->
+Skip this, unless you know what a "reverse proxy" is;
+instead, continue below, the section "Install on a new server".
+Now, if you _do_ want to install Talkyard on a Debian or Ubuntu server
 with a Nginx reverse proxy in front of it, with a LetsEncrypt cert — then,
 [here's a mini tutorial](https://www.talkyard.io/-389/talkyard-with-nginx-as-reverse-proxy-and-letsencrypt-for-https-mini-tutorial).
 The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
@@ -59,7 +59,7 @@ Get a server and a Web address
 
 Provision an Ubuntu 20.04 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
 
-Point a domain name, say, `talkyard.your-website.com`, to the server's IP.
+Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
 
 
 Installation instructions
@@ -108,14 +108,15 @@ Installation instructions
    ```
 
    Note:
-   - If you don't edit `play.http.secret.key` in `play-framework.conf`, the server won't start.
+   - Set `talkyard.secure=true`, so HTTPS will work — unless you're testing
+     on localhost; then set `talkyard.secure=false`.
+   - If you don't edit `play.http.secret.key` in `play-framework.conf`,
+     the server won't start.
    - A PostgreSQL database user, named *talkyard*, gets created automatically,
      by the *rdb* Docker container, with the password you type in the `.env` file.
      You don't need to do anything.
    - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
      then comment in `talkyard.port=8080` in `play-framework.conf`.
-   - If you don't have a hostname, or use a non-standard port, change
-     `talkyard.secure=true` to `talkyard.secure=false` instead.
 
 1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
    mem/1.7g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
@@ -133,6 +134,9 @@ Installation instructions
    (This creates a new Docker network — you can choose the IP range; see the
    section *A New Docker Network* below.)
 
+   Afterwards, you can type: `docker-compose ps` — you should then see a list
+   of Docker containers in state Up (means they're running).
+
 1. Schedule deletion of old log files, daily backups and deletion old backups,
    and automatic upgrades:
 
@@ -140,29 +144,35 @@ Installation instructions
         ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
 
-1. Open a browser; go to <https://talkyard.your-website.com> — note: **https**
+1. Open a web browser; go to `https://talkyard.your website.com` — note: **https**
    not http.
 
-   Your browser should show a warning about the connection not being secure.
-   Talkyard and LetsEncrypt will start generating a HTTPS certificate for you,
-   automatically.
+   Your browser should show a warning about the connection _not_ being secure.
+   Talkyard and LetsEncrypt will now start generating a HTTPS certificate for you.
    Wait 20 seconds, reload the page, and thereafter HTTPS should work.
 
-   However, 1/2: If you don't have a domain name, maybe just an IP address, then, HTTPS
-   won't work. Then, edit `play-framework.conf` and set `talkyard.secure=false`,
-   and: `cd /opt/talkyard ; docker-compose restart app`. Thereafter you can
-   access the server over HTTP via its IP address. But this is insecure!)
+   **(** If you'd look in the Nginx log, `tail -f /var/log/nginx/error.log`,
+   you'd see messages like:
 
-   And, however, 2/2: If you're testing on localhost or with Vagrant,
-   instead go to <http://localhost> or <http://localhost:8080>, respectively. And set `talkyard.secure=false`
-   as described in the previous paragraph.
+   ```
+   domain_whitelist_callback(): Should have cert: talkyard.example.com
+   update_cert_handler(): order rsa cert for talkyard.example.com
+   SSL_do_handshake() failed (SSL: error:... alert bad certificate: SSL alert number 42) while SSL handshaking
+   Replying to ACME HTTP-01 challenge, server name: _, host: talkyard.example.com
+   update_cert_handler(): new rsa cert for talkyard.example.com is saved
+   ```
+   (The "failed ... alert number 42" is fine
+   — it's because, at that time, there wasn't yet any cert.) **)**
+
+
+   However, if you're testing on localhost, or with Vagrant,
+   instead go to <http://localhost>, or <http://localhost:8080>, respectively.
+   (And you'll need `talkyard.secure=false` in `play-framework.conf`).
 
 1. In the browser, click _Continue_ and create an admin account
-   with the email address you specified when you edited `play-framework.conf` earlier (see above).
-   Follow the getting-started guide ...
-
-   <i>... Or maybe you'd like to <b>enable HTTPS</b> before you click Continue
-   and submit your email address? See the Next Steps just below.</i>
+   with the email address you specified when you edited `play-framework.conf` earlier
+   (see above).
+   Follow the getting-started guide.
 
 Everything will restart automatically on server reboot.
 
@@ -170,7 +180,14 @@ Next steps:
 
 <!--
 - Do not enable HTTP2, currently doesn't work with Nginx + the Lua module (apparently [this](https://github.com/openresty/lua-nginx-module/blob/52af63a5b949d6da2289e2de3fb839e2aba4cbfd/src/ngx_http_lua_headers.c#L116) error happens).
+  Update 2021-03: Works fine w OpenResty, if avoiding  ngx.location.capture [63DRN3M75]
 -->
+- Edit `/opt/talkyard/conf/sites-enabled-manual/talkyard-servers.conf` and redirect
+  from HTTP to HTTPS.<br>
+  (If you for some reason want to run LetsEncrypt's Certbot yourself to generate
+  a HTTPS cert, see [docs/setup-https.md](docs/setup-https.md),
+  and have a look at the commented out `server {}` block at the bottom of
+  `talkyard-servers.conf`.)
 - Sign up for a send-email-service — see the section just below.
 - Send an email to `hello at talkyard.io` so we get your address, and can
   inform you about security issues and major software
@@ -180,10 +197,6 @@ Next steps:
 - Configure Gmail, Facebook, Twitter, GitHub login,
     by creating OpenAuth apps over at their sites, and adding API keys and secrets
     to `play-framework.conf`. See below, just after the next section, about email.
-- (If you for some reason want to run LetsEncrypt's Certbot yourself to generate
-  a HTTPS cert, see [docs/setup-https.md](docs/setup-https.md),
-  and have a look at the commented out `server {}` block at the bottom of
-  `/opt/talkyard/conf/sites-enabled-manual/talkyard-servers.conf`. )
 
 
 Configuring email
@@ -194,7 +207,8 @@ service, for example Mailgun, Elastic Email, SendGrid, Mailjet or Amazon SES.
 (Signing up, and verifying your sender email address and domain, is a bit complicated
 — nothing you do in five minutes.)
 
-Then, configure email settings in `/opt/talkyard/conf/play-framework.conf`, that is, fill in these values:
+Then, configure email settings in `/opt/talkyard/conf/play-framework.conf`,
+that is, fill in these values:
 
 ```
 talkyard.smtp.host="..."

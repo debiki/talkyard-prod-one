@@ -42,7 +42,7 @@ services:
       ## By default, Talkyard logs to /var/log/nginx/ — see the volumes list above.
       ## However you can log to stdout instead: (both Nginx' access and error logs)
       # TY_LOG_TO_STDOUT_STDERR: '1'
-      TY_NGX_ERROR_LOG_LEVEL: 'notice'
+      TY_NGX_ERROR_LOG_LEVEL: 'info'  # or 'notice' or 'debug'
       # TY_NGX_ACCESS_LOG_CONFIG: 'tyalogfmt'
       ## Max uploaded file size, e.g. uploaded images or backups to restore:
       # TY_NGX_LIMIT_REQ_BODY_SIZE: '25m'

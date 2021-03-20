@@ -29,7 +29,7 @@ fi
 
 # Install 'jq', for viewing json logs.
 # And start using any hardware random number generator, in case the server has one.
-log_message 'Installing jq, for json logs. And rng-tools, why not...'
+log_message 'Installing jq and rng-tools, for json logs and hardware random numbers...'
 apt-get -y install jq rng-tools
 
 log_message 'Installing add-apt-repository...'
@@ -67,11 +67,16 @@ fi
 # after restart: (as recommended by Redis)
 echo 'Disabling Transparent Huge Pages (for Redis)...'
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
-if ! grep -q 'transparent_hugepage/enabled' /etc/rc.local; then
-  echo 'Disabling Transparent Huge Pages after reboot, in /etc/rc.local...'
+# We can use rc.local — also with Systemd, see: https://askubuntu.com/a/919598.
+rc_local_f="/etc/rc.local"
+if [ ! -f $rc_local_f ]; then
+  echo "exit 0" >> $rc_local_f
+fi
+if ! grep -q 'transparent_hugepage/enabled' $rc_local_f ; then
+  echo "Disabling Transparent Huge Pages after reboot, in $rc_local_f..."
   # Insert ('i') before the last line ('$') in rc.local, which always? is
   # 'exit 0' in a new Ubuntu installation.
-  sed -i -e '$i # For Talkyard and the Redis Docker container:\necho never > /sys/kernel/mm/transparent_hugepage/enabled\n' /etc/rc.local
+  sed -i -e '$i # For Talkyard and the Redis Docker container:\necho never > /sys/kernel/mm/transparent_hugepage/enabled\n' $rc_local_f
 fi
 
 
@@ -98,14 +103,21 @@ fi
 # APT::Periodic::AutocleanInterval "14";  = remove downloaded installation archives that are nowadays out-of-date.
 # APT::Periodic::MinAge "8" = packages won't be deleted until they're these many days old (default is 2).
 # more docs: less /usr/lib/apt/apt.systemd.daily
-log_message 'Configuring automatic security updates and reboots...'
-DEBIAN_FRONTEND=noninteractive \
-  apt-get install -y \
-    -o Dpkg::Options::="--force-confdef" \
-    -o Dpkg::Options::="--force-confold" \
-    unattended-upgrades \
-    update-notifier-common
-cat <<EOF > /etc/apt/apt.conf.d/20auto-upgrades
+auto_upgr_f="/etc/apt/apt.conf.d/20auto-upgrades"
+if [ -f $auto_upgr_f ]; then
+  log_message "There's already an auto upgrades config file: $auto_upgr_f."
+  log_message "I'll leave it as is — I won't (re)configuring automatic upgrades."
+else
+  log_message 'Enabling automatic security updates and reboots...'
+  DEBIAN_FRONTEND=noninteractive \
+      apt-get install -y \
+          -o Dpkg::Options::="--force-confdef" \
+          -o Dpkg::Options::="--force-confold" \
+          unattended-upgrades \
+          update-notifier-common
+  # [ty_v1] Change from "1" to "always", and use systemd to configure how often,
+  # works with Debian >= 10, see: https://unix.stackexchange.com/a/541426
+  cat <<EOF > $auto_upgr_f
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
 APT::Periodic::AutoremoveInterval "14";
@@ -113,6 +125,7 @@ APT::Periodic::AutocleanInterval "14";
 APT::Periodic::MinAge "8";
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
+fi
 
 
 log_message 'Done configuring Ubuntu.'
