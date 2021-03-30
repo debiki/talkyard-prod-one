@@ -1,0 +1,46 @@
+
+Multisite Talkyard
+======================================================================
+
+
+One Talkyard server can host many Talkyard sites:
+different forums and blogs, with different owners and admins.
+
+If you've installed Talkyard as usual, for a single site,
+then, you can enable Multisite Talkyard.
+Let's say your main Talkyard site is at: `main-talkyard.example.com`. Then,
+
+. Add DNS record(s) for the new sites you'll create.
+Could be a wildcard A or CNAME record:
+
+```
+main-talkyard.example.com  3600  IN  A  11.22.33.44
+*.multi-ty.example.com     3600  IN  A  main-talkyard.example.com.
+```
+
+In `/opt/talkyard/conf/play-framework.conf`,
+scroll down to the Advanced section; add these settings:
+
+```
+talkyard.createSiteHostname="main-talkyard.example.com"
+talkyard.baseDomain="multi-ty.example.com"
+```
+
+where `main-talkyard.example.com` is the address to your already working Talkyard site,
+the firt site you installed.
+
+Now, you can go to: `https://main-talkyard.example.com/-/create-site`, or
+`https://main-talkyard.example.com/-/create-site/blog-comments`,
+and create a new Talkyard site.
+
+Its address will be: `https://something.multi-ty.example.com`.
+
+HTTPS should work automatically — Talkyard and LetsEncrypt generates certs for you.
+Only the very first time someone (you) accesses a new site,
+there'll be a connection-not-secure error,
+and you'll need to wait 10 – 20 seconds and reload the page.
+
+Once you've created an additional Talkyard site,
+you can, if you want to, change its address to something else,
+by going here:  `https://something.multi-ty.example.com/-/admin/settings/site`
+and clicking *Change address*.

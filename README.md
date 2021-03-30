@@ -74,6 +74,13 @@ Installation instructions
        locale-gen en_US.UTF-8                      # installs English
        export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
 
+1. Create big empty files that you can delete if your server runs out of disk:
+
+       fallocate --length 250MiB /balloon-1-ok-delete-if-disk-full
+       fallocate --length 250MiB /balloon-2-ok-delete-if-disk-full
+       fallocate --length 250MiB /opt/balloon-4-ok-delete-if-disk-full
+       fallocate --length 250MiB /var/balloon-3-ok-delete-if-disk-full
+
 1. Download installation scripts: (you need to install in
    `/opt/talkyard/` for the backup scripts to work)
 
@@ -197,6 +204,8 @@ Next steps:
 - Configure Gmail, Facebook, Twitter, GitHub login,
     by creating OpenAuth apps over at their sites, and adding API keys and secrets
     to `play-framework.conf`. See below, just after the next section, about email.
+- Optionally, create more Talkyard sites hosted by this same Talkyard installation,
+  see [docs/multisite-talkyard.adoc](docs/multisite-talkyard.adoc).
 
 
 Configuring email

@@ -27,7 +27,10 @@ apt-get -y install \
 # And check its sha256 hash — in case the Docker servers has been compromised?
 # (Note that the Debian packages are later downloaded from the same server,
 # that is, download.docker.com, so, an attacker might be able to modify
-# both the packages, and the keyring file, at the same time?)
+# both the packages, and the keyring file, at the same time?
+# Indeed, someone else has commented about this, and suggests that the
+# public key be available in other ways than only via docker.com:
+# https://github.com/docker/for-linux/issues/849#issuecomment-554721114 )
 d_gpg_f="/usr/share/keyrings/docker-archive-keyring.gpg"
 if [ -f $d_gpg_f ]; then
     log_message "Docker GPG key already present: $d_gpg_f, fine."
