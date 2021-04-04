@@ -4,6 +4,9 @@ function log_message {
   echo "`date --iso-8601=seconds --utc` start-firewall: $1"
 }
 
+# Use firewalld instead,   [firewalld_not_ufw] [ty_v1]
+# it properly blocks ports exported via Docker;  ufw doesn't.
+
 
 echo
 log_message "Enabling firewall..."
