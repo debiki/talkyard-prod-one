@@ -9,20 +9,33 @@ fi
 
 dump_dir="$1"
 
+
 echo
-echo "Will import from this dir in the container: $dump_dir"
-echo
-echo "First checking if dir exists in the container:"
-echo
+echo "Will import from this dir: $dump_dir"
+#echo
+# echo "First checking that dir exists on the host:"
+# echo
+# 
+# set -x
+# ls -d $dump_dir
+# host_exit_code=$?
+# set +x
+# if [ $host_exit_code -ne 0 ]; then
+#   echo "Bad path, not a directory: $dump_dir. Bye"
+#   exit 1
+# fi
 
 
-# Is the dir path correct?
+echo
+echo "Checking if dir exists in the database container, at the same path:"
+echo
+
 set -x
 docker-compose exec rdb ls -d $dump_dir
 dc_exit_code=$?
 set +x
 if [ $dc_exit_code -ne 0 ]; then
-  echo "Bad path. It should be a path *inside the container*. Bye"
+  echo "Bad path. It should be a path *inside the container* too. Bye"
   exit 1
 fi
 
@@ -86,6 +99,28 @@ set -x
 $psql talkyard_imported postgres -f "$dump_dir/copy-files-to-tables.sql"
 set +x
 
+
+echo
+echo "Done importing tables. Now importing uploaded files: ... No, already done via cURL."
+echo
+
+#  set -x
+#  pushd .
+#  cd "$dump_dir/uploads/public"
+#  set +x
+#  echo
+#  echo 'Next:  for hash_path in $(find . -type f); do ... mkdir ... cp $hash_path ...  ; done'
+#  echo
+#  for hash_path in $(find . -type f); do
+#    # The files are in paths like  ./1/a/bc/defghijk56789...def.jpg
+#    # so we need to first create the ./1/a/bc/ directory, then copy the file:
+#    hash_dir=$(dirname "$hash_path")
+#    mkdir -p "$hash_dir"
+#    cp  --no-clobber --no-dereference --preserve=all  "$hash_path"  "$hash_dir/"
+#  done
+#  set -x
+#  popd
+#  set +x
 
 
 echo

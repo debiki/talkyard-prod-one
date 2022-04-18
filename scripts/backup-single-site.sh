@@ -16,7 +16,7 @@ when="`date '+%FT%H%MZ' --utc`"
 
 script_path=$0
 
-pg_database="$1" # talkyard"  # "edc"
+pg_database="$1"
 pg_user="postgres"
 
 host_parent_dir="/home/user/styd/d9/volumes/rdb-logs"
@@ -27,25 +27,46 @@ if [ ! -d "$host_parent_dir" ]; then
   exit 1
 fi
 
-sub_dir="site-$site_id/talkyard-site-$site_id-dump-$when"
+backup_name="talkyard-site-$site_id-dump-$when"
+sub_dir="site-$site_id/$backup_name"
 host_dest_dir="$host_parent_dir/$sub_dir"
 
 sudo rm -fr $host_dest_dir
 sudo mkdir -p $host_dest_dir/tables
-sudo mkdir -p $host_dest_dir/uploadeds
+sudo mkdir -p $host_dest_dir/uploads
 
+# Make writable to Postgres running in the container:
 sudo chmod -R ugo+w $host_dest_dir/tables
-sudo chmod -R ugo+w $host_dest_dir/uploadeds
+# Hmm maybe not needed?:
+sudo chmod -R ugo+w $host_dest_dir/uploads
 
 container_dir="/var/log/postgresql/$sub_dir"
 tables_dir="$container_dir/tables"   # in the container
 
+
+# uploads_dir="./data/uploads"
+# if [ ! -d "$uploads_dir" ]; then
+#   # We're testing on localhost, dev server?
+#   uploads_dir="./volumes/uploads"
+# fi
+#
+# if [ ! -d "$uploads_dir" ]; then
+#   echo
+#   echo "Error: Cannot see any uploads dir,"
+#   echo "   not:  ./data/uploads  nor:  ./volumes/uploads"
+#   echo
+#   echo "You should be in directory: /opt/talkyard/  (or a dev dir on localhost). Bye."
+#   echo
+#   exit 1
+# fi
+
+
 # Copy the table structures — but not any contents. Since we want site $site_id only
 # we'll need to copy its contents in individual COPY commands.
 #
-# Maybe better skip:  --clean --if-exists
-#udo /usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --schema-only > $host_dest_dir/database-copy/schema.dump
-
+# Not needed:  --clean --if-exists,  since the importer script drops the
+# whole  talkyard_imported  database anyway.
+#
 # --no-owner results in a script that can be restored by any user,
 # and will give that user ownership of the stuff in the dump.
 #
@@ -56,11 +77,8 @@ sudo /usr/local/bin/docker-compose exec -T rdb pg_dump $pg_database --username=p
     | sed -r 's/^COMMENT ON EXTENSION plpgsql .*$/-- skip, would fail, not our obj: \0/' \
     | sudo tee $host_dest_dir/database-schema.sql > /dev/null
 
-# cat database-schema.sql | sed -r 's/(^COMMENT ON EXTENSION plpgsql .*$)/-- skip, would fail, isnt this users obj: \0/'
 
-#$so_nice gzip $postgres_backup_path
-#log_message "Done backing up Postgres."
-
+# Generate a script that copies the table contents:
 
 sudo tee "$host_dest_dir/copy-tables-to-files.sql" > /dev/null << EOF
 -- This file copies Talkyard site $site_id PostgreSQL database tables.
@@ -156,18 +174,41 @@ copy (
     from uploads3 inner join hps on uploads3.hash_path = hps.hp
   )
   to '$tables_dir/uploads3.copy.txt';
-  
--- old:
--- copy (
---   select distinct u.* from uploads3 u inner join upload_refs3 r
---         on u.hash_path = r.hash_path
---         and r.site_id = $site_id
---       ) to '$tables_dir/uploads3.copy.txt';
+
 
 commit;
 
 EOF
 
+
+# Generate list of uploaded files to copy:
+#
+#  --tuples-only makes psql exclude colum headers — will only print the hash paths.
+#  --no-align  makes psql skip leading ' ' spaces.
+#  But this: --quiet  apparently not needed.
+#
+# wait, done via cURL this time:
+#
+# sudo /usr/local/bin/docker-compose exec -T rdb psql $pg_database $pg_user \
+#     --tuples-only --no-align \
+#     -c "
+#       select avatar_tiny_hash_path as hp from users3
+#           where site_id = $site_id and avatar_tiny_hash_path is not null
+#       union
+#       select avatar_small_hash_path as hp from users3
+#           where site_id = $site_id and avatar_small_hash_path is not null
+#       union
+#       select avatar_medium_hash_path as hp from users3
+#           where site_id = $site_id and avatar_medium_hash_path is not null
+#       union
+#       select hash_path hp from upload_refs3
+#           where site_id = $site_id
+#     " \
+#     | sudo tee $host_dest_dir/uploads-to-copy.txt > /dev/null
+#
+
+
+# Generate a script that restores the table contents:
 
 sudo tee "$host_dest_dir/copy-files-to-tables.sql" > /dev/null << EOF
 -- This file copies Talkyard site $site_id PostgreSQL database tables.
@@ -321,7 +362,9 @@ commit;
 EOF
 
 
+
 # Lets incl a README:
+
 sudo tee "$host_dest_dir/README-how-import.txt" > /dev/null << EOF
 
 To import, currently, a bit odd, copy this whole directory to your Talkyard
@@ -370,6 +413,9 @@ Just if you're curious, this directory should include:
    copy-tables-to-files.sql   — copies table contents to the files in the tables/
                                 directory. *Has been run already* so you can ignore it.
 
+   uploads-to-copy.txt  —  hash paths, like 1/x/q2/abc4564defrgm7cre5q2skrqu2wukq.jpg,
+                           to uploaded files to copy.
+
    tables/
       +- some-table.copy.txt
       +- other-table.copy.txt
@@ -379,9 +425,9 @@ Just if you're curious, this directory should include:
 
    uploads/
       +- all uploaded files, by content hash (truncated SHA1 currently)
-         not yet here, todo
 
 EOF
+
 
 
 # Add the import script. Just for now — until it's in the GitHub repo:
@@ -390,11 +436,54 @@ sudo cp modules/ed-prod-one-test/scripts/import-single-site.sh \
    $host_dest_dir/
 
 
-# Run the exporter script:  (file path needs to be inside the container)
+
+# Export tables, by running a script we generated above:
+# (file path needs to be inside the rdb container)
 
 docker-compose exec rdb psql $pg_database $pg_user -f $container_dir/copy-tables-to-files.sql
 
 
-# But the importer script should be run on another server (the server one imports to).
-# (This script:  $container_dir/copy-files-to-tables.sql)
+# # Export uploads:  (this done on the host, not in any container)  — no, not now.
+# 
+# for hash_path in $(cat $host_dest_dir/uploads-to-copy.txt) ; do
+#   hash_dir=$(dirname "$hash_path")
+#   mkdir -p "$host_dest_dir/uploads/public/$hash_dir"
+# 
+#   # --no-clobber avoids overwriting existing files.
+#   # These two are like --archive, but without -R recursive:
+#   # --no-dereference avoids following symlinks (there aren't any anyway).
+#   # --preserve=all keeps timestamp, author, and (there aren't any) symlinks.
+#   #
+#   cp  --no-clobber --no-dereference --preserve=all  \
+#       "$uploads_dir/public/$hash_path"  "$host_dest_dir/uploads/public/$hash_dir/"
+# done
 
+
+echo
+echo "Done. Site $site_id backed up to: $host_dest_dir"
+echo
+echo "You can tar-gzip it:"
+echo
+echo "  tar -czf $backup_name.tgz  $host_dest_dir"
+echo
+echo "And encrypt the tar-gzip archive:  (will ask for an encryption password)"
+echo
+echo "  openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -salt \\"
+echo "     -in $backup_name.tgz \\"
+echo "     -out $backup_name.tgz.enc"
+echo
+
+# But the importer script should (of course) be run on another server (the server
+# one imports to).  I.e. this script:  $container_dir/copy-files-to-tables.sql.
+
+
+# Could tar-gzip the archive? then good to use  nice,
+# so won't spike the CPU at 100% if there's just one.
+#
+# Can encrypt:
+#
+#   openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -salt \
+#          -in site-__.tgz -out site-__.tgz.enc
+#
+# see:  https://unix.stackexchange.com/a/507132
+#
