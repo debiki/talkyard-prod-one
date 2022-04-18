@@ -19,7 +19,8 @@ script_path=$0
 pg_database="$1"
 pg_user="postgres"
 
-host_parent_dir="/home/user/styd/d9/volumes/rdb-logs"
+#host_parent_dir="/home/user/styd/d9/volumes/rdb-logs"
+host_parent_dir="/var/log/postgresql"
 
 if [ ! -d "$host_parent_dir" ]; then
   echo "Error: No such directory:  $host_parent_dir"
@@ -432,7 +433,8 @@ EOF
 
 # Add the import script. Just for now — until it's in the GitHub repo:
 
-sudo cp modules/ed-prod-one-test/scripts/import-single-site.sh \
+#sudo cp modules/ed-prod-one-test/scripts/import-single-site.sh \
+sudo cp import-single-site.sh \
    $host_dest_dir/
 
 
