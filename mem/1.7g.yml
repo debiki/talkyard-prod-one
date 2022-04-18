@@ -1,7 +1,7 @@
 # For servers with 1.7 GB RAM.
 # E.g. a Google Compute Engine g1-small instance: 1 shared CPU & 1.7 GB mem.
 
-# (We don't make use of all RAM here, because ElasticSearch and Postgres wants
+# (We don't make use of all RAM here, because ElasticSearch and Postgres want
 # fairly much memory in the operating system file system cache, e.g.
 # ElasticSearch wants as much mem for the OS cache as for its own heap.
 # Also, there're Nginx and Redis containers too.)
