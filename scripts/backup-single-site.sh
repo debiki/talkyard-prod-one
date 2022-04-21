@@ -489,3 +489,10 @@ echo
 #
 # see:  https://unix.stackexchange.com/a/507132
 #
+
+# Decr:
+#  openssl enc -d -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -salt -pass pass:passwordhere \
+#     -in __.tgz.enc  -out __.tgz
+
+# openssl enc -d -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -salt -pass pass:passwordhere -in site-NNN-dump-2022-12-34T0102Z.tgz.enc -out site-NNN-dump-2022-12-34T0102Z.tgz
+
