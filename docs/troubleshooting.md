@@ -1,8 +1,38 @@
-(Ignore this document; it's not completed and hard to understand.)
+
+Troubleshooting Talkyard
+========================
+
+Installation Problems
+---------------------
 
 
-Troubleshooting and debugging
+### Error: talkyard_web_1, Read timed out
+
+If, when you run:
+
+    /scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
+
+you're getting this error:
+
+    Creating talkyard_web_1    ...
+
+    ERROR: for talkyard_web_1  UnixHTTPConnectionPool(host='localhost', port=None): Read timed out. (read timeout=...)
+
+    ERROR: for web  UnixHTTPConnectionPool(host='localhost', port=None): Read timed out. (read timeout=...)
+    An HTTP request took too long to complete. Retry with --verbose to obtain debug information.
+    If you encounter this issue regularly because of slow network conditions, consider setting COMPOSE_HTTP_TIMEOUT to a higher value (current value: 240).
+
+then the reason can be that the server has too little memory — which apparently can cause
+Nginx (OpenResty) to run out of memory and crash. Now you might wonder, why would Nginx use
+that much memory? — I think it's OpenResty (an Nginx distribution) that just-in-time compiles
+lots of Lua code, and then uses lots of memory.
+
+
+
+Old: Troubleshooting and debugging
 ----------------
+
+(Ignore this section; it's not completed and hard to understand.)
 
 ? save Java crash dumps in ./play-crash
 + tips about how to run jmap? or view in jvisualvm + Idea? jmap -heap PID

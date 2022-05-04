@@ -65,6 +65,8 @@ Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
 Installation instructions
 ----------------
 
+(There's a troubleshooting document here: ./docs/troubleshooting.md )
+
 1. Become root: `sudo -i`, then install Git and English: (can be missing, in minimal Ubuntu builds)
 
        # As root:
