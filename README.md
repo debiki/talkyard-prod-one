@@ -1,7 +1,7 @@
 Talkyard production installation
 ================
 
-For one single server: Ubuntu 20.04 with at least 2 GB RAM.
+For one single server: Debian 11 with at least 2 GB RAM.
 
 Docker based installation. Automatic upgrades.
 Automatic HTTPS cert (via LetsEncrypt).
@@ -28,6 +28,7 @@ This is beta software; there might be bugs.
 
 Here's [a Vagrantfile here](scripts/Vagrantfile) if you want to test install on a laptop
 — open the Vagrantfile in a text editor, and read, for details.
+(It's old, maybe won't work.)
 
 
 ### Install behind an Nginx reverse proxy?
@@ -57,7 +58,7 @@ Have a look in `./docker-compose.yml` (in this repo) for details and links.
 Get a server and a Web address
 ----------------
 
-Provision an Ubuntu 20.04 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
+Provision an Debian 11 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
 
 Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
 
@@ -67,7 +68,7 @@ Installation instructions
 
 (There's a troubleshooting document here: ./docs/troubleshooting.md )
 
-1. Become root: `sudo -i`, then install Git and English: (can be missing, in minimal Ubuntu builds)
+1. Become root: `sudo -i`, then install Git and English: (can be missing, in minimal Debian builds)
 
        # As root:
        apt-get update
@@ -78,10 +79,10 @@ Installation instructions
 
 1. Create big empty files that you can delete if your server runs out of disk:
 
-       fallocate --length 250MiB /balloon-1-ok-delete-if-disk-full
-       fallocate --length 250MiB /balloon-2-ok-delete-if-disk-full
-       fallocate --length 250MiB /opt/balloon-4-ok-delete-if-disk-full
-       fallocate --length 250MiB /var/balloon-3-ok-delete-if-disk-full
+       fallocate --length 250MiB /balloon-1-delete-if-disk-full
+       fallocate --length 250MiB /balloon-2-delete-if-disk-full
+       fallocate --length 250MiB /opt/balloon-3-delete-if-disk-full
+       fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
 
 1. Download installation scripts: (you need to install in
    `/opt/talkyard/` for the backup scripts to work)
@@ -90,12 +91,14 @@ Installation instructions
        git clone https://github.com/debiki/talkyard-prod-one.git talkyard
        cd talkyard
 
-1. Prepare Ubuntu: install tools, enable automatic security updates, simplify troubleshooting,
-   and make ElasticSearch work:
+1. If you want & know what you're doing, comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
 
-       ./scripts/prepare-ubuntu.sh 2>&1 | tee -a talkyard-maint.log
+1. Prepare the OS: install tools, enable automatic security updates, simplify troubleshooting,
+   and make ElasticSearch work: (Consider reading the script first...)
 
-   (If you don't want to run this whole script, you at least need to copy the
+       ./scripts/prepare-os.sh 2>&1 | tee -a talkyard-maint.log
+
+   (...If you don't want to run the whole script, you at least need to copy the
    sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
    `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
    won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
@@ -349,7 +352,7 @@ Upgrading to newer versions
 ----------------
 
 If you followed the instructions above — that is, if you ran these scripts:
-`./scripts/configure-ubuntu.sh` and `./scripts/schedule-automatic-upgrades.sh`
+`./scripts/prepare-os.sh` and `./scripts/schedule-automatic-upgrades.sh`
 — then your server should keep itself up-to-date, and ought to require no maintenance.
 
 In a few cases you might have to do something manually, when upgrading.

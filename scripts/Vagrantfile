@@ -6,6 +6,12 @@
 # Virtual Machine (VM) can be created and configured on your computer,
 # in which you can test install Talkyard.
 #
+# ***
+# MIGHT NO LONGER WORK? Was last tested with Ubuntu 18.04, but now we're
+# at Ubuntu 22.04 — "ubuntu/jammy64" below. Don't know if today's Vagrant
+# is compatible with this 4 years old file?
+# ***
+#
 # Tips: You'll need to add  talkyard.port=8080  to play-framework.conf
 # (mentioned in README.md).
 #
@@ -44,7 +50,7 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ubuntu/bionic64"
+  config.vm.box = "ubuntu/jammy64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs

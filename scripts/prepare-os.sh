@@ -9,7 +9,7 @@ function log_message {
 
 echo
 echo
-log_message 'Configuring Ubuntu:'
+log_message 'Configuring this Operating System:'
 
 
 # Avoid harmless "warning: Setting locale failed" warnings from Perl:
@@ -47,7 +47,7 @@ if ! grep -q 'Talkyard' /etc/sysctl.conf; then
 		# Talkyard settings
 		#
 		# Turn off swap, default = 60.
-		vm.swappiness=1
+		vm.swappiness=0
 		# Up the max backlog queue size (num connections per port), default = 128.
 		# Sync with conf/sites-enabled-manual/talkyard-servers.conf.
 		net.core.somaxconn=8192
@@ -65,20 +65,23 @@ fi
 # Redis doesn't want Transparent Huge Pages (THP) enabled, because that creates
 # latency and memory usage issues with Redis. Disable THP now directly, and also
 # after restart: (as recommended by Redis)
-echo 'Disabling Transparent Huge Pages (for Redis)...'
-echo never > /sys/kernel/mm/transparent_hugepage/enabled
-# We can use rc.local — also with Systemd, see: https://askubuntu.com/a/919598.
-rc_local_f="/etc/rc.local"
-if [ ! -f $rc_local_f ]; then
-  echo "exit 0" >> $rc_local_f
+if ! grep -q '\[always\]' /sys/kernel/mm/transparent_hugepage/enabled ; then
+  echo "Transparent Huge Pages is [madvise] or [never], fine, Redis happy."
+else
+  echo "Setting Transparent Huge Pages to [madvise], Redis wants this ..."
+  echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
+  # We can use rc.local — also with Systemd, see: https://askubuntu.com/a/919598.
+  rc_local_f="/etc/rc.local"
+  if [ ! -f $rc_local_f ]; then
+    echo "exit 0" >> $rc_local_f
+  fi
+  if ! grep -q 'transparent_hugepage/enabled' $rc_local_f ; then
+    echo "Setting Transparent Huge Pages to [madvise] after reboot, in $rc_local_f..."
+    # Insert ('i') before the last line ('$') in rc.local, which always? is
+    # 'exit 0' in a new Ubuntu installation ... no, Debian now.
+    sed -i -e '$i # For Talkyard and the Redis Docker container:\necho madvise > /sys/kernel/mm/transparent_hugepage/enabled\n' $rc_local_f
+  fi
 fi
-if ! grep -q 'transparent_hugepage/enabled' $rc_local_f ; then
-  echo "Disabling Transparent Huge Pages after reboot, in $rc_local_f..."
-  # Insert ('i') before the last line ('$') in rc.local, which always? is
-  # 'exit 0' in a new Ubuntu installation.
-  sed -i -e '$i # For Talkyard and the Redis Docker container:\necho never > /sys/kernel/mm/transparent_hugepage/enabled\n' $rc_local_f
-fi
-
 
 
 # Simplify troubleshooting:
