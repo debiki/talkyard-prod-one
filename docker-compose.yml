@@ -236,6 +236,12 @@ services:
     image: ${DOCKER_REG_ORG}/talkyard-backup:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/backup/Dockerfile
     restart: no
+    # If under heavy load, run the backup script at 25% speed. (Default is 1024 shares.)
+    cpu_shares: 256
+    # Don't use more than 60% CPU, even if the system is idle. Don't want to make
+    # monitoring tools panic, or any 100% CPU kernel panic. [100_kernel_panic]
+    cpu_quota:   60000
+    cpu_period: 100000
     secrets:
       # Will appear at /run/secrets/postgres_password. [backup_pg_client_secret]
       - postgres_password
