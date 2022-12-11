@@ -103,12 +103,14 @@ fi
 # Remove old images & containers
 # ===========================
 
-# So won't run out of disk. Let's keep images less than four months old, in case
-# need to downgrade to previous server version because of some bug.
+# So won't run out of disk. Let's keep images less than six months old, in case
+# need to downgrade to previous server version.
 # Also, do this whilst the old containers are still running, so their images
-# won't be removed (that is, before the Upgrade step below).  30 * 4 * 24h = 2880.
+# won't be removed (that is, before the Upgrade step below).  31 * 6 * 24h = 4464.
 
-/usr/bin/docker system prune --all --force --filter "until=2880h"
+if [ -n "$CURRENT_VERSION" ]; then
+  /usr/bin/docker system prune --all --force --filter "until=4464h"
+fi
 
 
 # Download new version
@@ -135,7 +137,37 @@ if [ -n "$CURRENT_VERSION" ]; then
   log_message "Upgrading: Done shutting down."
 fi
 
-log_message "$WHAT: Starting version $NEXT_VERSION..."
+log_message "$WHAT: Starting v$NEXT_VERSION, the app and database ..."
+VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose up -d app
+
+if [ -n "$CURRENT_VERSION" ]; then
+  log_message "$WHAT: Starting 'web': Showing an Under Maintenance page"
+  VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose run --rm -d  \
+        --name ty-maint  --no-deps  \
+        -p80:80  -p443:443  \
+        -v /opt/talkyard/conf/maint-msg.html:/opt/nginx/html/502.html  \
+        web
+
+  # Wait until the app server is done with any database migration and with
+  # warming up Nashorn.
+  # Let's try both HTTPS and HTTP, in case HTTP gets redirected to HTTPS,
+  # or in case HTTPS hasn't been configured (testing on localhost).
+  # Use --insecure HTTPS because https://localhost has no valid cert.
+  log_message "$WHAT: Waiting for the app server to have started ..."
+  ready_host_path='localhost/-/are-scripts-ready'
+  until $(curl --output /dev/null --silent --head --fail http://$ready_host_path)  || \
+        $(curl --output /dev/null --silent --head --fail --insecure https://$ready_host_path)
+  do
+    printf '.'
+    sleep 1
+  done
+
+  log_message "$WHAT: App server has started. Removing Under Maintenance message ..."
+  docker kill ty-maint
+fi
+
+# Just 'web' left to start.
+log_message "$WHAT: Starting the HTTP server ..."
 VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose up -d
 
 # Bump the current version number, but not until after 'docker-compose up' above
