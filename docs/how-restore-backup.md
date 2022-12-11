@@ -6,7 +6,7 @@ a new server, you can do as follows.
 
 Start installing Talkyard on that new server, following the instructions in
 https://github.com/debiki/talkyard-prod-one/blob/master/README.md
-— but stop at step 6: "Edit config values".
+— but stop at step 8: "Edit config values".
 Instead, we'll copy config files from the backup:
 
 On the new server, as root, run the commands below:
@@ -44,7 +44,7 @@ mv old-conf/data/sites-enabled-auto-gen data/sites-enabled-auto-gen
 # ------------------------------
 
 # This shouldn't be needed — you didn't start the Talkyard server yet?
-# You stopped at step 6 as mentioned above?
+# You stopped at step 8 as mentioned above?
 # Anyway, if the Talkyard app server is running, stop it:
 # (Otherwise the restore will fail because of active database connections.)
 docker-compose stop app
