@@ -1,0 +1,19 @@
+# Changes the 'app' container IP to the wrong IP [maint_app_ip],  so 'web'
+# cannot connect to it. This makes 'web' respond quickly with a status 502,
+# which is good when in maintenance mode where we want to show a
+# "We're upgrading the server" message — instead of 'web' being able to connect
+# to 'app'; then it won't respond to the end user until half a minute (?)
+# has elapsed.
+
+version: '3.7'
+
+services:
+  web:
+    extra_hosts:
+        # Wrong IP. The correct IP is INTERNAL_NET_APP_IP=172.26.0.31,
+        # see ../.env.
+        # (Note that our subnet is 172.26.0.0/25, so ....127 is the highest allowed
+        # value. If 'web' tries to connect to ...254, this just "hangs", maybe the
+        # connection would eventually timeout? Oh well.)
+        app: 172.26.0.127
+
