@@ -155,8 +155,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   # Use --insecure HTTPS because https://localhost has no valid cert.
   log_message "$WHAT: Waiting for the app server to have started ..."
   ready_host_path='localhost/-/are-scripts-ready'
-  until $(curl --output /dev/null --silent --head --fail http://$ready_host_path)  || \
-        $(curl --output /dev/null --silent --head --fail --insecure https://$ready_host_path)
+  until $(curl --output /dev/null --silent --head --fail --location --insecure http://$ready_host_path)
   do
     printf '.'
     sleep 1
