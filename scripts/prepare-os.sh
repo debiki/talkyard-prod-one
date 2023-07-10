@@ -99,6 +99,10 @@ if ! grep -q 'HISTTIMEFORMAT' ~/.bashrc; then
 fi
 
 
+# [ty_v1] Auto upgr:  Ask if, and recommend that, auto reboot if needed after security
+# upgrades, and if Yes, then, add Automatic-Reboot also if there's already
+# a 20auto-upgrades file.  Seems such a file exists by default, nowadays, Debian 12.
+
 # Automatically apply OS security patches.
 # The --force-confdef/old tells Apt to not overwrite any existing configuration, and to ask no questions.
 # See e.g.: https://askubuntu.com/a/104912/48382.

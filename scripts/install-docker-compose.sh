@@ -11,6 +11,17 @@ echo
 log_message "Installing Docker and Docker-Compose..."
 
 
+# ------- Uninstall conflicting software
+
+## [ty_v1] Look for any of these packages, and if found, ask if we can remove
+## them. If not, don't proceed?
+## But not that important — on a new Debian 12 VPS, none of them were installed
+## by default.
+# for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do
+#   sudo apt-get remove $pkg
+# done
+
+
 # ------- Add Docker repository
 
 # Install packages to allow apt to use a repository over HTTPS:
@@ -20,7 +31,6 @@ apt-get -y install \
     ca-certificates \
     curl \
     gnupg \
-    lsb-release \
     software-properties-common
 
 # Add Docker’s official GPG key.
@@ -39,8 +49,9 @@ else
   log_message "Downloading Docker GPG key to: $d_gpg_f, from: $gpg_url ..."
   sudo mkdir -p /etc/apt/keyrings
   curl -fsSL "$gpg_url" | gpg --dearmor -o $d_gpg_f
+  sudo chmod a+r $d_gpg_f
 
-  # As of 2021-03-19 ... and 2022-10-20.  [hash_instead]
+  # As of 2021-03-19 ... and 2022-10-20 ... and 2023-07-10  [hash_instead]
   # Works for both Debian and Ubuntu (apparently same gpg key).
   gpg_hash_expected="a09e26b72228e330d55bf134b8eaca57365ef44bf70b8e27c5f55ea87a8b05e2"
   gpg_hash_actual="$(sha256sum $d_gpg_f)"
@@ -79,13 +90,13 @@ fi
 
 d_list_f="/etc/apt/sources.list.d/docker.list"
 if [ -f $d_list_f ]; then
-  log_message "Docker Apt repo already configured in $d_list_f, fine."
+  log_message "Docker Apt repo config file already here: $d_list_f, fine."
 else
   log_message "Adding Docker Apt repo in $d_list_f:"
   echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=$d_gpg_f] \
+      "deb [arch="$(dpkg --print-architecture)" signed-by=$d_gpg_f] \
 https://download.docker.com/linux/debian \
-$(lsb_release -cs) stable" \
+"$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" \
       | tee $d_list_f
 fi
 
@@ -100,7 +111,7 @@ fi
 #   apt-get upgrade  # hmm seems to upgrade Docker too, also if installed via docker-ce=...
 #   apt-get -y install docker-ce=VERSION   # or is this needed?
 
-# To use a specific version:
+# To use a specific version:  (don't forget the '=', the first character)
 #EQ_DOCKER_VERSION="=1.5-2"
 # But the Debian default version is probably ok, so just skip '=VERSION':
 EQ_DOCKER_VERSION=""
@@ -114,6 +125,7 @@ else
         docker-ce$EQ_DOCKER_VERSION \
         docker-ce-cli$EQ_DOCKER_VERSION \
         containerd.io \
+        docker-buildx-plugin \
         docker-compose-plugin
 fi
 

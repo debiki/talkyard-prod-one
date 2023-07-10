@@ -58,7 +58,7 @@ Have a look in `./docker-compose.yml` (in this repo) for details and links.
 Get a server and a Web address
 ----------------
 
-Provision an Debian 11 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
+Provision an Debian 11 or 12 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
 
 Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
 
@@ -72,6 +72,7 @@ Installation instructions
 
        # As root:
        apt-get update
+       apt-get upgrade
        apt-get -y install git vim locales
        apt-get -y install tree ncdu                # nice to have
        locale-gen en_US.UTF-8                      # installs English
