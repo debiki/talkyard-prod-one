@@ -1,7 +1,7 @@
 Talkyard production installation
 ================
 
-For one single server: Debian 11 with at least 2 GB RAM.
+For one single server: Debian 11 or 12 with at least 2 GB RAM.
 
 Docker based installation. Automatic upgrades.
 Automatic HTTPS cert (via LetsEncrypt).
