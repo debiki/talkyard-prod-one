@@ -4,7 +4,7 @@
 # and configures automatic security updates, with reboots.
 
 function log_message {
-  echo "`date --iso-8601=seconds --utc` configure-ubuntu: $1"
+  echo "`date --iso-8601=seconds --utc` prepare-os: $1"
 }
 
 echo
@@ -113,7 +113,15 @@ fi
 auto_upgr_f="/etc/apt/apt.conf.d/20auto-upgrades"
 if [ -f $auto_upgr_f ]; then
   log_message "There's already an auto upgrades config file: $auto_upgr_f."
-  log_message "I'll leave it as is — I won't (re)configuring automatic upgrades."
+  log_message "I'll leave it as is — I won't (re)configure automatic upgrades."
+  log_message "---- It's contents: ------"
+  cat $auto_upgr_f
+  log_message "--------------------------"
+  log_message "Consider adding the below line,  if it's missing,"
+  log_message "so your server will reboot if needed, for upgrades to take effect:"
+  echo
+  echo 'Unattended-Upgrade::Automatic-Reboot "true";'
+  echo
 else
   log_message 'Enabling automatic security updates and reboots...'
   DEBIAN_FRONTEND=noninteractive \
@@ -135,7 +143,7 @@ EOF
 fi
 
 
-log_message 'Done configuring Ubuntu.'
+log_message 'Done configuring the OS.'
 echo
 
 # vim: ts=2 sw=2 tw=0 fo=r list

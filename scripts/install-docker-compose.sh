@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# This installs Docker and Docker-Compose on a totally new & blank Ubuntu 18.04 server,
-# based on: https://docs.docker.com/engine/install/ubuntu/
+# This installs Docker and Docker-Compose on a totally new & blank Debian server,
+# based on: https://docs.docker.com/engine/install/debian/
 
 function log_message {
   echo "`date --iso-8601=seconds --utc` install-docker: $1"
