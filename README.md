@@ -23,6 +23,12 @@ See https://www.talkyard.io/plans for alternatives to installing yourself.
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 This is beta software; there might be bugs.
 
+### Security: *Private* server
+
+Don't give people-you-don't-absolutely-trust ssh access to your Talkyard server.
+The database files in `/opt/talkyard/data/rdb/` are accessible to people who can
+ssh into the server, and log files in `/var/log/` are, too.
+This'll change in Talkyard v1 (next year 2025?) — then we'll use Docker volumes instead.
 
 ### Install on your laptop?
 
