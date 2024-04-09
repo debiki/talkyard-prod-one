@@ -454,7 +454,7 @@ License (MIT)
 ----------------
 
 ```
-Copyright (c) 2016-2020 Debiki AB and Kaj Magnus Lindberg.
+Copyright (c) 2016-2024 Kaj Magnus Lindberg.
 
 Licensed under the MIT license, see `LICENSE-MIT.txt` — and this is for the
 instructions and scripts in this repository only, not for Talkyard source code
