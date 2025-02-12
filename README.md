@@ -1,6 +1,13 @@
 Talkyard production installation
 ================
 
+NOTICE:
+
+This Git branch is for upcoming Talkyard v1 (epoch 1). Don't use! Work in progress.
+And, I'll **rewrite history** in this branch.
+
+------
+
 For one single server: Debian 11 or 12 with at least 2 GB RAM.
 
 Docker based installation. Automatic upgrades.
@@ -23,29 +30,38 @@ See https://www.talkyard.io/plans for alternatives to installing yourself.
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 This is beta software; there might be bugs.
 
+<!-- This now fixed, using Docker volumes & logging instead, others cannot access.
 ### Security: *Private* server
 
 Don't give people-you-don't-absolutely-trust ssh access to your Talkyard server.
 The database files in `/opt/talkyard/data/rdb/` are accessible to people who can
 ssh into the server, and log files in `/var/log/` are, too.
 This'll change in Talkyard v1 (next year 2025?) — then we'll use Docker volumes instead.
+-->
 
+<!-- [vagrant_or_not]  Move Vagrantfile  to old/  ?
 ### Install on your laptop?
 
 Here's [a Vagrantfile here](scripts/Vagrantfile) if you want to test install on a laptop
 — open the Vagrantfile in a text editor, and read, for details.
 (It's old, maybe won't work.)
+-->
 
 
 ### Install behind an Nginx reverse proxy?
 
 <!-- Someone tried to do this, although in his case, there was *no* reverse proxy. -->
+<!-- Move to docs/ file, and update path:  /opt/talkyard/conf/play-framework.conf  —>  .../conf/app/play-framework.conf  ? -->
+To install Talkyard behind a reverse proxy, read here: docs/reverse-proxy.md. (If you don't know what a reverse proxy is, just ignore this.)
+
+<!--
 Skip this, unless you know what a "reverse proxy" is;
 instead, continue below, the section "Install on a new server".
 Now, if you _do_ want to install Talkyard on a Debian or Ubuntu server
 with a Nginx reverse proxy in front of it, with a LetsEncrypt cert — then,
 [here's a mini tutorial](https://www.talkyard.io/-389/talkyard-with-nginx-as-reverse-proxy-and-letsencrypt-for-https-mini-tutorial).
 The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
+-->
 
 
 ### Install on a new server
@@ -64,9 +80,91 @@ Have a look in `./docker-compose.yml` (in this repo) for details and links.
 Get a server and a Web address
 ----------------
 
-Provision an Debian 11 or 12 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
+Provision an Debian 12 server <!-- not 11, it's EOL 2026 --> with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/), a US company, or [Upcloud](https://upcloud.com/), an EU company.
 
 Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
+
+
+Directories
+----------------
+
+You'll install Talkyard <!-- -the-software, and config files, --> in `/opt/talkyard-v1/`.
+
+<!--
+(`-v1` is for "host scripts version one". Every 3? 5? years, there's a major
+new version of the host scripts, and you'll install in /opt/talkyard-vX/,
+and import a backup.) -->
+
+Talkyard uses these directories:
+<!-- (following the Linux File System Hierarchy Standard, FHS)
+FHS, Debian: https://manpages.debian.org/bookworm/manpages/hier.7.en.html
+Shouldn't use /opt/backups for backups?  o.O
+They write:  "/var/backups  Reserved for historical reasons."
+And, https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch05s02.html: "Several directories
+are `reserved' in the sense that they must not be used arbitrarily by some new application,
+since they would conflict with historical and/or local practice. They are:
+/var/backups, /var/cron, ...".  Better store backups in /var/opt/...backups.../ somewhere?
+-->
+
+- `/opt/talkyard-v1/`: Installation scripts, other scripts, and `docker-compose.yml`.
+      This is a Git repo — you can check in your changes to Git (but not passwords!).
+      You should know how to resolve Git conflicts,
+      if you `git fetch` new minor versions of these scripts.
+      <!--
+      We call scripts here "host scripts" since they run on the host operating system.
+      They aren't part of Talkyard itself — none of them would be relevant, if
+      instead running Ty on Windows (not supported).
+      -->
+- `/opt/talkyard-v1/conf`:
+    Configuration, mounted read-only in Docker containers.
+- `/var/lib/docker/`:
+    Database storage, uploaded files (in Docker volumes).
+    Docker images, log files.
+<!--
+- `/var/opt/talkyard/v1/`: Database storage, e.g. PostgreSQL and Redis. (Docker volumes.)
+- `/var/opt/talkyard/v1/uploads/`: Uploaded files, e.g. images. (A Docker volume.) -->
+- `/var/opt/backups/talkyard/v1/`:
+    Backups. (_Not_ a Docker volume.)
+
+<!--
+If you want, mount `/var/` and `/var/opt/backups/` on
+different disks. If you expect people to upload lots of big files, you could
+open `scripts/create-volumes.sh`, edit the line with
+`docker volume create talkyard-v1-uploads`,
+and mount it on a separate & big disk.
+Or connect to some S3 compatible cloud storage (not yet implemented `[cloud_storage]`).
+-->
+
+Preparations
+----------------
+
+Update the OS,
+and create big empty files that you can delete if your server runs out of disk:
+
+    apt-get update
+    apt-get upgrade
+    fallocate --length 250MiB /balloon-1-delete-if-disk-full
+    fallocate --length 250MiB /balloon-2-delete-if-disk-full
+    fallocate --length 250MiB /var/balloon-3-delete-if-disk-full
+    fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
+
+And, if you want to, and know what you're doing:
+
+**Swap:** Comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
+
+**Disks:** Mount `/var/` and `/var/opt/backups/(talkyard/)` on their own disks
+(so the host OS and Talkyard won't stop working just because some disk
+gets full).
+
+**Firewall:** Install a firewall, for example, firewalld.
+But ufw (another firewall) doesn't work well with Docker.
+Look in `.env` to see the IP addresses of the Docker containers. The ip
+of the `web` container, which runs Nginx and listens on ports 80 and 443,
+is set on the `INTERNAL_NET_WEB_IP=...` row, and this is the only
+container that should be reachable from outside.
+More about Firewalld and Docker:
+https://firewalld.org/2024/04/strictly-filtering-docker-containers
+
 
 
 Installation instructions
@@ -74,61 +172,77 @@ Installation instructions
 
 (There's a troubleshooting document here: ./docs/troubleshooting.md )
 
-1. Become root: `sudo -i`, then install Git and English: (can be missing, in minimal Debian builds)
+<!--
+1. Become root: `sudo -i`, then install Git and some stuff:
 
        # As root:
        apt-get update
        apt-get upgrade
-       apt-get -y install git vim locales
-       apt-get -y install tree ncdu                # nice to have
-       locale-gen en_US.UTF-8                      # installs English
+       apt-get -y install git locales
+       apt-get -y install cpulimit         # avoids kernel panics when gzipping backups
+       apt-get -y install tree ncdu vim    # nice to have
+       locale-gen en_US.UTF-8              # installs English
        export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
+    -->
 
-1. Create big empty files that you can delete if your server runs out of disk:
+1. Download Talkyard installation, backup etc scripts: (you need to save in
+   `/opt/talkyard-v1/` for the backup scripts to work)
 
-       fallocate --length 250MiB /balloon-1-delete-if-disk-full
-       fallocate --length 250MiB /balloon-2-delete-if-disk-full
-       fallocate --length 250MiB /opt/balloon-3-delete-if-disk-full
-       fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
-
-1. Download installation scripts: (you need to install in
-   `/opt/talkyard/` for the backup scripts to work)
-
+       sudo -i  # become root
        cd /opt/
-       git clone https://github.com/debiki/talkyard-prod-one.git talkyard
-       cd talkyard
-
-1. If you want & know what you're doing, comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
+       git clone https://github.com/debiki/talkyard-prod-one.git talkyard-v1
+       cd talkyard-v1
 
 1. Prepare the OS: install tools, enable automatic security updates, simplify troubleshooting,
    and make ElasticSearch work: (Consider reading the script first...)
 
        ./scripts/prepare-os.sh 2>&1 | tee -a talkyard-maint.log
 
-   (...If you don't want to run the whole script, you at least need to copy the
-   sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
-   `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
-   won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
+   If you don't want to run the whole script, you at least need to:
 
-1. Install Docker:
+   -  Copy the sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
+       `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
+       won't work. Afterwards, run `sysctl --system` to reload the system configuration.
+
+   - `apt install` these: `rng-tools cpulimit`. And `jq` to view logs.
+
+1. Install Docker: (as root in `/opt/talkyard-v1/`)
 
        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
-1. Install a firewall, namely *ufw*: (and answer Yes to the question you'll get. You can skip this if
-   you use Google Cloud Engine; GCE already has a firewall)
+   Consider changing the logging driver to `local`, see:
+   https://docs.docker.com/engine/logging/drivers/local/. In `/etc/docker/daemon.json`:
+
+   ```
+   {
+     "log-driver": "local"
+   }
+   ```
+
+    <!-- 
+    1. Install a firewall, for example firewalld. Note that ufw (another Linux firewall)
+   is incompatible with Docker, see:
+   https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw.
+   (If you use Google Cloud Engine: GCE already has a firewall.)
 
    Update 2021-04-04: It's better if you use <b>`firewalld`</b> instead — it's safer:
    Docker can bypas `ufw` rules, but not `firewalld` rules.
    Read more here: https://github.com/chaifeng/ufw-docker,
    and you can websearch: https://www.google.com/search?q=ufw+docker
-   <!-- [firewalld_not_ufw] [ty_v1] update script, have it use firewalld  -->
+   [firewalld_not_ufw] [ty_v1] update script, have it use firewalld
 
        # It's better if you use firewalld instead of this:
        # (We'll edit the script in a while, so it'll use firewalld instead,
        # but currently it uses ufw)
        ./scripts/start-firewall.sh 2>&1 | tee -a talkyard-maint.log
 
-   Here's firewalld: https://firewalld.org/
+   Here's firewalld: https://firewalld.org/  -->
+
+1. Create Docker volumes: (if you want, you can edit the script and the volumes,
+    e.g. to store uploaded files on their own disk
+    — that's the `talkyard-v1-uploads` Docker volume)
+
+        ./scripts/create-volumes.sh
 
 1. Edit config values:
 
@@ -145,10 +259,14 @@ Installation instructions
    - A PostgreSQL database user, named *talkyard*, gets created automatically,
      by the *rdb* Docker container, with the password you type in the `.env` file.
      You don't need to do anything.
+    <!-- Do people use Vagrant nowadays? [vagrant_or_not] In any case, shouldn't the *web*
+      container, not the *app*, listen to 8080?
    - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
      then comment in `talkyard.port=8080` in `play-framework.conf`.
+    -->
 
-1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
+1. Depending on how much RAM your server has (run `free -mh` to find out),
+   choose one of these files:
    mem/1.7g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
    and copy it to ./docker-compose.override.yml. For example, for
    a server with 2 GB RAM:
@@ -164,15 +282,29 @@ Installation instructions
    (This creates a new Docker network — you can choose the IP range; see the
    section *A New Docker Network* below.)
 
-   Afterwards, you can type: `docker-compose ps` — you should then see a list
+   Afterwards, you can type: `docker compose ps` — you should then see a list
    of Docker containers in state Up (means they're running).
 
-1. Schedule deletion of old log files, daily backups and deletion old backups,
-   and automatic upgrades:
+1. Schedule daily backups and deletion old backups, and automatic upgrades:
 
-        ./scripts/schedule-logrotate.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
+
+    <!-- Script for CGE:
+
+    # m h  dom mon dow   command
+    @reboot echo '---REBOOT---' >> /opt/talkyard-cron.log
+    @reboot echo '/opt/talkyard-mount-backups-bucket.sh >> /opt/talkyard-cron.log 2>&1' | at now + 5 minutes
+    10 0 * * * cd /opt/talkyard && ./scripts/delete-old-logs.sh >> talkyard-maint.log 2>&1
+    10 2 * * * cd /opt/talkyard && ./scripts/backup.sh daily >> talkyard-maint.log 2>&1
+    10 3 * * * cd /opt/talkyard && ./scripts/delete-old-backups.sh >> talkyard-maint.log 2>&1
+    51 0 * * * cd /opt/talkyard && ./scripts/renew-https-certs.sh >> talkyard-maint.log 2>&1
+
+    root@tyc-gcew1dal23a:~# cat /opt/talkyard-mount-backups-bucket.sh  
+    #!/bin/bash
+    mkdir -p /opt/talkyard-backup-archives-in-gcs
+    /usr/bin/gcsfuse cloud-storage-bucket-name /opt/talkyard-backup-archives-in-gcs
+    -->
 
 1. Open a web browser; go to `https://talkyard.your website.com` — note: **https**
    not http.
@@ -194,10 +326,11 @@ Installation instructions
    (The "failed ... alert number 42" is fine
    — it's because, at that time, there wasn't yet any cert.) **)**
 
-
+   <!-- [vagrant_or_not]
    However, if you're testing on localhost, or with Vagrant,
    instead go to <http://localhost>, or <http://localhost:8080>, respectively.
    (And you'll need `talkyard.secure=false` in `play-framework.conf`).
+    -->
 
 1. In the browser, click _Continue_ and create an admin account
    with the email address you specified when you edited `play-framework.conf` earlier
@@ -346,13 +479,15 @@ GitHub:
 Viewing log files
 ----------------
 
-Change directory to `/opt/talkyard/`.
+Change directory to `/opt/talkyard-v1/`. Then:
 
-Then, view the application server logs like so: `./view-logs app`
-or `./view-logs -f --tail 30 app`.  
-The web server: `tail -f /var/log/nginx/{access,error}.log` (mounted on the Docker host in docker-compose.yml)  
-The database: `less /var/log/postgres/LOG_FILE_NAME`  
-The search engine: `./view-logs search`.
+- The application server, to view its logs: `./view-logs -f --tail 50 app`
+  &thinsp; (where `-f --tail NN` is optional).
+  You can also: `docker compose logs -f --tail 50 app`, but then you'll see
+  hard to read json. `view-logs` uses `jq` to parse & make readable the json.
+- The web server:  `docker compose logs -f --tail 50 web` (not json).
+- The database:  `docker compose logs -f --tail 50 rdb` (not json).
+- The search engine: `./view-logs search`.
 
 
 Upgrading to newer versions
@@ -371,7 +506,7 @@ If you didn't run `./scripts/schedule-automatic-upgrades.sh`, you can upgrade
 manually like so:
 
     sudo -i
-    cd /opt/talkyard/
+    cd /opt/talkyard-v1/
     ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
 
@@ -386,8 +521,8 @@ See [docs/how-restore-backups.md](./docs/how-restore-backup.md).
 
 You can login to Postgres like so:
 
-    sudo docker-compose exec rdb psql postgres postgres  # as user 'postgres'
-    sudo docker-compose exec rdb psql talkyard talkyard  # as user 'talkyard'
+    sudo docker compose exec rdb psql postgres postgres  # as user 'postgres'
+    sudo docker compose exec rdb psql talkyard talkyard  # as user 'talkyard'
 
 
 ### Backing up, manually
@@ -396,8 +531,10 @@ You should have configured automatic backups already, see the Installation
 Instructions section above. In any case, you can backup manually like so:
 
     sudo -i
-    cd /opt/talkyard/
+    cd /opt/talkyard-v1/
     ./scripts/backup.sh manual 2>&1 | tee -a talkyard-maint.log
+
+New backups should appear in `/var/backups/talkyard/v1/archives/`.
 
 
 ### Copy backups elsewhere
@@ -406,11 +543,13 @@ You should copy the backups to a safety off-site backup server, regularly.
 Otherwise, if your main server suddenly disappears, or someone breaks into it
 and ransomware-encrypts everything — you'd lose all data.
 
+See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
+
+<!--
 There's also a script you can copy-paste to that off-site backup server,
 and run daily via Cron, to get notified via email if backups stop working
 — but no, not yet implmented `[BADBKPEML]`.
-
-See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
+-->
 
 
 A new Docker network
@@ -442,19 +581,13 @@ sudo apt autoremove --purge
 ```
 
 
-Docker mounted directories
-----------------
-
-- `conf/`: Container config files, mounted read-only in the containers. Can add to a Git repo.
-- `data/`: Directories mounted read-write in the containers (and sometimes read-only too). Not for Git.
-
 
 
 License (MIT)
 ----------------
 
 ```
-Copyright (c) 2016-2024 Kaj Magnus Lindberg.
+Copyright (c) 2016-2025 Kaj Magnus Lindberg.
 
 Licensed under the MIT license, see `LICENSE-MIT.txt` — and this is for the
 instructions and scripts in this repository only, not for Talkyard source code

@@ -1,8 +1,8 @@
 
 ## How restore a Talkyard backup
 
-If your server suddenly disappears, then, to restore a backup on
-a new server, you can do as follows.
+If your server disappeared, and you want to restore a backup on a new server.
+Or if you're upgrading from Talkyard epoch v0 to v1. Then you can do as follows.
 
 Start installing Talkyard on that new server, following the instructions in
 https://github.com/debiki/talkyard-prod-one/blob/master/README.md
@@ -16,7 +16,7 @@ the actual path and file names.
 
 ```
 sudo -i # become root
-cd /opt/talkyard
+cd /opt/talkyard-v1
 
 echo "$(date -I): Restoring backup ..." >> talkyard-maint.log
 
@@ -47,18 +47,18 @@ mv old-conf/data/sites-enabled-auto-gen data/sites-enabled-auto-gen
 # You stopped at step 8 as mentioned above?
 # Anyway, if the Talkyard app server is running, stop it:
 # (Otherwise the restore will fail because of active database connections.)
-docker-compose stop app
+docker compose stop app
 
 
 # Restore the database, PostgreSQL
 # ------------------------------
 
 # First, start PostgreSQL.
-docker-compose up -d rdb
+docker compose up -d rdb
 
 # NOTE: Overwrites any existing database (!).
 zcat /BACKUP_ARCHIVES_DIR/DB_BACKUP_FILE.sql.gz \
-    | docker exec -i $(docker-compose ps -q rdb) psql postgres postgres \
+    | docker exec -i $(docker compose ps -q rdb) psql postgres postgres \
     | tee -a talkyard-maint.log
 
 
@@ -88,8 +88,8 @@ e.g.: `cp mem/2g.yml docker-compose.override.yml`.
 Now, time to start everything:
 
 ```
-docker-compose up -d
-docker-compose logs -f --tail 999
+docker compose up -d
+docker compose logs -f --tail 999
 ```
 
 Also, think about if you need to 1) update your DNS server with the IP address to
