@@ -6,8 +6,6 @@
 # ElasticSearch wants as much mem for the OS cache as for its own heap.
 # Also, there're Nginx and Redis containers too.)
 
-
-version: '3.7'
 services:
   app:
     environment:

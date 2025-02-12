@@ -32,7 +32,11 @@ echo "Ok, let's test install all."
 
 
 vi conf/play-framework.conf  # fill in values in the Required Settings section
-vi .env                      # type a database password
+# or:
+sed --in-place=.orig 's/="change_this"/="changeeee_thisss_ok_done"/'  conf/play-framework.conf
+
+# and:
+echo 'test-db-pw' > secrets/postgres_password.txt
 
 cp mem/2g.yml docker-compose.override.yml
 
