@@ -69,6 +69,42 @@ Provision an Debian 11 or 12 server with at least 2 GB RAM, for example at [Digi
 Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
 
 
+Directories
+----------------
+
+You'll install Talkyard-the-software, and config files, in `/opt/talkyard-v1/`.
+
+Talkyard will automatically use these directories:
+(following the Linux File System Hierarchy Standard, FHS)
+<!-- FHS, Debian: https://manpages.debian.org/bookworm/manpages/hier.7.en.html
+Shouldn't use /opt/backups for backups?  o.O
+They write:  "/var/backups  Reserved for historical reasons."
+And, https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch05s02.html: "Several directories
+are `reserved' in the sense that they must not be used arbitrarily by some new application,
+since they would conflict with historical and/or local practice. They are:
+/var/backups, /var/cron, ...".  Better store backups in /var/opt/...backups.../ somewhere?
+-->
+
+- `/opt/talkyard-v1/`: Installation, upgrade and backup scripts, and `docker-compose.yml`.
+      This is a Git repo — you can check in your changes to Git, but not passwords!
+      And you should know how to resolve Git conflicts,
+      if you `git fetch` new minor versions of these scripts.
+      We call scripts here "host scripts" since they run on the host operating system.
+      They aren't part of Talkyard itself — none of them would be relevant, if
+      instead running Ty on Windows (not supported), for example.
+- `/opt/talkyard-v1/conf`: Stuff here is mounted read-only in Docker containers.
+- `/var/opt/talkyard/v1/`: Database storage, e.g. PostgreSQL and Redis. (Docker volumes.)
+- `/var/opt/talkyard/v1/uploads/`: Uploaded files, e.g. images. (A Docker volume.)
+- `/var/opt/backups/talkyard/v1/`: Backups. (_Not_ a Docker volume.)
+- `/var/log/talkyard/v1/`: Log files. (Docker volumes.)
+- `/var/lib/docker/`: Here's where Docker saves downloaded Docker images and json log files.
+
+So, if you want, mount some or all of `/var`, `/var/log` and `/var/opt/backups` on
+different disks. If you expect people to upload lots of big files, you could
+mount `/var/opt/talkyard/v1/uploads` on its own disk too,
+or connect to some S3 compatible cloud storage (not yet implemented `[cloud_storage]`).
+
+
 Installation instructions
 ----------------
 
@@ -88,29 +124,50 @@ Installation instructions
 
        fallocate --length 250MiB /balloon-1-delete-if-disk-full
        fallocate --length 250MiB /balloon-2-delete-if-disk-full
-       fallocate --length 250MiB /opt/balloon-3-delete-if-disk-full
-       fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
+       fallocate --length 250MiB /var/balloon-3-delete-if-disk-full
+       fallocate --length 250MiB /var/log/balloon-4-delete-if-disk-full
 
 1. Download installation scripts: (you need to install in
-   `/opt/talkyard/` for the backup scripts to work)
+   `/opt/talkyard-v1/` for the backup scripts to work)
 
        cd /opt/
-       git clone https://github.com/debiki/talkyard-prod-one.git talkyard
-       cd talkyard
+       git clone https://github.com/debiki/talkyard-prod-one.git talkyard-v1
+       cd talkyard-v1
 
-1. If you want & know what you're doing, comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
+1. If you want to & know what you're doing:
+   - Comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
+   - Mount `/var/opt/talkyard`, `/var/log/talkyard`, `/var/opt/backups/talkyard`
+      on different disks.
+      Or mount `/var/`, `/var/log` and `/var/opt/backups` on different disks.
 
+<!-- Script for CGE:
+
+# m h  dom mon dow   command
+@reboot echo '---REBOOT---' >> /opt/talkyard-cron.log
+@reboot echo '/opt/talkyard-mount-backups-bucket.sh >> /opt/talkyard-cron.log 2>&1' | at now + 5 minutes
+10 0 * * * cd /opt/talkyard && ./scripts/delete-old-logs.sh >> talkyard-maint.log 2>&1
+10 2 * * * cd /opt/talkyard && ./scripts/backup.sh daily >> talkyard-maint.log 2>&1
+10 3 * * * cd /opt/talkyard && ./scripts/delete-old-backups.sh >> talkyard-maint.log 2>&1
+51 0 * * * cd /opt/talkyard && ./scripts/renew-https-certs.sh >> talkyard-maint.log 2>&1
+
+root@tyc-gcew1dal23a:~# cat /opt/talkyard-mount-backups-bucket.sh  
+#!/bin/bash
+mkdir -p /opt/talkyard-backup-archives-in-gcs
+/usr/bin/gcsfuse cloud-storage-bucket-name /opt/talkyard-backup-archives-in-gcs
+
+
+-->
 1. Prepare the OS: install tools, enable automatic security updates, simplify troubleshooting,
    and make ElasticSearch work: (Consider reading the script first...)
 
        ./scripts/prepare-os.sh 2>&1 | tee -a talkyard-maint.log
 
-   (...If you don't want to run the whole script, you at least need to copy the
+   If you don't want to run the whole script, you at least need to copy the
    sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
    `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
-   won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
+   won't work. Afterwards, run `sysctl --system` to reload the system configuration.
 
-1. Install Docker:
+1. Install Docker: (as root in `/opt/talkyard-v1/`)
 
        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
@@ -346,12 +403,12 @@ GitHub:
 Viewing log files
 ----------------
 
-Change directory to `/opt/talkyard/`.
+Change directory to `/opt/talkyard-v1/`.
 
 Then, view the application server logs like so: `./view-logs app`
 or `./view-logs -f --tail 30 app`.  
-The web server: `tail -f /var/log/nginx/{access,error}.log` (mounted on the Docker host in docker-compose.yml)  
-The database: `less /var/log/postgres/LOG_FILE_NAME`  
+The web server: `tail -f /var/log/talkyard/v1/nginx/{access,error}.log` (mounted on the Docker host in docker-compose.yml)  
+The database: `less /var/log/talkyard/v1/postgres/LOG_FILE_NAME`  
 The search engine: `./view-logs search`.
 
 
@@ -371,7 +428,7 @@ If you didn't run `./scripts/schedule-automatic-upgrades.sh`, you can upgrade
 manually like so:
 
     sudo -i
-    cd /opt/talkyard/
+    cd /opt/talkyard-v1/
     ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
 
@@ -396,8 +453,10 @@ You should have configured automatic backups already, see the Installation
 Instructions section above. In any case, you can backup manually like so:
 
     sudo -i
-    cd /opt/talkyard/
+    cd /opt/talkyard-v1/
     ./scripts/backup.sh manual 2>&1 | tee -a talkyard-maint.log
+
+New backups should appear in `/var/backups/talkyard/v1/archives/`.
 
 
 ### Copy backups elsewhere
@@ -441,12 +500,6 @@ You can delete them to free up disk:
 sudo apt autoremove --purge
 ```
 
-
-Docker mounted directories
-----------------
-
-- `conf/`: Container config files, mounted read-only in the containers. Can add to a Git repo.
-- `data/`: Directories mounted read-write in the containers (and sometimes read-only too). Not for Git.
 
 
 
