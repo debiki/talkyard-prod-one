@@ -3,9 +3,28 @@
 # Exit on any error.
 set -e
 
-function log_message {
+log_message() {
   echo "`date --iso-8601=seconds --utc` upgrade-script: $1"
 }
+
+check_single_line() {
+  # This: `\n` instead of `$\n` would look for '\' and 'n', two chars, instead of a newline.
+  if [[ $1 =~ $'\n' ]]; then
+    log_message "Error: $2 is multiple lines: '$1'"
+    exit 1
+  fi
+}
+
+# $1: Version nr. $2: Nr from where.
+check_version_is_epoch_1() {
+  if ! [[ $1 =~ ^v1\. ]]; then
+    log_message "ERROR: Bad version nr in $2, not epoch 1: '$1'. Bye. [TyEUPEPOCHNR]" >&2
+    exit 1
+  fi
+}
+
+docker='/usr/bin/docker'
+docker_compose="$docker compose"
 
 echo
 
@@ -13,36 +32,44 @@ echo
 # Determine release branch
 # ===========================
 
-# Should rename to RELEASE_BRANCH. [ty_v1]
-RELEASE_CHANNEL_LINE=`egrep '^ *RELEASE_CHANNEL=.*$' .env`
-RELEASE_CHANNEL=`sed -nr 's/^RELEASE_CHANNEL= *([^# ]+) *$/\1/p' .env`
-if [ -z "$RELEASE_CHANNEL" ]; then
-  if [ -n "$RELEASE_CHANNEL_LINE" ]; then
-    log_message "ERROR: Weird RELEASE_CHANNEL=... line: (between ---)"
+RELEASE_BRANCH_LINE=`egrep '^ *RELEASE_BRANCH=.*$' .env`
+RELEASE_BRANCH=`sed -nr 's/^RELEASE_BRANCH= *([^# ]+) *$/\1/p' .env`
+if [ -z "$RELEASE_BRANCH" ]; then
+  if [ -n "$RELEASE_BRANCH_LINE" ]; then
+    log_message "ERROR: Weird RELEASE_BRANCH=... line: (between ---)"
     log_message "----"
-    log_message "$RELEASE_CHANNEL_LINE"
+    log_message "$RELEASE_BRANCH_LINE"
     log_message "----"
     exit 1
   fi
-  RELEASE_CHANNEL='master'
-  log_message "Using release branch: $RELEASE_CHANNEL, same as tyse-v0-regular."
+  RELEASE_BRANCH='tyse-v1-regular'
+  log_message "Using default release branch: $RELEASE_BRANCH (since nothing specified in .env)."
 else
-  log_message "Using release branch: $RELEASE_CHANNEL."
+  log_message "Using release branch: $RELEASE_BRANCH."
 fi
 
-# Later: Check if doing a crazy branch change, like, from tyse-v1-x and *downwards*
-# to tyse-v0-x.  But wait until has ported all this from Bash to Deno. [bash2deno]
-# And if >= 2 RELEASE_CHANNEL lines.  And CURRENT_VERSION sanity checks too. [ty_v1]
+# This script (and others in this repo) are compatible only with Talkyard epoch 1.
+if [ -z "$(echo "$RELEASE_BRANCH" | grep -e '-v1-')" ]; then
+  log_message "ERROR: Wrong epoch in release branch. Should be '...-v1-...'"
+  log_message "but is: '$RELEASE_BRANCH'."
+  exit 1
+fi
+
+# No ambiguities please.
+check_single_line "$RELEASE_BRANCH_LINE"  'RELEASE_BRANCH=...'
+
 
 
 # Determine current version
 # ===========================
 
-CURRENT_VERSION=`sed -nr 's/VERSION_TAG=([a-zA-Z0-9\._-]*).*/\1/p' .env`
+CURRENT_VERSION="$(sed -nr 's/^ *VERSION_TAG=([a-zA-Z0-9\._-]*).*/\1/p' .env)"
 if [ -z "$CURRENT_VERSION" ]; then
-  log_message "Apparently no version currently installed."
+  log_message "Apparently no Talkyard v1 version currently installed."
   log_message "Checking for latest version..."
 else
+  check_single_line        "$CURRENT_VERSION"  'VERSION_TAG=... in .env'
+  check_version_is_epoch_1 "$CURRENT_VERSION"  'VERSION_TAG=... in .env'
   log_message "Current version: $CURRENT_VERSION"
   log_message "Checking for newer versions..."
 fi
@@ -63,24 +90,22 @@ fi
 
 cd versions
 /usr/bin/git fetch origin
-# This creates a branch named $RELEASE_CHANNEL if it didn't already exist.
-# Then checks out that branch, and hard-resets it to origin/$RELEASE_CHANNEL.
+# This creates a branch named $RELEASE_BRANCH if it didn't already exist.
+# Then checks out that branch, and hard-resets it to origin/$RELEASE_BRANCH.
 # And sets it to track that origin branch (which isn't really needed since we
 # hard-reset here anyway).
-/usr/bin/git checkout -B $RELEASE_CHANNEL --track origin/$RELEASE_CHANNEL
-
-# Don't upgrade to WIP = work-in-progress versions, or 'test' version. And, by default, neither
-# to 'alpha' or 'beta' or 'tp' (tech preview) 'rc' (release candidate) or 'maint'enance versions.
-# Don't upgrade to new software stack versions = 'stack' because in order to do than,
-# one will probably need to run `git pull` and resolve edit conflicts,
-# perhaps run scripts or even export the PostgreSQL database and import into another type of database.
-NEXT_VERSION=`grep -iv --regex='-wip' --regex='-tp' --regex='-alpha' --regex='-beta' --regex='-rc' --regex='-maint' --regex='stack' --regex='test' version-tags.log | tail -n1`
+/usr/bin/git checkout -B $RELEASE_BRANCH --track origin/$RELEASE_BRANCH
 cd ..
 
+NEXT_VERSION="$(tail -n1 versions/version-tags.log)"
+
 if [ -z "$NEXT_VERSION" ]; then
-  log_message "ERROR: Didn't find any usable Talkyard version. Don't know what to do. Bye. [EdEUPNOVER]"
+  log_message "ERROR: Can't find any Talkyard version in versions/version-tags.log."
+  log_message "Don't know what to do. Bye. [EdEUPNOVER]"
   exit 1
 fi
+check_single_line        "$NEXT_VERSION"  '`tail -n1 versions/version-tags.log`'
+check_version_is_epoch_1 "$NEXT_VERSION"  '`tail -n1 versions/version-tags.log`'
 
 
 # Decide what to do
@@ -104,16 +129,25 @@ else
 fi
 
 
-# Remove old images & containers
+# Remove old Talkyard images & containers
 # ===========================
 
-# So won't run out of disk. Let's keep images less than six months old, in case
-# need to downgrade to previous server version.
+# So won't run out of disk. Let's keep images less than a year old, in case
+# need to downgrade to previous server version:  31 * 12 * 24h = 8928.
 # Also, do this whilst the old containers are still running, so their images
-# won't be removed (that is, before the Upgrade step below).  31 * 6 * 24h = 4464.
+# won't be removed (that is, before the Upgrade step below).
 
 if [ -n "$CURRENT_VERSION" ]; then
-  /usr/bin/docker system prune --all --force --filter "until=4464h"
+  # Let's make this work both with reverse DNS key names, and without (just "talkyard").
+  # And if moving from .io to .app / .dev / .org TLD in the future, hmm.
+  for label in "io.talkyard" "app.talkyard" "dev.talkyard" "org.talkyard" "talkyard" ; do
+    # --all removes also unused but not-dangling images, but not volumes
+    # (need to add --volumes to remove volumes too).
+    $docker system prune --all --force --filter "until=8928h" \
+            --filter "label=$label.prune=true" \
+            --filter "label=$label.edition=tyse" \
+            --filter "label=$label.epoch=1"
+  done
 fi
 
 
@@ -123,7 +157,7 @@ fi
 # `docker-compose.yml` uses the environment variable `$VERSION_TAG` in the image tags, so it'll pull
 # the version we want.
 log_message "Downloading version $NEXT_VERSION... (this might take long)"
-VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose pull
+VERSION_TAG="$NEXT_VERSION" $docker_compose pull
 
 
 # Upgrade
@@ -139,9 +173,9 @@ if [ -n "$CURRENT_VERSION" ]; then
   # about "ConnectionClosed PeerClosed". Better stop 'search' first of all, in case
   # ElasticSearch is a bit slow with reacting — so 'app' continues handling requests,
   # meanwhile.
-  /usr/local/bin/docker-compose stop search
-  /usr/local/bin/docker-compose stop app
-  /usr/local/bin/docker-compose down
+  $docker_compose stop search
+  $docker_compose stop app
+  $docker_compose down
   log_message "Upgrading: Done shutting down."
 fi
 
@@ -150,7 +184,7 @@ fi
 # ```````````````````````````
 
 log_message "$WHAT: Starting v$NEXT_VERSION, the app and database ..."
-VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose up -d app
+VERSION_TAG="$NEXT_VERSION" $docker_compose up -d app
 
 
 # Under Maintenance message
@@ -163,7 +197,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   # might already exist. Then, remove it. But if it doesn't, then, disable `set -e`
   # so this script won't exit here when `rm` fails.
   set +e
-  docker rm -f ty-maint
+  $docker rm -f ty-maint
   set -e
 
   # Start 'web' and change the 502.html error page to an Under Maintenance page.
@@ -172,7 +206,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   # — otherwise, if 'web' can connect to Play Framework in 'app', then, making
   # requests to 'web' hangs, waiting for 'app' to have started completely.
   # We cannot use `--add-host=app:172.26.0...` — that param is for `docker`
-  # only not `docker-compose`. Instead, we add scripts/docker-compose.wrong-app-ip.yml
+  # only not `docker compose`. Instead, we add scripts/docker-compose.wrong-app-ip.yml
   # which does the same thing.
   #
   # Also, need to explicitly mount the Nginx config volumes, otherwise, when using
@@ -180,17 +214,17 @@ if [ -n "$CURRENT_VERSION" ]; then
   #
   set +e  # if doesn't work, harmless
   VERSION_TAG="$NEXT_VERSION"  \
-      /usr/local/bin/docker-compose \
+      $docker_compose \
                         -f docker-compose.yml  \
                         -f scripts/docker-compose.wrong-app-ip.yml  \
         run --rm -d --no-deps  \
           --name ty-maint  \
           -p80:80  -p443:443  \
           -e TY_MAINT_MODE=true  \
-          -v /opt/talkyard/conf/maint-msg.html:/opt/nginx/html/502.html  \
-          -v /opt/talkyard/conf/sites-enabled-manual/:/etc/nginx/sites-enabled-manual/:ro  \
-          -v /opt/talkyard/data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro  \
-          -v /opt/talkyard/data/certbot/:/etc/certbot/:ro  \
+          -v /opt/talkyard-v1/conf/maint-msg.html:/opt/nginx/html/502.html  \
+          -v /opt/talkyard-v1/conf/sites-enabled-manual/:/etc/nginx/sites-enabled-manual/:ro  \
+          -v /opt/talkyard-v1/data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro  \
+          -v /opt/talkyard-v1/data/certbot/:/etc/certbot/:ro  \
           web
   set -e
 
@@ -200,7 +234,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   # connected to the wrong IP. [maint_app_ip]
   log_message "$WHAT: Waiting for the app server to have started ..."
   # (We've done: `set -e`, but that ignores `if` and `until` tests.)
-  until $(docker exec -i "$(docker-compose ps -q app)"  \
+  until $($docker exec -i "$($docker_compose ps -q app)"  \
             curl --output /dev/null --silent --head --fail  \
                  http://localhost:9000/-/are-scripts-ready)
   do
@@ -210,7 +244,7 @@ if [ -n "$CURRENT_VERSION" ]; then
 
   log_message "$WHAT: App server has started. Removing the Under Maintenance message ..."
   set +e
-  docker stop ty-maint
+  $docker stop ty-maint
   set -e
 fi
 
@@ -219,13 +253,13 @@ fi
 
 # Just 'web' left to start.
 log_message "$WHAT: Starting 'web' (Nginx) ..."
-VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose up -d
+VERSION_TAG="$NEXT_VERSION" $docker_compose up -d
 
 
 # Done. Bump version
 # ===========================
 
-# Bump the current version number, but not until after 'docker-compose up' above
+# Bump the current version number, but not until after 'docker compose up' above
 # has exited successfully so we know it works.
 log_message "$WHAT: Setting current version number to $NEXT_VERSION..."
 sed --in-place=.prev-version -r "s/^(VERSION_TAG=)([a-zA-Z0-9\\._-]*)(.*)$/\1$NEXT_VERSION\3/" .env

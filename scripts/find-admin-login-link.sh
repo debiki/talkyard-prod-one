@@ -9,7 +9,7 @@
 #
 # Sync with this: [GETADMLNK] and [RSTPWDLNK].
 
-dc="/usr/local/bin/docker-compose"
+dc="/usr/bin/docker compose"
 
 db_user="$1"
 
