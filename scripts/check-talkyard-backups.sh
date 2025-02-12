@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Will finish this script later. Placed here in impl/  for now, so it won't
+# distract others who look in scripts/.
+
+
 function log_message {
   echo "`date --iso-8601=seconds --utc` check-backups: $1"
 }

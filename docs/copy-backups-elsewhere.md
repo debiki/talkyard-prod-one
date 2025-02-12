@@ -4,6 +4,9 @@ Take regular off-site backups
 After you've installed Talkyard, you should regularly copy the backups
 to an off-site backup server. Here's a way to do that.
 
+**Note:** Not yet tested in Talkyard v1, but should work — only the
+backup archives path has changed (from `/opt/talkyard-backups/archives/`
+to `/var/opt/backups/talkyard/v1/archives/`).
 
 ### Create SSH key
 
@@ -33,7 +36,7 @@ Then create a backup user with an `authorized_keys` file that allows restricted 
     useradd --create-home remotebackup
     su - remotebackup
     mkdir .ssh
-    echo 'command="/usr/local/bin/rrsync -ro /opt/talkyard-backups/archives/",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding' >> .ssh/authorized_keys
+    echo 'command="/usr/local/bin/rrsync -ro /var/opt/backups/talkyard/v1/archives/",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding' >> .ssh/authorized_keys
 
 Copy the public key on the backup server:
 

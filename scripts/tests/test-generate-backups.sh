@@ -6,8 +6,19 @@ if [ "$1" != "danger" ]; then
   echo ""
   echo "Don't run this script. It messes up your computer's date-time."
   echo ""
+  echo "Usage:  $0  danger  [scripts_dir_prefix]"
+  echo ""
+  echo "where  scripts_dir_prefix  is an optional path to where ./scripts/backup.sh is."
+  echo
+  echo "Example:"
+  echo "  ./scripts/tests/test-generate-backups.sh  danger"
+  echo "  ./modules/ed-prod-one-test/scripts/tests/test-generate-backups.sh  danger  ./modules/ed-prod-one-test/"
+  echo
   exit 1
 fi
+
+# See `echo ...` above.
+scripts_dir_prefix="${2:-.}"
 
 export ORIG_PATH="$PATH"
 export PATH="/usr/bin:/bin"  # that's how Cron works, see:
@@ -27,7 +38,7 @@ function backup_at {
   #date_time_t=$(echo "$date_time_colon" | sed 's/://g' | sed 's/ /T/')
   date --set "$date_time_colon"
   # touch $backup_archives_dir/dummy-hostname-2018-06-01T0210Z-daily-postgres.sql.gz
-  ./scripts/backup.sh autotest 2>&1 | tee -a talkyard-maint.log
+  $scripts_dir_prefix/scripts/backup.sh autotest 2>&1 | tee -a talkyard-maint.log
 }
 
 
@@ -39,7 +50,7 @@ function delete_old_backups_at {
   echo >> talkyard-maint.log
 
   date --set "$date_time_colon"
-  ./scripts/delete-old-backups.sh 2>&1 | tee -a talkyard-maint.log
+  $scripts_dir_prefix/scripts/delete-old-backups.sh 2>&1 | tee -a talkyard-maint.log
 }
 
 
@@ -47,6 +58,11 @@ delete_old_backups_at "2022-01-01 00:00:01"
 backup_at "2022-01-01 10:00:00"
 backup_at "2022-01-02 10:00:00"
 backup_at "2022-01-03 10:00:00"
+echo
+echo "Took 3 backups: 2022-01-01 to -01-03, would you like to check?"
+read -p "Press enter to continue"
+echo
+
 delete_old_backups_at "2022-01-03 11:00:01"
 echo
 echo "That should have deleted nothing"
@@ -66,6 +82,10 @@ backup_at "2022-01-13 10:00:00"
 backup_at "2022-01-14 10:00:00"
 backup_at "2022-01-15 10:00:00"
 backup_at "2022-01-16 10:00:00"
+echo
+echo "Took 13 backups."
+read -p "Press enter to continue"
+echo
 delete_old_backups_at "2022-01-16 11:00:01"
 echo
 echo "That should have deleted one Postgres, one Config and some Redis backups."
@@ -79,6 +99,10 @@ backup_at "2022-03-01 10:00:00"
 backup_at "2022-04-01 10:00:00"
 backup_at "2022-05-01 10:00:00"
 backup_at "2022-06-01 10:00:00"
+echo
+echo "Took 5 montly backups."
+read -p "Press enter to continue"
+echo
 delete_old_backups_at "2022-01-09 11:00:01"
 echo
 echo "That should have deleted one Uploads backup."
