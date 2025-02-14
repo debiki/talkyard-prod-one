@@ -4,7 +4,13 @@
 # There's an image build script: https://github.com/debiki/talkyard/blob/master/Makefile,
 # the `prod-images` and `tag-and-push-latest-images` targets.
 
-version: '3.7'
+# You can create using ./scripts/create-volumes.sh.
+volumes:
+  #talkyard-backups: { external: true }
+  talkyard-v1-uploads: { external: true }
+  talkyard-v1-pg17-data: { external: true }
+  talkyard-v1-cache-data: { external: true }
+  talkyard-v1-search-data: { external: true }
 
 networks:
   # This netw name get prefixed with COMPOSE_PROJECT_NAME  = 'talkyard_' by Docker, from .env.
@@ -27,9 +33,7 @@ services:
       - ./data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro
       - ./data/certbot/:/etc/certbot/:ro
       - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro
-      - ./data/uploads/:/opt/talkyard/uploads/:ro
-      # Mount here so standard monitoring tools looking for Nginx logs will work.
-      - /var/log/nginx/:/var/log/nginx/
+      - talkyard-uploads:/opt/talkyard/uploads/:ro
     ports:
       - '80:80'
       - '443:443'
@@ -52,12 +56,31 @@ services:
 
     # SECURITY COULD drop capabilities, see: http://rhelblog.redhat.com/2016/10/17/secure-your-containers-with-this-one-weird-trick/
     # Ask at Hacker News: which caps can I drop for an Nginx container? A JVM appserver?
+    # Doing:
+    # For all containers, not just 'web'.
     # Asked here about Nginx:
     #   https://stackoverflow.com/questions/43467670/which-capabilities-can-i-drop-in-a-docker-nginx-container
-    # For all containers, not just 'web'.
-    #cap_drop:
-    #  - DAC_OVERRIDE
-    #  ... many more?
+    # DO_AFTER 2021-03-1 reply and say if worked, accept answer.
+    # When cap_drop is ALL, it gets processed before cap_add, see:
+    # https://stackoverflow.com/a/63219871
+    # and:
+    # https://github.com/moby/moby/blob/1c39b1c44c973f18f39bd684c6aba57bb96510fe/oci/caps/utils.go#L120
+    cap_drop:
+      - ALL
+    cap_add:
+      # Without CHOWN:
+      # nginx: [emerg] chown("/opt/nginx/proxy-cache", 100) failed (1: Operation not permitted)
+      - CHOWN
+      # To bypass file read, write, and execute permission checks:
+      # (DAC means "discretionary access control", and DAC_OVERRIDE)
+      # Without DAC_OVERRIDE:
+      # nginx: [emerg] mkdir() "/var/cache/nginx/client_temp" failed (13: Permission denied)
+      - DAC_OVERRIDE
+      # To change the group and user id of a process: (so Nginx won't need to run as root)
+      - SETGID
+      - SETUID
+      # To bind to lower ports. Maybe listen on 8080 instead, and map port 80:8080?
+      - NET_BIND_SERVICE
 
   app:
     image: ${DOCKER_REPOSITORY}/talkyard-app:${VERSION_TAG}
@@ -66,55 +89,76 @@ services:
     stdin_open: true  # otherwise Play Framework exits
     volumes:
       - ./conf/play-framework.conf:/opt/talkyard/app/conf/app-prod-override.conf:ro  # see [4WDKPU2] in debiki/talkyard
-      - ./data/uploads/:/opt/talkyard/uploads/
+      - talkyard-v1-uploads:/opt/talkyard/uploads/
       # So backups can be downloaded via the admin web interface. But read-only,
       # so evil bugs cannot destroy all backups.
-      - /opt/talkyard-backups/:/opt/talkyard-backups/:ro
-      # Mount here so log monitoring agents like fluentd can access the log.
-      - /var/log/talkyard/:/var/log/talkyard/
+      # - /var/opt/backups/talkyard/v1/:/var/opt/backups/talkyard/v1/:ro
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_APP_IP}
     depends_on:
-      - cache
-      - rdb
-      - search
+      cache:
+        condition: service_healthy
+      rdb:
+        condition: service_healthy
+      #search: Start also if not healthy
+      #migrate:
+      #  condition: service_completed_successfully
     environment:
       - PLAY_SECRET_KEY
       - TALKYARD_SECURE
       - POSTGRES_PASSWORD
       - TALKYARD_HOSTNAME
       - BECOME_OWNER_EMAIL_ADDRESS
+    cap_drop:
+      - ALL
+    cap_add:  # is this enough?
+      - SETGID
+      - SETUID
 
   cache:
     image: ${DOCKER_REPOSITORY}/talkyard-cache:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/cache/Dockerfile
     restart: always
     volumes:
-      - ./data/cache/:/data/
-      - /var/log/redis/:/var/log/redis/
+      - talkyard-v1-cache-data:/data/
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_CACHE_IP}
     sysctls:
       net.core.somaxconn: 511
+    healthcheck:  # move to image?
+      test: redis-cli ping | grep PONG
+      start_period: 60s
+      start_interval: 1s
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    cap_drop:
+      - ALL
+    cap_add: # [enough_caps]? See: https://github.com/docker-library/postgres/issues/649
+      # CHOWN needed? [redis_cap_chown]
+      - SETGID
+      - SETUID
+      - KILL # ?
 
   rdb:
     image: ${DOCKER_REPOSITORY}/talkyard-rdb:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/rdb/Dockerfile
     restart: always
     volumes:
-      - ./data/rdb/:/var/lib/postgresql/data/
+      - talkyard-v1-pg17-data:/var/lib/postgresql/data/
       - ./conf/rdb/:/var/lib/postgresql/conf/
-      # Mount here so standard monitoring tools configured to find Postgres logs here will work.
-      # (Inside the container, we don't mount in /var/lib/postgresql/data/pg_log/ because
-      # then Postgres would refuse to create a db in data/, because data/ wouldn't be empty.)
-      - /var/log/postgresql/:/var/log/postgresql/
+      # Don't. stdout & err instead.
+      # # Mount here so standard monitoring tools configured to find Postgres logs here will work.
+      # # (Inside the container, we don't mount in /var/lib/postgresql/data/pg_log/ because
+      # # then Postgres would refuse to create a db in data/, because data/ wouldn't be empty.)
+      # - /var/log/postgresql/:/var/log/postgresql/
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_RDB_IP}
-    ## To log to stderr instead of /var/log/postgresql/:
-    #command: '--logging_collector=off'
+    # Log to stderr instead of /var/log/postgresql/:    # can't this be in Dockerfile?
+    command: '--logging_collector=off'
     environment:
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
       # Optionally, streaming replication peer:
@@ -123,6 +167,18 @@ services:
       # PEER_HOST: 'postgres2'
       # PEER_PORT: '5432'
       # PEER_PASSWORD: '...'
+    cap_drop:
+      - ALL
+    cap_add: # [enough_caps]? See: https://github.com/docker-library/postgres/issues/649
+      - CHOWN
+      - DAC_READ_SEARCH
+      - FOWNER
+      - SETGID
+      - SETUID
+      - SYS_NICE
+
+  # migrate:  or "rdb-upgrade" ?
+  #  build: images/migrate/
 
   search:
     image: ${DOCKER_REPOSITORY}/talkyard-search:${VERSION_TAG}
@@ -133,8 +189,7 @@ services:
       # they say "Always use a volume bound on /usr/share/elasticsearch/data" — is mapping
       # a directory from the OS okay then? (that's using (parts of) a host's device/volume.
       # https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html#docker-cli-run-prod-mode
-      - ./data/search/:/usr/share/elasticsearch/data/
-      - /var/log/elasticsearch/:/usr/share/elasticsearch/logs/
+      - talkyard-v1-search-data:/usr/share/elasticsearch/data/
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_SEARCH_IP}
@@ -148,5 +203,12 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    cap_drop:
+      - ALL
+    cap_add:  # [enough_caps]?
+      # SYS_CHROOT? See  https://github.com/nasa-jpl/ASSESS/blob/master/docker-compose.yml
+      - SETGID
+      - SETUID
+      # KILL?
 
 # vim: et ts=2 sw=2
