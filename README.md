@@ -171,21 +171,36 @@ mkdir -p /opt/talkyard-backup-archives-in-gcs
 
        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
-1. Install a firewall, namely *ufw*: (and answer Yes to the question you'll get. You can skip this if
-   you use Google Cloud Engine; GCE already has a firewall)
+   Consider changing the logging driver to `local`, see:
+   https://docs.docker.com/engine/logging/drivers/local/. In `/etc/docker/daemon.json`:
 
-   Update 2021-04-04: It's better if you use <b>`firewalld`</b> instead — it's safer:
+   ```
+   {
+     "log-driver": "local"
+   }
+   ```
+
+1. Install a firewall, for example firewalld. Note that ufw (another Linux firewall)
+   is incompatible with Docker, see:
+   https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw.
+   (If you use Google Cloud Engine: GCE already has a firewall.)
+
+   <!-- Update 2021-04-04: It's better if you use <b>`firewalld`</b> instead — it's safer:
    Docker can bypas `ufw` rules, but not `firewalld` rules.
    Read more here: https://github.com/chaifeng/ufw-docker,
    and you can websearch: https://www.google.com/search?q=ufw+docker
-   <!-- [firewalld_not_ufw] [ty_v1] update script, have it use firewalld  -->
+   [firewalld_not_ufw] [ty_v1] update script, have it use firewalld
 
        # It's better if you use firewalld instead of this:
        # (We'll edit the script in a while, so it'll use firewalld instead,
        # but currently it uses ufw)
        ./scripts/start-firewall.sh 2>&1 | tee -a talkyard-maint.log
 
-   Here's firewalld: https://firewalld.org/
+   Here's firewalld: https://firewalld.org/  -->
+
+1. Create Docker volumes: (if you want, you can edit the script and the volumes)
+
+        ./scripts/create-volumes.sh
 
 1. Edit config values:
 
