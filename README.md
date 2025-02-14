@@ -23,12 +23,14 @@ See https://www.talkyard.io/plans for alternatives to installing yourself.
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 This is beta software; there might be bugs.
 
+<!-- This now fixed, using Docker volumes & logging instead, others cannot access.
 ### Security: *Private* server
 
 Don't give people-you-don't-absolutely-trust ssh access to your Talkyard server.
 The database files in `/opt/talkyard/data/rdb/` are accessible to people who can
 ssh into the server, and log files in `/var/log/` are, too.
 This'll change in Talkyard v1 (next year 2025?) — then we'll use Docker volumes instead.
+-->
 
 ### Install on your laptop?
 
@@ -74,6 +76,11 @@ Directories
 
 You'll install Talkyard-the-software, and config files, in `/opt/talkyard-v1/`.
 
+<!--
+(`-v1` is for "host scripts version one". Every 3? 5? years, there's a major
+new version of the host scripts, and you'll install in /opt/talkyard-vX/,
+and import a backup.) -->
+
 Talkyard will automatically use these directories:
 (following the Linux File System Hierarchy Standard, FHS)
 <!-- FHS, Debian: https://manpages.debian.org/bookworm/manpages/hier.7.en.html
@@ -91,18 +98,19 @@ since they would conflict with historical and/or local practice. They are:
       if you `git fetch` new minor versions of these scripts.
       We call scripts here "host scripts" since they run on the host operating system.
       They aren't part of Talkyard itself — none of them would be relevant, if
-      instead running Ty on Windows (not supported), for example.
-- `/opt/talkyard-v1/conf`: Stuff here is mounted read-only in Docker containers.
+      instead running Ty on Windows (not supported).
+- `/opt/talkyard-v1/conf`: Configuration, mounted read-only in Docker containers.
 - `/var/opt/talkyard/v1/`: Database storage, e.g. PostgreSQL and Redis. (Docker volumes.)
 - `/var/opt/talkyard/v1/uploads/`: Uploaded files, e.g. images. (A Docker volume.)
 - `/var/opt/backups/talkyard/v1/`: Backups. (_Not_ a Docker volume.)
-- `/var/log/talkyard/v1/`: Log files. (Docker volumes.)
-- `/var/lib/docker/`: Here's where Docker saves downloaded Docker images and json log files.
+- `/var/lib/docker/`: Here's where Docker saves log files and downloaded Docker images.
 
-So, if you want, mount some or all of `/var`, `/var/log` and `/var/opt/backups` on
+If you want, mount `/var` and `/var/opt/backups` on
 different disks. If you expect people to upload lots of big files, you could
-mount `/var/opt/talkyard/v1/uploads` on its own disk too,
-or connect to some S3 compatible cloud storage (not yet implemented `[cloud_storage]`).
+open `scripts/create-volumes.sh`, edit the line with
+`docker volume create talkyard-v1-uploads`,
+and mount it on a separate & big disk.
+Or connect to some S3 compatible cloud storage (not yet implemented `[cloud_storage]`).
 
 
 Installation instructions
@@ -125,7 +133,7 @@ Installation instructions
        fallocate --length 250MiB /balloon-1-delete-if-disk-full
        fallocate --length 250MiB /balloon-2-delete-if-disk-full
        fallocate --length 250MiB /var/balloon-3-delete-if-disk-full
-       fallocate --length 250MiB /var/log/balloon-4-delete-if-disk-full
+       fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
 
 1. Download installation scripts: (you need to install in
    `/opt/talkyard-v1/` for the backup scripts to work)
@@ -136,9 +144,11 @@ Installation instructions
 
 1. If you want to & know what you're doing:
    - Comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
-   - Mount `/var/opt/talkyard`, `/var/log/talkyard`, `/var/opt/backups/talkyard`
-      on different disks.
-      Or mount `/var/`, `/var/log` and `/var/opt/backups` on different disks.
+   - Mount `/var/` and `/var/opt/backups/(talkyard/)` on different disks
+      (so the host OS or Talkyard won't stop working just because some disk
+      gets full).
+   - Edit `scripts/create-volumes.sh`, e.g. the `talkyard-v1-uploads` line,
+      to store uploaded files elsewhere somehow.
 
 <!-- Script for CGE:
 
