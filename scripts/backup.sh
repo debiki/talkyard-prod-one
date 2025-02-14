@@ -21,9 +21,26 @@ log_message "Backing up '$hostname', when: '$when', tag: '$1' ..."
 # See the comment mentioning gzip and "soft lockup" below.
 so_nice="nice -n19"
 
-backup_archives_dir=/opt/talkyard-backups/archives
-backup_config_temp_dir=/opt/talkyard-backups/config-temp
-uploads_dir=/opt/talkyard/data/uploads
+# Better avoid /opt/backups/? — it's reserved by the FSH (Filesystem Hierarchy Standard)
+# for legacy weirdness things.
+backup_archives_dir=/var/opt/backups/talkyard/v1/archives
+backup_config_temp_dir=/var/opt/backups/talkyard/v1/config-temp
+
+talkyard_dir=/opt/talkyard-v1
+uploads_dir=$talkyard_dir/data/uploads
+
+function chek_is_in_ty_dir {
+  if [ "$(pwd)" -ne "$talkyard_dir" ]; then
+    echo
+    echo "You should run this script from:  $talkyard_dir/"
+    echo
+    echo "(Might work from elsewhere, if you edit \`talkyard_dir\`. But not tested.)"
+    echo
+    exit 1
+  fi
+}
+
+chek_is_in_ty_dir
 
 mkdir -p $backup_archives_dir
 
@@ -89,7 +106,7 @@ log_message "Done backing up Postgres."
 # If you need to backup really manually:
 # /usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists \
 #   | nice -n19 gzip \
-#   > "/opt/talkyard-backups/archives/$(hostname)-$(date '+%FT%H%MZ' --utc)-cmdline-postgres.sql.gz"
+#   > "/var/opt/backups/talkyard/v1/archives/$(hostname)-$(date '+%FT%H%MZ' --utc)-cmdline-postgres.sql.gz"
 
 
 
@@ -104,12 +121,16 @@ log_message "Backing up config to: $config_backup_path ..."
 rm -fr $backup_config_temp_dir
 mkdir -p $backup_config_temp_dir/data
 
-cp -a /opt/talkyard/.env $backup_config_temp_dir/
-cp -a /opt/talkyard/docker-compose.* $backup_config_temp_dir/
-cp -a /opt/talkyard/talkyard-maint.log $backup_config_temp_dir/
-cp -a /opt/talkyard/conf $backup_config_temp_dir/
-cp -a /opt/talkyard/data/certbot $backup_config_temp_dir/data/
-cp -a /opt/talkyard/data/sites-enabled-auto-gen $backup_config_temp_dir/data/
+# We should be in /opt/talkyard-v1/, otherwise docker-compose won't work anyway (used
+# when backing up the database).  Let's double check:
+chek_is_in_ty_dir
+
+cp -a ./.env $backup_config_temp_dir/
+cp -a ./docker-compose.* $backup_config_temp_dir/
+cp -a ./talkyard-maint.log $backup_config_temp_dir/
+cp -a ./conf $backup_config_temp_dir/
+cp -a ./data/certbot $backup_config_temp_dir/data/
+cp -a ./data/sites-enabled-auto-gen $backup_config_temp_dir/data/
 
 $so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
 
