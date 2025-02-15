@@ -29,9 +29,14 @@ else
   log_message "Using release branch: $RELEASE_BRANCH."
 fi
 
-# Later: Check if doing a crazy branch change, like, from tyse-v1-x and *downwards*
-# to tyse-v0-x.  But wait until has ported all this from Bash to Deno. [bash2deno]
-# And if >= 2 RELEASE_BRANCH lines.  And CURRENT_VERSION sanity checks too. [ty_v1]
+# This script (and others in this repo) are compatible only with Talkyard epoch 1.
+if [ -z "$(echo "$RELEASE_BRANCH" | grep -e '-v1-')" ]; then
+  log_message "ERROR: Wrong epoch in release branch. Should be '...-v1-...'"
+  log_message "but is: '$RELEASE_BRANCH'."
+  exit 1
+fi
+
+# Later: Check if >= 2 RELEASE_BRANCH lines. [ty_v1]
 
 
 # Determine current version
@@ -75,6 +80,9 @@ if [ -z "$NEXT_VERSION" ]; then
   log_message "ERROR: Didn't find any usable Talkyard version. Don't know what to do. Bye. [EdEUPNOVER]"
   exit 1
 fi
+
+# Later: Check if CURRENT_VERSION is from the correct epoch, and NEXT too?  [ty_v1]
+# (But wait until there are such versions)
 
 
 # Decide what to do
