@@ -13,26 +13,25 @@ echo
 # Determine release branch
 # ===========================
 
-# Should rename to RELEASE_BRANCH. [ty_v1]
-RELEASE_CHANNEL_LINE=`egrep '^ *RELEASE_CHANNEL=.*$' .env`
-RELEASE_CHANNEL=`sed -nr 's/^RELEASE_CHANNEL= *([^# ]+) *$/\1/p' .env`
-if [ -z "$RELEASE_CHANNEL" ]; then
-  if [ -n "$RELEASE_CHANNEL_LINE" ]; then
-    log_message "ERROR: Weird RELEASE_CHANNEL=... line: (between ---)"
+RELEASE_BRANCH_LINE=`egrep '^ *RELEASE_BRANCH=.*$' .env`
+RELEASE_BRANCH=`sed -nr 's/^RELEASE_BRANCH= *([^# ]+) *$/\1/p' .env`
+if [ -z "$RELEASE_BRANCH" ]; then
+  if [ -n "$RELEASE_BRANCH_LINE" ]; then
+    log_message "ERROR: Weird RELEASE_BRANCH=... line: (between ---)"
     log_message "----"
-    log_message "$RELEASE_CHANNEL_LINE"
+    log_message "$RELEASE_BRANCH_LINE"
     log_message "----"
     exit 1
   fi
-  RELEASE_CHANNEL='master'
-  log_message "Using release branch: $RELEASE_CHANNEL, same as tyse-v0-regular."
+  RELEASE_BRANCH='tyse-v1-regular'
+  log_message "Using default release branch: $RELEASE_BRANCH (since nothing specified in .env)."
 else
-  log_message "Using release branch: $RELEASE_CHANNEL."
+  log_message "Using release branch: $RELEASE_BRANCH."
 fi
 
 # Later: Check if doing a crazy branch change, like, from tyse-v1-x and *downwards*
 # to tyse-v0-x.  But wait until has ported all this from Bash to Deno. [bash2deno]
-# And if >= 2 RELEASE_CHANNEL lines.  And CURRENT_VERSION sanity checks too. [ty_v1]
+# And if >= 2 RELEASE_BRANCH lines.  And CURRENT_VERSION sanity checks too. [ty_v1]
 
 
 # Determine current version
@@ -63,19 +62,14 @@ fi
 
 cd versions
 /usr/bin/git fetch origin
-# This creates a branch named $RELEASE_CHANNEL if it didn't already exist.
-# Then checks out that branch, and hard-resets it to origin/$RELEASE_CHANNEL.
+# This creates a branch named $RELEASE_BRANCH if it didn't already exist.
+# Then checks out that branch, and hard-resets it to origin/$RELEASE_BRANCH.
 # And sets it to track that origin branch (which isn't really needed since we
 # hard-reset here anyway).
-/usr/bin/git checkout -B $RELEASE_CHANNEL --track origin/$RELEASE_CHANNEL
-
-# Don't upgrade to WIP = work-in-progress versions, or 'test' version. And, by default, neither
-# to 'alpha' or 'beta' or 'tp' (tech preview) 'rc' (release candidate) or 'maint'enance versions.
-# Don't upgrade to new software stack versions = 'stack' because in order to do than,
-# one will probably need to run `git pull` and resolve edit conflicts,
-# perhaps run scripts or even export the PostgreSQL database and import into another type of database.
-NEXT_VERSION=`grep -iv --regex='-wip' --regex='-tp' --regex='-alpha' --regex='-beta' --regex='-rc' --regex='-maint' --regex='stack' --regex='test' version-tags.log | tail -n1`
+/usr/bin/git checkout -B $RELEASE_BRANCH --track origin/$RELEASE_BRANCH
 cd ..
+
+NEXT_VERSION=$(tail -n1 versions/version-tags.log)
 
 if [ -z "$NEXT_VERSION" ]; then
   log_message "ERROR: Didn't find any usable Talkyard version. Don't know what to do. Bye. [EdEUPNOVER]"
@@ -104,16 +98,25 @@ else
 fi
 
 
-# Remove old images & containers
+# Remove old Talkyard images & containers
 # ===========================
 
-# So won't run out of disk. Let's keep images less than six months old, in case
-# need to downgrade to previous server version.
+# So won't run out of disk. Let's keep images less than a year old, in case
+# need to downgrade to previous server version:  31 * 12 * 24h = 8928.
 # Also, do this whilst the old containers are still running, so their images
-# won't be removed (that is, before the Upgrade step below).  31 * 6 * 24h = 4464.
+# won't be removed (that is, before the Upgrade step below).
 
 if [ -n "$CURRENT_VERSION" ]; then
-  /usr/bin/docker system prune --all --force --filter "until=4464h"
+  # Let's make this work both with reverse DNS key names, and without (just "talkyard").
+  # And if moving from .io to .app / .dev / .org TLD in the future, hmm.
+  for label in "io.talkyard" "app.talkyard" "dev.talkyard" "org.talkyard" "talkyard" ; do
+    # --all removes also unused but not-dangling images, but not volumes
+    # (need to add --volumes to remove volumes too).
+    /usr/bin/docker system prune --all --force --filter "until=8928h" \
+            --filter "label=$label.prune=true" \
+            --filter "label=$label.edition=tyse" \
+            --filter "label=$label.epoch=1"
+  done
 fi
 
 
@@ -187,10 +190,10 @@ if [ -n "$CURRENT_VERSION" ]; then
           --name ty-maint  \
           -p80:80  -p443:443  \
           -e TY_MAINT_MODE=true  \
-          -v /opt/talkyard/conf/maint-msg.html:/opt/nginx/html/502.html  \
-          -v /opt/talkyard/conf/sites-enabled-manual/:/etc/nginx/sites-enabled-manual/:ro  \
-          -v /opt/talkyard/data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro  \
-          -v /opt/talkyard/data/certbot/:/etc/certbot/:ro  \
+          -v /opt/talkyard-v1/conf/maint-msg.html:/opt/nginx/html/502.html  \
+          -v /opt/talkyard-v1/conf/sites-enabled-manual/:/etc/nginx/sites-enabled-manual/:ro  \
+          -v /opt/talkyard-v1/data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro  \
+          -v /opt/talkyard-v1/data/certbot/:/etc/certbot/:ro  \
           web
   set -e
 
