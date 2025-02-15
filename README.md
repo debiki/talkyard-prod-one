@@ -251,7 +251,7 @@ mkdir -p /opt/talkyard-backup-archives-in-gcs
    (This creates a new Docker network — you can choose the IP range; see the
    section *A New Docker Network* below.)
 
-   Afterwards, you can type: `docker-compose ps` — you should then see a list
+   Afterwards, you can type: `docker compose ps` — you should then see a list
    of Docker containers in state Up (means they're running).
 
 1. Schedule deletion of old log files, daily backups and deletion old backups,
@@ -434,13 +434,15 @@ GitHub:
 Viewing log files
 ----------------
 
-Change directory to `/opt/talkyard-v1/`.
+Change directory to `/opt/talkyard-v1/`. Then:
 
-Then, view the application server logs like so: `./view-logs app`
-or `./view-logs -f --tail 30 app`.  
-The web server: `tail -f /var/log/talkyard/v1/nginx/{access,error}.log` (mounted on the Docker host in docker-compose.yml)  
-The database: `less /var/log/talkyard/v1/postgres/LOG_FILE_NAME`  
-The search engine: `./view-logs search`.
+- The application server, to view its logs: `./view-logs -f --tail 50 app`
+  &thinsp; (where `-f --tail NN` is optional).
+  You can also: `docker compose logs -f --tail 50 app`, but then you'll see
+  hard to read json. `view-logs` uses `jq` to parse & make readable the json.
+- The web server:  `docker compose logs -f --tail 50 web` (not json).
+- The database:  `docker compose logs -f --tail 50 rdb` (not json).
+- The search engine: `./view-logs search`.
 
 
 Upgrading to newer versions
@@ -474,8 +476,8 @@ See [docs/how-restore-backups.md](./docs/how-restore-backup.md).
 
 You can login to Postgres like so:
 
-    sudo docker-compose exec rdb psql postgres postgres  # as user 'postgres'
-    sudo docker-compose exec rdb psql talkyard talkyard  # as user 'talkyard'
+    sudo docker compose exec rdb psql postgres postgres  # as user 'postgres'
+    sudo docker compose exec rdb psql talkyard talkyard  # as user 'talkyard'
 
 
 ### Backing up, manually
