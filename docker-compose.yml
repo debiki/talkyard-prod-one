@@ -6,7 +6,7 @@
 
 # You can create using ./scripts/create-volumes.sh.
 volumes:
-  #talkyard-backups: { external: true }
+  #talkyard-v1-backups: { external: true }
   talkyard-v1-uploads: { external: true }
   talkyard-v1-pg17-data: { external: true }
   talkyard-v1-cache-data: { external: true }
@@ -33,7 +33,7 @@ services:
       - ./data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro
       - ./data/certbot/:/etc/certbot/:ro
       - ./data/certbot-challenges/.well-known/:/opt/nginx/html/.well-known/:ro
-      - talkyard-uploads:/opt/talkyard/uploads/:ro
+      - talkyard-v1-uploads:/opt/talkyard/uploads/:ro
     ports:
       - '80:80'
       - '443:443'
@@ -97,11 +97,11 @@ services:
       internal_net:
         ipv4_address: ${INTERNAL_NET_APP_IP}
     depends_on:
-      cache:
-        condition: service_healthy
-      rdb:
-        condition: service_healthy
-      #search: Start also if not healthy
+      # Start also if unhealthy. Then, can show admin friendly troubleshooting tips.
+      - cache
+      - rdb
+      - search
+      # But this we need to wait for. E.g. upgrading Postgres 17 —> 18.
       #migrate:
       #  condition: service_completed_successfully
     environment:
@@ -176,6 +176,13 @@ services:
       - SETGID
       - SETUID
       - SYS_NICE
+    healthcheck:  # move into image?
+      test: pg_isready -U postgres
+      start_period: 60s
+      start_interval: 1s
+      interval: 20s
+      timeout: 5s
+      retries: 5
 
   # migrate:  or "rdb-upgrade" ?
   #  build: images/migrate/
