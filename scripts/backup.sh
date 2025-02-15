@@ -14,6 +14,8 @@ fi
 
 when="`date '+%FT%H%MZ' --utc`"
 hostname="$(hostname)"
+docker='/usr/bin/docker'
+docker_compose="$docker compose"
 psql="psql talkyard talkyard"
 
 log_message "Backing up '$hostname', when: '$when', tag: '$1' ..."
@@ -66,7 +68,7 @@ postgres_backup_file_name="`hostname`-$when-$1-postgres.sql"
 
 # Insert a backup test timestamp, and the random value, so we can check, on an
 # off-site backup server, that the contents of the backup is recent and okay.
-/usr/local/bin/docker-compose exec rdb $psql -c \
+$docker_compose exec rdb $psql -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '$hostname', 'rdb', '$postgres_backup_file_name', '$random_value');"
 
 postgres_backup_path="$backup_archives_dir/$postgres_backup_file_name"
@@ -99,12 +101,12 @@ log_message "Backing up Postgres to: $postgres_backup_path_gz ..."
 #
 # (cron's path apparently doesn't include /sur/local/bin/)
 #
-/usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists > $postgres_backup_path
+$docker_compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists > $postgres_backup_path
 $so_nice gzip $postgres_backup_path
 log_message "Done backing up Postgres."
 
 # If you need to backup really manually:
-# /usr/local/bin/docker-compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists \
+# docker compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists \
 #   | nice -n19 gzip \
 #   > "/var/opt/backups/talkyard/v1/archives/$(hostname)-$(date '+%FT%H%MZ' --utc)-cmdline-postgres.sql.gz"
 
@@ -134,7 +136,7 @@ cp -a ./data/sites-enabled-auto-gen $backup_config_temp_dir/data/
 
 $so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
 
-/usr/local/bin/docker-compose exec rdb $psql -c \
+$docker_compose exec rdb $psql -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '$hostname', 'config', '$config_backup_file_name', '$random_value');"
 
 log_message "Done backing up config."
@@ -203,7 +205,7 @@ touch $backup_archives_dir/$uploads_backup_d
 log_message "Done backing up uploads."
 
 # Keep track of what we've backed up:
-/usr/local/bin/docker-compose exec rdb $psql -c \
+$docker_compose exec rdb $psql -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '$hostname', 'uploads', '$uploads_backup_d', '$random_value');"
 
 
