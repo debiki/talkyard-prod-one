@@ -32,11 +32,13 @@ ssh into the server, and log files in `/var/log/` are, too.
 This'll change in Talkyard v1 (next year 2025?) — then we'll use Docker volumes instead.
 -->
 
+<!-- [vagrant_or_not]  Move Vagrantfile  to old/  ?
 ### Install on your laptop?
 
 Here's [a Vagrantfile here](scripts/Vagrantfile) if you want to test install on a laptop
 — open the Vagrantfile in a text editor, and read, for details.
 (It's old, maybe won't work.)
+-->
 
 
 ### Install behind an Nginx reverse proxy?
@@ -227,8 +229,11 @@ mkdir -p /opt/talkyard-backup-archives-in-gcs
    - A PostgreSQL database user, named *talkyard*, gets created automatically,
      by the *rdb* Docker container, with the password you type in the `.env` file.
      You don't need to do anything.
+    <!-- Do people use Vagrant nowadays? [vagrant_or_not] In any case, shouldn't the *web*
+      container, not the *app*, listen to 8080?
    - If you're using a non-standard port, say 8080 (which you do if you're using **Vagrant**),
      then comment in `talkyard.port=8080` in `play-framework.conf`.
+    -->
 
 1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
    mem/1.7g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
@@ -276,10 +281,11 @@ mkdir -p /opt/talkyard-backup-archives-in-gcs
    (The "failed ... alert number 42" is fine
    — it's because, at that time, there wasn't yet any cert.) **)**
 
-
+   <!-- [vagrant_or_not]
    However, if you're testing on localhost, or with Vagrant,
    instead go to <http://localhost>, or <http://localhost:8080>, respectively.
    (And you'll need `talkyard.secure=false` in `play-framework.conf`).
+    -->
 
 1. In the browser, click _Continue_ and create an admin account
    with the email address you specified when you edited `play-framework.conf` earlier
