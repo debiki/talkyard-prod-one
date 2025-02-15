@@ -7,6 +7,9 @@ function log_message {
   echo "`date --iso-8601=seconds --utc` upgrade-script: $1"
 }
 
+docker='/usr/bin/docker'
+docker_compose="$docker compose"
+
 echo
 
 
@@ -44,7 +47,7 @@ fi
 
 CURRENT_VERSION=`sed -nr 's/VERSION_TAG=([a-zA-Z0-9\._-]*).*/\1/p' .env`
 if [ -z "$CURRENT_VERSION" ]; then
-  log_message "Apparently no version currently installed."
+  log_message "Apparently no Talkyard v1 version currently installed."
   log_message "Checking for latest version..."
 else
   log_message "Current version: $CURRENT_VERSION"
@@ -120,7 +123,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   for label in "io.talkyard" "app.talkyard" "dev.talkyard" "org.talkyard" "talkyard" ; do
     # --all removes also unused but not-dangling images, but not volumes
     # (need to add --volumes to remove volumes too).
-    /usr/bin/docker system prune --all --force --filter "until=8928h" \
+    $docker system prune --all --force --filter "until=8928h" \
             --filter "label=$label.prune=true" \
             --filter "label=$label.edition=tyse" \
             --filter "label=$label.epoch=1"
@@ -134,7 +137,7 @@ fi
 # `docker-compose.yml` uses the environment variable `$VERSION_TAG` in the image tags, so it'll pull
 # the version we want.
 log_message "Downloading version $NEXT_VERSION... (this might take long)"
-VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose pull
+VERSION_TAG="$NEXT_VERSION" $docker_compose pull
 
 
 # Upgrade
@@ -150,9 +153,9 @@ if [ -n "$CURRENT_VERSION" ]; then
   # about "ConnectionClosed PeerClosed". Better stop 'search' first of all, in case
   # ElasticSearch is a bit slow with reacting — so 'app' continues handling requests,
   # meanwhile.
-  /usr/local/bin/docker-compose stop search
-  /usr/local/bin/docker-compose stop app
-  /usr/local/bin/docker-compose down
+  $docker_compose stop search
+  $docker_compose stop app
+  $docker_compose down
   log_message "Upgrading: Done shutting down."
 fi
 
@@ -161,7 +164,7 @@ fi
 # ```````````````````````````
 
 log_message "$WHAT: Starting v$NEXT_VERSION, the app and database ..."
-VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose up -d app
+VERSION_TAG="$NEXT_VERSION" $docker_compose up -d app
 
 
 # Under Maintenance message
@@ -174,7 +177,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   # might already exist. Then, remove it. But if it doesn't, then, disable `set -e`
   # so this script won't exit here when `rm` fails.
   set +e
-  docker rm -f ty-maint
+  $docker rm -f ty-maint
   set -e
 
   # Start 'web' and change the 502.html error page to an Under Maintenance page.
@@ -183,7 +186,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   # — otherwise, if 'web' can connect to Play Framework in 'app', then, making
   # requests to 'web' hangs, waiting for 'app' to have started completely.
   # We cannot use `--add-host=app:172.26.0...` — that param is for `docker`
-  # only not `docker-compose`. Instead, we add scripts/docker-compose.wrong-app-ip.yml
+  # only not `docker compose`. Instead, we add scripts/docker-compose.wrong-app-ip.yml
   # which does the same thing.
   #
   # Also, need to explicitly mount the Nginx config volumes, otherwise, when using
@@ -191,7 +194,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   #
   set +e  # if doesn't work, harmless
   VERSION_TAG="$NEXT_VERSION"  \
-      /usr/local/bin/docker-compose \
+      $docker_compose \
                         -f docker-compose.yml  \
                         -f scripts/docker-compose.wrong-app-ip.yml  \
         run --rm -d --no-deps  \
@@ -211,7 +214,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   # connected to the wrong IP. [maint_app_ip]
   log_message "$WHAT: Waiting for the app server to have started ..."
   # (We've done: `set -e`, but that ignores `if` and `until` tests.)
-  until $(docker exec -i "$(docker-compose ps -q app)"  \
+  until $($docker exec -i "$($docker_compose ps -q app)"  \
             curl --output /dev/null --silent --head --fail  \
                  http://localhost:9000/-/are-scripts-ready)
   do
@@ -221,7 +224,7 @@ if [ -n "$CURRENT_VERSION" ]; then
 
   log_message "$WHAT: App server has started. Removing the Under Maintenance message ..."
   set +e
-  docker stop ty-maint
+  $docker stop ty-maint
   set -e
 fi
 
@@ -230,13 +233,13 @@ fi
 
 # Just 'web' left to start.
 log_message "$WHAT: Starting 'web' (Nginx) ..."
-VERSION_TAG="$NEXT_VERSION" /usr/local/bin/docker-compose up -d
+VERSION_TAG="$NEXT_VERSION" $docker_compose up -d
 
 
 # Done. Bump version
 # ===========================
 
-# Bump the current version number, but not until after 'docker-compose up' above
+# Bump the current version number, but not until after 'docker compose up' above
 # has exited successfully so we know it works.
 log_message "$WHAT: Setting current version number to $NEXT_VERSION..."
 sed --in-place=.prev-version -r "s/^(VERSION_TAG=)([a-zA-Z0-9\\._-]*)(.*)$/\1$NEXT_VERSION\3/" .env
