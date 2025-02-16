@@ -45,7 +45,7 @@ fi
 # Determine current version
 # ===========================
 
-CURRENT_VERSION=`sed -nr 's/VERSION_TAG=([a-zA-Z0-9\._-]*).*/\1/p' .env`
+CURRENT_VERSION="$(sed -nr 's/VERSION_TAG=([a-zA-Z0-9\._-]*).*/\1/p' .env)"
 if [ -z "$CURRENT_VERSION" ]; then
   log_message "Apparently no Talkyard v1 version currently installed."
   log_message "Checking for latest version..."
@@ -77,15 +77,24 @@ cd versions
 /usr/bin/git checkout -B $RELEASE_BRANCH --track origin/$RELEASE_BRANCH
 cd ..
 
-NEXT_VERSION=$(tail -n1 versions/version-tags.log)
+NEXT_VERSION="$(tail -n1 versions/version-tags.log)"
 
 if [ -z "$NEXT_VERSION" ]; then
-  log_message "ERROR: Didn't find any usable Talkyard version. Don't know what to do. Bye. [EdEUPNOVER]"
+  log_message "ERROR: Can't find any Talkyard version in versions/version-tags.log."
+  log_message "Don't know what to do. Bye. [EdEUPNOVER]"
   exit 1
 fi
 
-# Later: Check if CURRENT_VERSION is from the correct epoch, and NEXT too?  [ty_v1]
-# (But wait until there are such versions)
+# $1: Version nr. $2: Nr from where.
+check_version_is_epoch_1() {
+  if ! [[ $1 =~ ^v1\. ]]; then
+    log_message "ERROR: Bad version nr in $2, not epoch 1: '$1'. Bye. [TyEUPEPOCHNR]" >&2
+    exit 1
+  fi
+}
+
+check_version_is_epoch_1 "$CURRENT_VERSION" 'VERSION_TAG in .env'
+check_version_is_epoch_1 "$NEXT_VERSION"    '`tail -n1 versions/version-tags.log`'
 
 
 # Decide what to do
