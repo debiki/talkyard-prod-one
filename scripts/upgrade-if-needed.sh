@@ -39,13 +39,23 @@ if [ -z "$(echo "$RELEASE_BRANCH" | grep -e '-v1-')" ]; then
   exit 1
 fi
 
-# Later: Check if >= 2 RELEASE_BRANCH lines. [ty_v1]
+function check_single_line() {
+  # This: `\n` instead of `$\n` would look for '\' and 'n', two chars, instead of a newline.
+  if [[ $1 =~ $'\n' ]]; then
+    log_message "Error: $2 is multiple lines: '$1'"
+    exit 1
+  fi
+}
+
+# No ambiguities please.
+check_single_line "$RELEASE_BRANCH_LINE"  'RELEASE_BRANCH=...'
+
 
 
 # Determine current version
 # ===========================
 
-CURRENT_VERSION="$(sed -nr 's/VERSION_TAG=([a-zA-Z0-9\._-]*).*/\1/p' .env)"
+CURRENT_VERSION="$(sed -nr 's/^ *VERSION_TAG=([a-zA-Z0-9\._-]*).*/\1/p' .env)"
 if [ -z "$CURRENT_VERSION" ]; then
   log_message "Apparently no Talkyard v1 version currently installed."
   log_message "Checking for latest version..."
@@ -53,6 +63,8 @@ else
   log_message "Current version: $CURRENT_VERSION"
   log_message "Checking for newer versions..."
 fi
+
+check_single_line "$CURRENT_VERSION"  'VERSION_TAG=...'
 
 
 # Determine new version
@@ -84,6 +96,8 @@ if [ -z "$NEXT_VERSION" ]; then
   log_message "Don't know what to do. Bye. [EdEUPNOVER]"
   exit 1
 fi
+
+check_single_line "$NEXT_VERSION"  '`tail -n1 versions/version-tags.log`'
 
 # $1: Version nr. $2: Nr from where.
 check_version_is_epoch_1() {
