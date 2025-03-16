@@ -83,9 +83,9 @@ You'll install Talkyard-the-software, and config files, in `/opt/talkyard-v1/`.
 new version of the host scripts, and you'll install in /opt/talkyard-vX/,
 and import a backup.) -->
 
-Talkyard will automatically use these directories:
-(following the Linux File System Hierarchy Standard, FHS)
-<!-- FHS, Debian: https://manpages.debian.org/bookworm/manpages/hier.7.en.html
+Talkyard uses these directories:
+<!-- (following the Linux File System Hierarchy Standard, FHS)
+FHS, Debian: https://manpages.debian.org/bookworm/manpages/hier.7.en.html
 Shouldn't use /opt/backups for backups?  o.O
 They write:  "/var/backups  Reserved for historical reasons."
 And, https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch05s02.html: "Several directories
@@ -102,8 +102,9 @@ since they would conflict with historical and/or local practice. They are:
       They aren't part of Talkyard itself — none of them would be relevant, if
       instead running Ty on Windows (not supported).
 - `/opt/talkyard-v1/conf`: Configuration, mounted read-only in Docker containers.
+<!--
 - `/var/opt/talkyard/v1/`: Database storage, e.g. PostgreSQL and Redis. (Docker volumes.)
-- `/var/opt/talkyard/v1/uploads/`: Uploaded files, e.g. images. (A Docker volume.)
+- `/var/opt/talkyard/v1/uploads/`: Uploaded files, e.g. images. (A Docker volume.) -->
 - `/var/opt/backups/talkyard/v1/`: Backups. (_Not_ a Docker volume.)
 - `/var/lib/docker/`: Here's where Docker saves log files and downloaded Docker images.
 
