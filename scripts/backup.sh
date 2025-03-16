@@ -22,6 +22,10 @@ log_message "Backing up '$hostname', when: '$when', tag: '$1' ..."
 
 # See the comment mentioning gzip and "soft lockup" below.
 so_nice="nice -n19"
+with_cpulimit="cpulimit --limit 50"
+
+pwd_file="./encrypt-backups-passphrase"
+gpg_encrypt="gpg --batch --symmetric --cipher-algo AES256 --passphrase-file $pwd_file"
 
 # Better avoid /opt/backups/? — it's reserved by the FSH (Filesystem Hierarchy Standard)
 # for legacy weirdness things.
@@ -71,10 +75,11 @@ postgres_backup_file_name="`hostname`-$when-$1-postgres.sql"
 $docker_compose exec rdb $psql -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '$hostname', 'rdb', '$postgres_backup_file_name', '$random_value');"
 
-postgres_backup_path="$backup_archives_dir/$postgres_backup_file_name"
-postgres_backup_path_gz="$postgres_backup_path.gz"
-log_message "Backing up Postgres to: $postgres_backup_path_gz ..."
+postgres_backup_path="$backup_archives_dir/$postgres_backup_file_name.gz"
 
+# Update 2025: Yes let's do, let's try with  cpulimit --limit 50
+# and add  apt install cpulimits  as an installation step.
+# ---------------
 # Don't pipe to gzip — that can spike the CPU to 100%, making the kernel panic.
 # It then logs:
 #
@@ -92,6 +97,7 @@ log_message "Backing up Postgres to: $postgres_backup_path_gz ..."
 #
 # Instead, run gzip as a separate step — then the CPU load in the above case
 # (the GCE VM) stays okay low — compared to 100% + panic crash.
+# ---------------
 #
 # Specify -T so Docker won't create a tty, because that results in a Docker Compose
 # stack trace and error exit code.
@@ -101,8 +107,20 @@ log_message "Backing up Postgres to: $postgres_backup_path_gz ..."
 #
 # (cron's path apparently doesn't include /sur/local/bin/)
 #
-$docker_compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists > $postgres_backup_path
-$so_nice gzip $postgres_backup_path
+if [ -f $pwd_file ]; then
+  postgres_backup_path="$postgres_backup_path.gpg"
+  log_message "Backing up Postgres, encrypted, to: $postgres_backup_path ..."
+  $docker_compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists  \
+      | $with_cpulimit -- $so_nice  gzip  \
+      | $with_cpulimit -- $so_nice  $gpg_encrypt -o $postgres_backup_path
+else
+  passphrase=''  # skip
+  log_message "Backing up Postgres to: $postgres_backup_path ..."
+  $docker_compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists  \
+      | $with_cpulimit -- $so_nice  gzip  \
+      > $postgres_backup_path
+fi
+
 log_message "Done backing up Postgres."
 
 # If you need to backup really manually:
@@ -118,7 +136,6 @@ log_message "Done backing up Postgres."
 config_backup_file_name="`hostname`-$when-$1-config.tar.gz"
 config_backup_path="$backup_archives_dir/$config_backup_file_name"
 
-log_message "Backing up config to: $config_backup_path ..."
 
 rm -fr $backup_config_temp_dir
 mkdir -p $backup_config_temp_dir/data
@@ -134,8 +151,18 @@ cp -a ./conf $backup_config_temp_dir/
 cp -a ./data/certbot $backup_config_temp_dir/data/
 cp -a ./data/sites-enabled-auto-gen $backup_config_temp_dir/data/
 
-$so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
+if [ -f ./encrypt-backups-passphrase ]; then
+  config_backup_path="$config_backup_path.gpg"
+  log_message "Backing up config, encrypted, to: $config_backup_path ..."
+  # This pipes to stdout:  `tar -f -`   that is, setting the file to '-'.
+  $so_nice tar -czf - -C $backup_config_temp_dir ./  \
+      | $with_cpulimit -- $so_nice  $gpg_encrypt -o $config_backup_path
+else
+  log_message "Backing up config to: $config_backup_path ..."
+  $so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
+fi
 
+# Hmm, better backup config first? So this'll be incl in the .sql dump?
 $docker_compose exec rdb $psql -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '$hostname', 'config', '$config_backup_file_name', '$random_value');"
 
