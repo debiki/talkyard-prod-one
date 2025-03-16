@@ -121,13 +121,14 @@ Installation instructions
 
 (There's a troubleshooting document here: ./docs/troubleshooting.md )
 
-1. Become root: `sudo -i`, then install Git and English: (can be missing, in minimal Debian builds)
+1. Become root: `sudo -i`, then install Git and some stuff:
 
        # As root:
        apt-get update
        apt-get upgrade
-       apt-get -y install git vim locales
-       apt-get -y install tree ncdu                # nice to have
+       apt-get -y install git locales
+       apt-get -y install cpulimit                 # will use to avoid gzip kernel panics
+       apt-get -y install tree ncdu vim            # nice to have
        locale-gen en_US.UTF-8                      # installs English
        export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
 
