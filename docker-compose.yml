@@ -10,7 +10,7 @@ volumes:
   talkyard-v1-uploads: { external: true }
   talkyard-v1-pg17-data: { external: true }
   talkyard-v1-cache-data: { external: true }
-  talkyard-v1-search-data: { external: true }
+  talkyard-v1-es8-data: { external: true }
 
 networks:
   # This netw name get prefixed with COMPOSE_PROJECT_NAME  = 'talkyard_' by Docker, from .env.
@@ -196,7 +196,7 @@ services:
       # they say "Always use a volume bound on /usr/share/elasticsearch/data" — is mapping
       # a directory from the OS okay then? (that's using (parts of) a host's device/volume.
       # https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html#docker-cli-run-prod-mode
-      - talkyard-v1-search-data:/usr/share/elasticsearch/data/
+      - talkyard-v1-es8-data:/usr/share/elasticsearch/data/
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_SEARCH_IP}

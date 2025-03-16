@@ -13,5 +13,5 @@ label_epoch="io.talkyard.epoch=1"
 docker volume create --label "$label_epoch" talkyard-v1-uploads
 docker volume create --label "$label_epoch" talkyard-v1-cache-data
 docker volume create --label "$label_epoch" talkyard-v1-pg17-data
-docker volume create --label "$label_epoch" talkyard-v1-search-data
+docker volume create --label "$label_epoch" talkyard-v1-es8-data
 
