@@ -240,7 +240,7 @@ if [ -n "$encrypted" ]; then
   # and `cat` uploaded files. Let's start the container just once and use `exec`.
   short_random_value=$( echo "$random_value" | head -c 7 )
   busyname="talkyard-busybox-$short_random_value"
-  docker run --rm -v talkyard-v1-uploads:/uploads:ro -d busybox --name $busyname tail -f /dev/null
+  docker run --rm -v talkyard-v1-uploads:/uploads:ro -d --name $busyname busybox tail -f /dev/null
 
   # for file_path in $(docker exec -it $(docker ps -q -f "ancestor=busybox") sh -c "find /data -type f"); do
   #   docker exec -i $(docker ps -q -f "ancestor=busybox") sh -c "cat $file_path" | gpg --symmetric --cipher-algo AES256 -o /path/to/encrypted/$(basename $file_path).gpg
@@ -272,7 +272,7 @@ if [ -n "$encrypted" ]; then
 
     # docker exec -i $(docker ps -q -f "ancestor=busybox") sh -c "cat $file_path" | gpg --symmetric --cipher-algo AES256 -o /path/to/encrypted/$(basename $file_path).gpg
 
-    docker exec $busyname sh -c "cat \"$file_path\"" \
+    docker exec $busyname sh -c "cat \"/uploads/$file_path\"" \
         | $with_cpulimit -- $so_nice  $gpg_encrypt --output "$bkp_path"
 
     echo "Backed up: $file_path" # -> $bkp_path"
