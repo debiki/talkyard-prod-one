@@ -12,6 +12,7 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
+# This'll be like:  '2025-03-17T2359Z'
 when="`date '+%FT%H%MZ' --utc`"
 hostname="$(hostname)"
 docker='/usr/bin/docker'
@@ -235,7 +236,19 @@ touch $backup_test_dir/$when--$hostname--$random_value
 # (But such deleted files won't appear in the *next* months' archives.)
 
 if [ -n "$encrypted" ]; then
-  all_uploads="$(docker run --rm -v talkyard-v1-uploads:/uploads:ro busybox \
+  # Let's use a Busybox container (that's Linux with some basic stuff only) to find
+  # and `cat` uploaded files. Let's start the container just once and use `exec`.
+  short_random_value=$( echo "$random_value" | head -c 7 )
+  busyname="talkyard-busybox-$short_random_value"
+  docker run --rm -v talkyard-v1-uploads:/uploads:ro -d busybox --name $busyname tail -f /dev/null
+
+  # for file_path in $(docker exec -it $(docker ps -q -f "ancestor=busybox") sh -c "find /data -type f"); do
+  #   docker exec -i $(docker ps -q -f "ancestor=busybox") sh -c "cat $file_path" | gpg --symmetric --cipher-algo AES256 -o /path/to/encrypted/$(basename $file_path).gpg
+  # done
+
+
+  #all_uploads="$(docker run --rm -v talkyard-v1-uploads:/uploads:ro busybox \
+  all_uploads="$(docker exec $busyname \
                     sh -c 'cd /uploads && find . -type f' | sort)"
   backed_up_uploads="$(cd $backup_archives_dir/$uploads_backup_d && find . -type f | sort)"
 
@@ -257,10 +270,14 @@ if [ -n "$encrypted" ]; then
     bkp_path="$backup_archives_dir/$uploads_backup_d/${file_path#./}.gpg"
     mkdir -p "$(dirname "$bkp_path")"
 
-    cat "$file_path" | $with_cpulimit -- $so_nice  $gpg_encrypt --output "$bkp_path"
+    # docker exec -i $(docker ps -q -f "ancestor=busybox") sh -c "cat $file_path" | gpg --symmetric --cipher-algo AES256 -o /path/to/encrypted/$(basename $file_path).gpg
+
+    docker exec $busyname sh -c "cat \"$file_path\"" \
+        | $with_cpulimit -- $so_nice  $gpg_encrypt --output "$bkp_path"
 
     echo "Backed up: $file_path" # -> $bkp_path"
   done
+  docker stop $busyname  # auto removed (`--rm`)
 else
   $so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup_d/
 fi
