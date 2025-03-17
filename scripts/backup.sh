@@ -18,9 +18,12 @@ hostname="$(hostname)"
 docker='/usr/bin/docker'
 docker_compose="$docker compose"
 psql="psql talkyard talkyard"
+
 encrypted=''
+dot_gpg=''
 if [ -f $pwd_file ]; then
   encrypted=', encrypted, '
+  dot_gpg='.gpg'
 fi
 
 log_message "Backing up '$hostname', when: '$when', tag: '$1' ..."
@@ -74,7 +77,7 @@ echo "$random_value" >> "$backup_archives_dir/$hostname-$when-$1-random-value.tx
 # -------------------
 
 postgres_backup_file_name="`hostname`-$when-$1-postgres.sql"
-postgres_backup_path="$backup_archives_dir/$postgres_backup_file_name.gz"
+postgres_backup_path="$backup_archives_dir/$postgres_backup_file_name.gz$dot_gpg"
 
 log_message "Backing up Postgres$encrypted to: $postgres_backup_path ..."
 
@@ -114,7 +117,6 @@ $docker_compose exec rdb $psql -c \
 # (cron's path apparently doesn't include /sur/local/bin/)
 #
 if [ -n "$encrypted" ]; then
-  postgres_backup_path="$postgres_backup_path.gpg"
   $docker_compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists  \
       | $with_cpulimit -- $so_nice  gzip  \
       | $with_cpulimit -- $so_nice  $gpg_encrypt --output $postgres_backup_path
@@ -136,7 +138,7 @@ log_message "Done backing up Postgres."
 # Backup config
 # -------------------
 
-config_backup_file_name="`hostname`-$when-$1-config.tar.gz"
+config_backup_file_name="`hostname`-$when-$1-config.tar.gz$dot_gpg"
 config_backup_path="$backup_archives_dir/$config_backup_file_name"
 
 log_message "Backing up config$encrypted to: $config_backup_path ..."
@@ -156,7 +158,6 @@ cp -a ./data/certbot $backup_config_temp_dir/data/
 cp -a ./data/sites-enabled-auto-gen $backup_config_temp_dir/data/
 
 if [ -n "$encrypted" ]; then
-  config_backup_path="$config_backup_path.gpg"
   # This pipes to stdout:  `tar -f -`   that is, setting the file to '-'.
   $so_nice tar -czf - -C $backup_config_temp_dir ./  \
       | $with_cpulimit -- $so_nice  $gpg_encrypt --output $config_backup_path
@@ -181,12 +182,11 @@ log_message "Done backing up config."
 
 chek_is_in_ty_dir
 
-redis_backup_path=$backup_archives_dir/`hostname`-$when-$1-redis.rdb.gz
+redis_backup_path="$backup_archives_dir/`hostname`-$when-$1-redis.rdb.gz$dot_gpg"
 
 if [ -f data/cache/dump.rdb ]; then
   log_message "Backing up Redis$encrypted to: $redis_backup_path ..."
   if [ -n "$encrypted" ]; then
-    redis_backup_path="$redis_backup_path.gpg"
     # -c writes to stdout.
     docker compose exec cache $so_nice gzip -c ./dump.rdb \
         | $with_cpulimit -- $so_nice  $gpg_encrypt --output $redis_backup_path
