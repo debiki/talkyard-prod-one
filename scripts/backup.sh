@@ -17,6 +17,10 @@ hostname="$(hostname)"
 docker='/usr/bin/docker'
 docker_compose="$docker compose"
 psql="psql talkyard talkyard"
+encrypted=''
+if [ -f $pwd_file ]; then
+  encrypted=', encrypted, '
+fi
 
 log_message "Backing up '$hostname', when: '$when', tag: '$1' ..."
 
@@ -36,7 +40,7 @@ talkyard_dir=/opt/talkyard-v1
 uploads_dir=$talkyard_dir/data/uploads
 
 function chek_is_in_ty_dir {
-  if [ "$(pwd)" -ne "$talkyard_dir" ]; then
+  if [ "$(pwd)" != "$talkyard_dir" ]; then
     echo
     echo "You should run this script from:  $talkyard_dir/"
     echo
@@ -69,13 +73,14 @@ echo "$random_value" >> "$backup_archives_dir/$hostname-$when-$1-random-value.tx
 # -------------------
 
 postgres_backup_file_name="`hostname`-$when-$1-postgres.sql"
+postgres_backup_path="$backup_archives_dir/$postgres_backup_file_name.gz"
+
+log_message "Backing up Postgres$encrypted to: $postgres_backup_path ..."
 
 # Insert a backup test timestamp, and the random value, so we can check, on an
 # off-site backup server, that the contents of the backup is recent and okay.
 $docker_compose exec rdb $psql -c \
     "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '$hostname', 'rdb', '$postgres_backup_file_name', '$random_value');"
-
-postgres_backup_path="$backup_archives_dir/$postgres_backup_file_name.gz"
 
 # Update 2025: Yes let's do, let's try with  cpulimit --limit 50
 # and add  apt install cpulimits  as an installation step.
@@ -107,15 +112,12 @@ postgres_backup_path="$backup_archives_dir/$postgres_backup_file_name.gz"
 #
 # (cron's path apparently doesn't include /sur/local/bin/)
 #
-if [ -f $pwd_file ]; then
+if [ -n "$encrypted" ]; then
   postgres_backup_path="$postgres_backup_path.gpg"
-  log_message "Backing up Postgres, encrypted, to: $postgres_backup_path ..."
   $docker_compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists  \
       | $with_cpulimit -- $so_nice  gzip  \
-      | $with_cpulimit -- $so_nice  $gpg_encrypt -o $postgres_backup_path
+      | $with_cpulimit -- $so_nice  $gpg_encrypt --output $postgres_backup_path
 else
-  passphrase=''  # skip
-  log_message "Backing up Postgres to: $postgres_backup_path ..."
   $docker_compose exec -T rdb pg_dumpall --username=postgres --clean --if-exists  \
       | $with_cpulimit -- $so_nice  gzip  \
       > $postgres_backup_path
@@ -136,6 +138,7 @@ log_message "Done backing up Postgres."
 config_backup_file_name="`hostname`-$when-$1-config.tar.gz"
 config_backup_path="$backup_archives_dir/$config_backup_file_name"
 
+log_message "Backing up config$encrypted to: $config_backup_path ..."
 
 rm -fr $backup_config_temp_dir
 mkdir -p $backup_config_temp_dir/data
@@ -151,14 +154,12 @@ cp -a ./conf $backup_config_temp_dir/
 cp -a ./data/certbot $backup_config_temp_dir/data/
 cp -a ./data/sites-enabled-auto-gen $backup_config_temp_dir/data/
 
-if [ -f ./encrypt-backups-passphrase ]; then
+if [ -n "$encrypted" ]; then
   config_backup_path="$config_backup_path.gpg"
-  log_message "Backing up config, encrypted, to: $config_backup_path ..."
   # This pipes to stdout:  `tar -f -`   that is, setting the file to '-'.
   $so_nice tar -czf - -C $backup_config_temp_dir ./  \
-      | $with_cpulimit -- $so_nice  $gpg_encrypt -o $config_backup_path
+      | $with_cpulimit -- $so_nice  $gpg_encrypt --output $config_backup_path
 else
-  log_message "Backing up config to: $config_backup_path ..."
   $so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
 fi
 
@@ -177,11 +178,20 @@ log_message "Done backing up config."
 # atomically using rename(2) only when the new snapshot is complete."""
 # See http://redis.io/topics/persistence
 
+chek_is_in_ty_dir
+
 redis_backup_path=$backup_archives_dir/`hostname`-$when-$1-redis.rdb.gz
 
 if [ -f data/cache/dump.rdb ]; then
-  log_message "Backing up Redis to: $redis_backup_path ..."
-  $so_nice gzip --to-stdout data/cache/dump.rdb > $redis_backup_path
+  log_message "Backing up Redis$encrypted to: $redis_backup_path ..."
+  if [ -n "$encrypted" ]; then
+    redis_backup_path="$redis_backup_path.gpg"
+    # -c writes to stdout.
+    docker compose exec cache $so_nice gzip -c ./dump.rdb \
+        | $with_cpulimit -- $so_nice  $gpg_encrypt --output $redis_backup_path
+  else
+    docker compose exec cache $so_nice gzip -c ./dump.rdb  >  $redis_backup_path
+  fi
   log_message "Done backing up Redis."
 else
   log_message "No Redis dump.rdb to backup."
@@ -198,9 +208,11 @@ fi
 # Backup uploads
 # -------------------
 
+chek_is_in_ty_dir
+
 uploads_backup_d="$(hostname)-uploads-up-to-incl-$(date +%Y-%m).d"
 
-log_message "Backing up uploads to: $backup_archives_dir/$uploads_backup_d ..."
+log_message "Backing up uploads$encrypted to: $backup_archives_dir/$uploads_backup_d ..."
 
 # Insert a backup test timestamp, so we can check that the backup archive contents is fresh.
 # Do this as files with the timestamp in the file name — because then they can be checked for
@@ -222,7 +234,36 @@ touch $backup_test_dir/$when--$hostname--$random_value
 # same month (Jan 2020 in the example above).
 # (But such deleted files won't appear in the *next* months' archives.)
 
-$so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup_d/
+if [ -n "$encrypted" ]; then
+  all_uploads="$(docker run --rm -v talkyard-v1-uploads:/uploads:ro busybox \
+                    sh -c 'cd /uploads && find . -type f' | sort)"
+  backed_up_uploads="$(cd $backup_archives_dir/$uploads_backup_d && find . -type f | sort)"
+
+  # This compares file 1, $all_uploads, with file 2, $backed_up_uploads, and
+  # the flag -23 keeps only column 1, which is lines in $all_uploads that
+  # are missing from $backed_up_uploads.
+  #
+  # (Can alternatively do this, better for performance, but harder to debug:
+  # comm -23 <(docker run ... find ...) <(cd ... find ...) | while ...)
+  #
+  new_uploads=$(comm -23 <(echo "$all_uploads") <(echo "$backed_up_uploads"))
+
+  # `while IFS= read ... do ... done` is better than `for ...`, because the former
+  # works also with files with weird names, e.g. that incl spaces. Now, there aren't
+  # any such file names in this case, but better safe than sorry.
+  #
+  echo "$new_uploads" | while IFS= read -r file_path; do
+    # (This: ${sth#prefix} removes 'prefix' from $sth.)
+    bkp_path="$backup_archives_dir/$uploads_backup_d/${file_path#./}.gpg"
+    mkdir -p "$(dirname "$bkp_path")"
+
+    cat "$file_path" | $with_cpulimit -- $so_nice  $gpg_encrypt --output "$bkp_path"
+
+    echo "Backed up: $file_path" # -> $bkp_path"
+  done
+else
+  $so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup_d/
+fi
 
 # Bump the mtime, so scripts/delete-old-backups.sh won't delete it too soon.
 # (Otherwise rsync will have preserved the creation date of the uploads dir,
@@ -245,6 +286,8 @@ $docker_compose exec rdb $psql -c \
 # extra backup server — and then, when someone logs in at that other off-site
 # server to restore the backups, hen will find the instructions on how to
 # actually do that.
+
+chek_is_in_ty_dir
 
 cp docs/how-restore-backup.md $backup_archives_dir/HOW-RESTORE-BACKUPS.md
 
