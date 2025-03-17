@@ -38,7 +38,6 @@ gpg_encrypt="gpg --batch --symmetric --cipher-algo AES256 --passphrase-file $pwd
 # Better avoid /opt/backups/? — it's reserved by the FSH (Filesystem Hierarchy Standard)
 # for legacy weirdness things.
 backup_archives_dir=/var/opt/backups/talkyard/v1/archives
-backup_config_temp_dir=/var/opt/backups/talkyard/v1/config-temp
 
 talkyard_dir=/opt/talkyard-v1
 uploads_dir=$talkyard_dir/data/uploads
@@ -143,26 +142,18 @@ config_backup_path="$backup_archives_dir/$config_backup_file_name"
 
 log_message "Backing up config$encrypted to: $config_backup_path ..."
 
-rm -fr $backup_config_temp_dir
-mkdir -p $backup_config_temp_dir/data
-
 # We should be in /opt/talkyard-v1/, otherwise docker-compose won't work anyway (used
 # when backing up the database).  Let's double check:
 chek_is_in_ty_dir
 
-cp -a ./.env $backup_config_temp_dir/
-cp -a ./docker-compose.* $backup_config_temp_dir/
-cp -a ./talkyard-maint.log $backup_config_temp_dir/
-cp -a ./conf $backup_config_temp_dir/
-cp -a ./data/certbot $backup_config_temp_dir/data/
-cp -a ./data/sites-enabled-auto-gen $backup_config_temp_dir/data/
+conf_files=".env docker-compose.* talkyard-maint.log conf data/certbot data/sites-enabled-auto-gen"
 
 if [ -n "$encrypted" ]; then
   # This pipes to stdout:  `tar -f -`   that is, setting the file to '-'.
-  $so_nice tar -czf - -C $backup_config_temp_dir ./  \
+  $so_nice tar -czf - $conf_files  \
       | $with_cpulimit -- $so_nice  $gpg_encrypt --output $config_backup_path
 else
-  $so_nice tar -czf $config_backup_path -C $backup_config_temp_dir ./
+  $so_nice tar -czf $config_backup_path $conf_files
 fi
 
 # Hmm, better backup config first? So this'll be incl in the .sql dump?
