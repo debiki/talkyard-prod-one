@@ -22,7 +22,7 @@ psql="psql talkyard talkyard"
 encrypted=''
 dot_gpg=''
 if [ -f $pwd_file ]; then
-  encrypted=', encrypted, '
+  encrypted=', encrypted,'
   dot_gpg='.gpg'
 fi
 
@@ -69,7 +69,13 @@ log_message "Generated random test-that-backups-work value: '$random_value'"
 # backup server, we can check that this value is indeed included in the backups.
 # If it's not, the backups are broken, and we could send an email [BADBKPEML].
 
-echo "$random_value" >> "$backup_archives_dir/$hostname-$when-$1-random-value.txt"
+rand_val_file="$backup_archives_dir/$hostname-$when-$1-random-value.txt$dot_gpg"
+
+if [ -n "$encrypted" ]; then
+  echo "$random_value" | $gpg_encrypt --output "$rand_val_file"
+else
+  echo "$random_value" >> "$rand_val_file"
+fi
 
 
 # Backup Postgres
@@ -210,6 +216,7 @@ log_message "Backing up uploads$encrypted to: $backup_archives_dir/$uploads_back
 # Do this as files with the timestamp in the file name — because then they can be checked for
 # by just listing (but not extracting) the contents of the archive.
 # This creates a file like:  2017-04-21T0425--server-hostname--NxWsTsQvVnp2y0YvN8sb
+# OOOPS, pointless now with Docker volumes instead.
 backup_test_dir="$uploads_dir/backup-test"
 mkdir -p $backup_test_dir
 find $backup_test_dir -type f -mtime +31 -delete
