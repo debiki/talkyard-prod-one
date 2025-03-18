@@ -208,7 +208,11 @@ fi
 
 chek_is_in_ty_dir
 
-uploads_backup_d="$(hostname)-uploads-up-to-incl-$(date +%Y-%m).d"
+last_yyyy_mm="$(date -d "last month" +"%Y-%m")"
+cur_yyyy_mm="$(date +"%Y-%m")"
+
+last_upl_bkp_d="$(hostname)-uploads-up-to-incl-$last_yyyy_mm.d"
+uploads_backup_d="$(hostname)-uploads-up-to-incl-$cur_yyyy_mm.d"
 
 log_message "Backing up uploads$encrypted to: $backup_archives_dir/$uploads_backup_d ..."
 
@@ -223,7 +227,7 @@ find $backup_test_dir -type f -mtime +31 -delete
 touch $backup_test_dir/$when--$hostname--$random_value
 
 # Don't archive all uploads every day — then we might soon run out of disk
-# (if there're many uploads — they can be huge). Instead, every new month,
+# (if there're many uploads — they can be huge). Instead, _each_month,
 # start growing a new uploads backup archive directory with a name matching:
 #     -uploads-up-to-incl-<yyyy-mm>.d
 # e.g.:
@@ -233,7 +237,33 @@ touch $backup_test_dir/$when--$hostname--$random_value
 # same month (Jan 2020 in the example above).
 # (But such deleted files won't appear in the *next* months' archives.)
 
-if [ -n "$encrypted" ]; then
+# Is there a directory from last month, with already encrypted backups? Then,
+# we can reuse those, instead of calling gpg again.
+old_but_no_new_dir=''
+if [[ -d "$backup_archives_dir/$last_upl_bkp_d/"
+      && ! -d "$backup_archives_dir/$uploads_backup_d/" ]]; then
+  old_but_no_new_dir='Y'
+fi
+
+mkdir -p $backup_archives_dir/$uploads_backup_d/
+
+if [[ -n "$encrypted" && $old_but_no_new_dir == 'Y' ]]; then
+  # Copy existing uploads from the last month's uploads backup directory, so we won't
+  # have to encrypt them again. Could take long if there's many GB uploaded files.
+  #
+  all_uploads="$(docker exec $busyname \
+                  sh -c 'cd /uploads && find . -type f' | sort)"
+  echo "$all_uploads" | while IFS= read -r file_path; do
+    # (This: ${sth#prefix} removes 'prefix' from $sth.)
+    old_bkp_path="$backup_archives_dir/$last_upl_bkp_d/${file_path#./}.gpg"
+    new_bkp_path="$backup_archives_dir/$uploads_backup_d/${file_path#./}.gpg"
+
+    if [ -f "$old_bkp_path" ]; then
+      cp -a "$old_bkp_path" "$new_bkp_path"
+      echo "Reusing old backup: $old_bkp_path -> $new_bkp_path"
+    fi
+  done
+elif [ -n "$encrypted" ]; then
   # Let's use a Busybox container (that's Linux with some basic stuff only) to find
   # and `cat` uploaded files. Let's start the container just once and use `exec`.
   short_random_value=$( echo "$random_value" | head -c 7 )
@@ -253,15 +283,19 @@ if [ -n "$encrypted" ]; then
   # This compares file 1, $all_uploads, with file 2, $backed_up_uploads, and
   # the flag -23 keeps only column 1, which is lines in $all_uploads that
   # are missing from $backed_up_uploads.
+  # -1 = suppress column 1 (lines unique to FILE1)
+  # -2 = suppress column 2 (lines unique to FILE2)
+  # -3 = suppress column 3 (lines that appear in both files)
   #
   # (Can alternatively do this, better for performance, but harder to debug:
   # comm -23 <(docker run ... find ...) <(cd ... find ...) | while ...)
   #
   new_uploads=$(comm -23 <(echo "$all_uploads") <(echo "$backed_up_uploads"))
 
-  # `while IFS= read ... do ... done` is better than `for ...`, because the former
+  # Backup new uploads.
+  # (`while IFS= read ... do ... done` is better than `for ...`, because the former
   # works also with files with weird names, e.g. that incl spaces. Now, there aren't
-  # any such file names in this case, but better safe than sorry.
+  # any such file names in this case, but better safe than sorry.)
   #
   echo "$new_uploads" | while IFS= read -r file_path; do
     # (This: ${sth#prefix} removes 'prefix' from $sth.)
@@ -275,6 +309,23 @@ if [ -n "$encrypted" ]; then
 
     echo "Backed up: $file_path" # -> $bkp_path"
   done
+
+  # Could delete backups of recently deleted uploads, sth like this. But isn't it better,
+  # backup & security wise, to: _each_month, copy filehash.ext.gpg  that still exist, to
+  # the new uploads backup dir? Then, backups of deleted uploads will be auto deleted
+  # soon anyway.
+  #
+  # deleted_uploads=$(comm -13 <(echo "$all_uploads") <(echo "$backed_up_uploads"))
+  # echo "$deleted_uploads" | while IFS= read -r file_path; do
+  #   bkp_path="$backup_archives_dir/$uploads_backup_d/${file_path#./}.gpg"
+  #   if [ -f "$bkp_path" ]; then
+  #     rm -f $bkp_path
+  #     echo "Deleted backup for [recently deleted uploaded file]: $file_path"
+  #   else
+  #     echo "Backup for [recently deleted uploaded file] already gone: $file_path"
+  #   fi
+  # done
+
   docker stop $busyname  # auto removed (`--rm`)
 else
   $so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup_d/
