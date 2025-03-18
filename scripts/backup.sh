@@ -237,17 +237,6 @@ touch $backup_test_dir/$when--$hostname--$random_value
 # same month (Jan 2020 in the example above).
 # (But such deleted files won't appear in the *next* months' archives.)
 
-busyname=''
-all_uploads=''
-if [ -n "$encrypted" ]; then
-  # Let's use a Busybox container (that's Linux with some basic stuff only) to find
-  # and `cat` uploaded files. Let's start the container just once and use `exec`.
-  short_random_value=$( echo "$random_value" | head -c 7 )
-  busyname="talkyard-busybox-$short_random_value"
-  docker run --rm -v talkyard-v1-uploads:/uploads:ro -d --name $busyname busybox tail -f /dev/null
-  all_uploads="$(docker exec $busyname  sh -c 'cd /uploads && find . -type f' | sort)"
-fi
-
 # Is there a directory from last month, with already encrypted backups? Then,
 # we can reuse those, instead of calling gpg again.
 old_but_no_new_dir=''
@@ -258,21 +247,30 @@ fi
 
 mkdir -p $backup_archives_dir/$uploads_backup_d/
 
-if [[ -n "$encrypted" && $old_but_no_new_dir == 'Y' ]]; then
-  # Copy existing uploads from the last month's uploads backup directory, so we won't
-  # have to encrypt them again. Could take long if there's many GB uploaded files.
-  #
-  echo "$all_uploads" | while IFS= read -r file_path; do
-    # (This: ${sth#prefix} removes 'prefix' from $sth.)
-    old_bkp_path="$backup_archives_dir/$last_upl_bkp_d/${file_path#./}.gpg"
-    new_bkp_path="$backup_archives_dir/$uploads_backup_d/${file_path#./}.gpg"
+if [ -n "$encrypted" ]; then
 
-    if [ -f "$old_bkp_path" ]; then
-      cp -a "$old_bkp_path" "$new_bkp_path"
-      echo "Reusing old backup: $old_bkp_path -> $new_bkp_path"
-    fi
-  done
-elif [ -n "$encrypted" ]; then
+  # Let's use a Busybox container (that's Linux with some basic stuff only) to find
+  # and `cat` uploaded files. Let's start the container just once and use `exec`.
+  short_random_value=$( echo "$random_value" | head -c 7 )
+  busyname="talkyard-busybox-$short_random_value"
+  docker run --rm -v talkyard-v1-uploads:/uploads:ro -d --name $busyname busybox tail -f /dev/null
+
+  all_uploads="$(docker exec $busyname  sh -c 'cd /uploads && find . -type f' | sort)"
+
+  # If new month: Copy existing uploads from the last month's uploads backup directory, so
+  # we won't have to encrypt everything again — could take long if many GB uploaded files.
+  if [[ $old_but_no_new_dir == 'Y' ]]; then
+    echo "$all_uploads" | while IFS= read -r file_path; do
+      # (This: ${sth#prefix} removes 'prefix' from $sth.)
+      old_bkp_path="$backup_archives_dir/$last_upl_bkp_d/${file_path#./}.gpg"
+      new_bkp_path="$backup_archives_dir/$uploads_backup_d/${file_path#./}.gpg"
+      if [ -f "$old_bkp_path" ]; then
+        cp -a "$old_bkp_path" "$new_bkp_path"
+        echo "Reusing old backup: $old_bkp_path -> $new_bkp_path"
+      fi
+    done
+  fi
+
   # for file_path in $(docker exec -it $(docker ps -q -f "ancestor=busybox") sh -c "find /data -type f"); do
   #   docker exec -i $(docker ps -q -f "ancestor=busybox") sh -c "cat $file_path" | gpg --symmetric --cipher-algo AES256 -o /path/to/encrypted/$(basename $file_path).gpg
   # done
@@ -329,6 +327,7 @@ else
 fi
 
 if [ -n "$busyname" ]; then
+  echo "Stopping container $busyname ..."
   docker stop $busyname  # auto removed (`--rm`)
 fi
 
