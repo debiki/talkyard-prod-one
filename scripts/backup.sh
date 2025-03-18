@@ -237,6 +237,17 @@ touch $backup_test_dir/$when--$hostname--$random_value
 # same month (Jan 2020 in the example above).
 # (But such deleted files won't appear in the *next* months' archives.)
 
+busyname=''
+all_uploads=''
+if [ -n "$encrypted" ]; then
+  # Let's use a Busybox container (that's Linux with some basic stuff only) to find
+  # and `cat` uploaded files. Let's start the container just once and use `exec`.
+  short_random_value=$( echo "$random_value" | head -c 7 )
+  busyname="talkyard-busybox-$short_random_value"
+  docker run --rm -v talkyard-v1-uploads:/uploads:ro -d --name $busyname busybox tail -f /dev/null
+  all_uploads="$(docker exec $busyname  sh -c 'cd /uploads && find . -type f' | sort)"
+fi
+
 # Is there a directory from last month, with already encrypted backups? Then,
 # we can reuse those, instead of calling gpg again.
 old_but_no_new_dir=''
@@ -251,8 +262,6 @@ if [[ -n "$encrypted" && $old_but_no_new_dir == 'Y' ]]; then
   # Copy existing uploads from the last month's uploads backup directory, so we won't
   # have to encrypt them again. Could take long if there's many GB uploaded files.
   #
-  all_uploads="$(docker exec $busyname \
-                  sh -c 'cd /uploads && find . -type f' | sort)"
   echo "$all_uploads" | while IFS= read -r file_path; do
     # (This: ${sth#prefix} removes 'prefix' from $sth.)
     old_bkp_path="$backup_archives_dir/$last_upl_bkp_d/${file_path#./}.gpg"
@@ -264,20 +273,10 @@ if [[ -n "$encrypted" && $old_but_no_new_dir == 'Y' ]]; then
     fi
   done
 elif [ -n "$encrypted" ]; then
-  # Let's use a Busybox container (that's Linux with some basic stuff only) to find
-  # and `cat` uploaded files. Let's start the container just once and use `exec`.
-  short_random_value=$( echo "$random_value" | head -c 7 )
-  busyname="talkyard-busybox-$short_random_value"
-  docker run --rm -v talkyard-v1-uploads:/uploads:ro -d --name $busyname busybox tail -f /dev/null
-
   # for file_path in $(docker exec -it $(docker ps -q -f "ancestor=busybox") sh -c "find /data -type f"); do
   #   docker exec -i $(docker ps -q -f "ancestor=busybox") sh -c "cat $file_path" | gpg --symmetric --cipher-algo AES256 -o /path/to/encrypted/$(basename $file_path).gpg
   # done
 
-
-  #all_uploads="$(docker run --rm -v talkyard-v1-uploads:/uploads:ro busybox \
-  all_uploads="$(docker exec $busyname \
-                    sh -c 'cd /uploads && find . -type f' | sort)"
   backed_up_uploads="$(cd $backup_archives_dir/$uploads_backup_d && find . -type f | sort)"
 
   # This compares file 1, $all_uploads, with file 2, $backed_up_uploads, and
@@ -325,10 +324,12 @@ elif [ -n "$encrypted" ]; then
   #     echo "Backup for [recently deleted uploaded file] already gone: $file_path"
   #   fi
   # done
-
-  docker stop $busyname  # auto removed (`--rm`)
 else
   $so_nice  /usr/bin/rsync -a  $uploads_dir/  $backup_archives_dir/$uploads_backup_d/
+fi
+
+if [ -n "$busyname" ]; then
+  docker stop $busyname  # auto removed (`--rm`)
 fi
 
 # Bump the mtime, so scripts/delete-old-backups.sh won't delete it too soon.
