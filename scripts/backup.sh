@@ -289,7 +289,7 @@ elif [ -n "$encrypted" ]; then
   # (Can alternatively do this, better for performance, but harder to debug:
   # comm -23 <(docker run ... find ...) <(cd ... find ...) | while ...)
   #
-  new_uploads=$(comm -23 <(echo "$all_uploads") <(echo "$backed_up_uploads"))
+  new_uploads=$(comm -23 <(echo "$all_uploads") <(echo "$backed_up_uploads" | sed 's/\.gpg$//' ))
 
   # Backup new uploads.
   # (`while IFS= read ... do ... done` is better than `for ...`, because the former
