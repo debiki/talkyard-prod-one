@@ -137,7 +137,7 @@ services:
     cap_drop:
       - ALL
     cap_add: # [enough_caps]? See: https://github.com/docker-library/postgres/issues/649
-      # CHOWN needed? [redis_cap_chown]
+      - CHOWN  # [redis_cap_chown]
       - SETGID
       - SETUID
       - KILL # ?
