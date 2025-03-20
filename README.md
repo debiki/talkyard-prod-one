@@ -1,6 +1,13 @@
 Talkyard production installation
 ================
 
+NOTICE:
+
+This Git branch is for upcoming Talkyard v1 (epoch 1). Don't use! Work in progress.
+And, I'll **rewrite history** in this branch.
+
+------
+
 For one single server: Debian 11 or 12 with at least 2 GB RAM.
 
 Docker based installation. Automatic upgrades.
