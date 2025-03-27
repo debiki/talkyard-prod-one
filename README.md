@@ -51,12 +51,17 @@ Here's [a Vagrantfile here](scripts/Vagrantfile) if you want to test install on 
 ### Install behind an Nginx reverse proxy?
 
 <!-- Someone tried to do this, although in his case, there was *no* reverse proxy. -->
+<!-- Move to docs/ file, and update path:  /opt/talkyard/conf/play-framework.conf  —>  .../conf/app/play-framework.conf  ? -->
+To install Talkyard behind a reverse proxy, read here: docs/reverse-proxy.md. (If you don't know what a reverse proxy is, just ignore this.)
+
+<!--
 Skip this, unless you know what a "reverse proxy" is;
 instead, continue below, the section "Install on a new server".
 Now, if you _do_ want to install Talkyard on a Debian or Ubuntu server
 with a Nginx reverse proxy in front of it, with a LetsEncrypt cert — then,
 [here's a mini tutorial](https://www.talkyard.io/-389/talkyard-with-nginx-as-reverse-proxy-and-letsencrypt-for-https-mini-tutorial).
 The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
+-->
 
 
 ### Install on a new server
@@ -75,7 +80,7 @@ Have a look in `./docker-compose.yml` (in this repo) for details and links.
 Get a server and a Web address
 ----------------
 
-Provision an Debian 11 or 12 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
+Provision an Debian 12 server <!-- not 11, it's EOL 2026 --> with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/), a US company, or [Upcloud](https://upcloud.com/), an EU company.
 
 Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
 
@@ -83,7 +88,7 @@ Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
 Directories
 ----------------
 
-You'll install Talkyard-the-software, and config files, in `/opt/talkyard-v1/`.
+You'll install Talkyard <!-- -the-software, and config files, --> in `/opt/talkyard-v1/`.
 
 <!--
 (`-v1` is for "host scripts version one". Every 3? 5? years, there's a major
@@ -101,26 +106,30 @@ since they would conflict with historical and/or local practice. They are:
 /var/backups, /var/cron, ...".  Better store backups in /var/opt/...backups.../ somewhere?
 -->
 
-- `/opt/talkyard-v1/`: Installation, upgrade and backup scripts, and `docker-compose.yml`.
-      This is a Git repo — you can check in your changes to Git, but not passwords!
-      And you should know how to resolve Git conflicts,
+- `/opt/talkyard-v1/`: Installation scripts, other scripts, and `docker-compose.yml`.
+      This is a Git repo — you can check in your changes to Git (but not passwords!).
+      You should know how to resolve Git conflicts,
       if you `git fetch` new minor versions of these scripts.
+      <!--
       We call scripts here "host scripts" since they run on the host operating system.
       They aren't part of Talkyard itself — none of them would be relevant, if
       instead running Ty on Windows (not supported).
+      -->
 - `/opt/talkyard-v1/conf`: Configuration, mounted read-only in Docker containers.
+- `/var/lib/docker/`: Docker images, log files. Database files, uploaded files (in Docker volumes).
 <!--
 - `/var/opt/talkyard/v1/`: Database storage, e.g. PostgreSQL and Redis. (Docker volumes.)
 - `/var/opt/talkyard/v1/uploads/`: Uploaded files, e.g. images. (A Docker volume.) -->
 - `/var/opt/backups/talkyard/v1/`: Backups. (_Not_ a Docker volume.)
-- `/var/lib/docker/`: Here's where Docker saves log files and downloaded Docker images.
 
-If you want, mount `/var` and `/var/opt/backups` on
+<!--
+If you want, mount `/var/` and `/var/opt/backups/` on
 different disks. If you expect people to upload lots of big files, you could
 open `scripts/create-volumes.sh`, edit the line with
 `docker volume create talkyard-v1-uploads`,
 and mount it on a separate & big disk.
 Or connect to some S3 compatible cloud storage (not yet implemented `[cloud_storage]`).
+-->
 
 
 Installation instructions
@@ -134,9 +143,9 @@ Installation instructions
        apt-get update
        apt-get upgrade
        apt-get -y install git locales
-       apt-get -y install cpulimit                 # will use to avoid gzip kernel panics
-       apt-get -y install tree ncdu vim            # nice to have
-       locale-gen en_US.UTF-8                      # installs English
+       apt-get -y install cpulimit         # avoids kernel panics when gzipping backups
+       apt-get -y install tree ncdu vim    # nice to have
+       locale-gen en_US.UTF-8              # installs English
        export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
 
 1. Create big empty files that you can delete if your server runs out of disk:
@@ -155,11 +164,11 @@ Installation instructions
 
 1. If you want to & know what you're doing:
    - Comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
-   - Mount `/var/` and `/var/opt/backups/(talkyard/)` on different disks
-      (so the host OS or Talkyard won't stop working just because some disk
+   - Mount `/var/` and `/var/opt/backups/(talkyard/)` on their own disks
+      (so the host OS and Talkyard won't stop working just because some disk
       gets full).
-   - Edit `scripts/create-volumes.sh`, e.g. the `talkyard-v1-uploads` line,
-      to store uploaded files elsewhere somehow.
+   - Edit `/opt/talkyard-v1/scripts/create-volumes.sh`, e.g. the `talkyard-v1-uploads` line,
+      to store uploaded files on their own disk, or (not implemented) S3 object storage.
 
 <!-- Script for CGE:
 
@@ -183,12 +192,16 @@ mkdir -p /opt/talkyard-backup-archives-in-gcs
 
        ./scripts/prepare-os.sh 2>&1 | tee -a talkyard-maint.log
 
+   OOOPS be more explicit about precisely wht's needed
+
    If you don't want to run the whole script, you at least need to copy the
    sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
    `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
    won't work. Afterwards, run `sysctl --system` to reload the system configuration.
 
 1. Install Docker: (as root in `/opt/talkyard-v1/`)
+
+   OOOPS not Docker-Compose
 
        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
