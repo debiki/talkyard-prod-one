@@ -106,6 +106,15 @@ fi
 find $backup_archives_dir -type f -name '*-uploads-start-*.tar.gz' -mtime +123 -print -delete >> $deleted_backups_log
 
 
+# Delete old Postgres and config backups
+# -------------------
+
+# todo: delete old files like:   <host>-<date>-<tag>random-value.txt
+
+
+# Show what was done
+# -------------------
+
 deleted_backups_str="$(cat $deleted_backups_log)"
 
 if [ -z "$deleted_backups_str" ]
