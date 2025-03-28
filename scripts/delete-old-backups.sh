@@ -18,7 +18,7 @@ deleted_backups_log=./deleted-backups.tmp.log
 
 function deleteSome {
   # Need 'eval' otherwise `find` thinks the single quotes "'" are parts of a file name.
-  find_files="eval find $backup_archives_dir -name '$@' -type f"
+  find_files="eval find $backup_archives_dir -regex '.*/.*-$@(.gpg)?' -type f"
 
   min_recent_bkps=8
   recent_days=10
@@ -57,8 +57,9 @@ function deleteSome {
   fi
 }
 
-deleteSome "*-postgres.sql.gz"
-deleteSome "*-config.tar.gz"
+deleteSome "postgres.sql.gz"
+deleteSome "config.tar.gz"
+deleteSome "random-value.txt"  # (not gzipped)
 
 
 
@@ -67,7 +68,8 @@ deleteSome "*-config.tar.gz"
 
 # Redis is a cache. No point in keeping backups for long.
 
-find $backup_archives_dir -daystart -type f -name '*-redis.rdb.gz' -mtime +4 -print -delete >> $deleted_backups_log
+find $backup_archives_dir -mtime +4 -daystart -type f -regextype posix-extended \
+      -regex '.*/.*-redis.rdb.gz(.gpg)?' -print -delete >> $deleted_backups_log
 
 
 
@@ -100,16 +102,6 @@ else
       -print -exec rm -r '{}' +  \
       >> $deleted_backups_log
 fi
-
-# old, keep for 4 months until these old uploads .tar.gz are gone:
-# DO_AFTER 2020-05-01: delete this
-find $backup_archives_dir -type f -name '*-uploads-start-*.tar.gz' -mtime +123 -print -delete >> $deleted_backups_log
-
-
-# Delete old Postgres and config backups
-# -------------------
-
-# todo: delete old files like:   <host>-<date>-<tag>random-value.txt
 
 
 # Show what was done
