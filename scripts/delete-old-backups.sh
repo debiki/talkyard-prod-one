@@ -18,7 +18,8 @@ deleted_backups_log=./deleted-backups.tmp.log
 
 function deleteSome {
   # Need 'eval' otherwise `find` thinks the single quotes "'" are parts of a file name.
-  find_files="eval find $archives_dir -regex '.+/.+-$@(\.gpg)?' -type f -regextype posix-extended"
+  # (This: `-regextype posix-extended` must be before `-regex`.)
+  find_files="eval find $archives_dir -type f -regextype posix-extended -regex '.+/.+-$@(\.gpg)?'"
 
   min_recent_bkps=8
   recent_days=10
@@ -69,7 +70,7 @@ deleteSome "random-value\.txt"  # (not gzipped)
 
 # Redis is a cache. No point in keeping backups for long.
 
-find $archives_dir -mtime +4 -daystart -type f -regextype posix-extended \
+find $archives_dir -type f -mtime +4 -daystart -regextype posix-extended \
       -regex '.*/.*-redis\.rdb\.gz(\.gpg)?' -print -delete >> $deleted_backups_log
 
 
