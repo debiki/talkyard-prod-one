@@ -24,6 +24,9 @@ log_message "Installing Docker and Docker-Compose..."
 
 # ------- Add Docker repository
 
+# But what about Debian 12?
+
+
 # Install packages to allow apt to use a repository over HTTPS:
 apt-get update
 apt-get -y install \
@@ -183,6 +186,9 @@ fi
 #
 # And verify it's the right file — check the sha256 hash.
 
+sudo apt-get install -y docker-compose-plugin
+
+if [ -z "Skip this, now using Docker Compose not Docker-Compose." ]; then
 docker_compose_f="/usr/local/bin/docker-compose"
 if [ -f $docker_compose_f ]; then
   log_message "Docker-Compose already installed at: $docker_compose_f"
@@ -211,6 +217,7 @@ else
     exit 1
   fi
   log_message
+fi
 fi
 
 log_message
