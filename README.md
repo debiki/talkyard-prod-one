@@ -115,12 +115,16 @@ since they would conflict with historical and/or local practice. They are:
       They aren't part of Talkyard itself — none of them would be relevant, if
       instead running Ty on Windows (not supported).
       -->
-- `/opt/talkyard-v1/conf`: Configuration, mounted read-only in Docker containers.
-- `/var/lib/docker/`: Docker images, log files. Database files, uploaded files (in Docker volumes).
+- `/opt/talkyard-v1/conf`:
+    Configuration, mounted read-only in Docker containers.
+- `/var/lib/docker/`:
+    Database storage, uploaded files (in Docker volumes).
+    Docker images, log files.
 <!--
 - `/var/opt/talkyard/v1/`: Database storage, e.g. PostgreSQL and Redis. (Docker volumes.)
 - `/var/opt/talkyard/v1/uploads/`: Uploaded files, e.g. images. (A Docker volume.) -->
-- `/var/opt/backups/talkyard/v1/`: Backups. (_Not_ a Docker volume.)
+- `/var/opt/backups/talkyard/v1/`:
+    Backups. (_Not_ a Docker volume.)
 
 <!--
 If you want, mount `/var/` and `/var/opt/backups/` on
@@ -131,12 +135,44 @@ and mount it on a separate & big disk.
 Or connect to some S3 compatible cloud storage (not yet implemented `[cloud_storage]`).
 -->
 
+Preparations
+----------------
+
+Update the OS,
+and create big empty files that you can delete if your server runs out of disk:
+
+    apt-get update
+    apt-get upgrade
+    fallocate --length 250MiB /balloon-1-delete-if-disk-full
+    fallocate --length 250MiB /balloon-2-delete-if-disk-full
+    fallocate --length 250MiB /var/balloon-3-delete-if-disk-full
+    fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
+
+And, if you want to, and know what you're doing:
+
+**Swap:** Comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
+
+**Disks:** Mount `/var/` and `/var/opt/backups/(talkyard/)` on their own disks
+(so the host OS and Talkyard won't stop working just because some disk
+gets full).
+
+**Firewall:** Install a firewall, for example, firewalld.
+But ufw (another firewall) doesn't work well with Docker.
+Look in `.env` to see the IP addresses of the Docker containers. The ip
+of the `web` container, which runs Nginx and listens on ports 80 and 443,
+is set on the `INTERNAL_NET_WEB_IP=...` row, and this is the only
+container that should be reachable from outside.
+More about Firewalld and Docker:
+https://firewalld.org/2024/04/strictly-filtering-docker-containers
+
+
 
 Installation instructions
 ----------------
 
 (There's a troubleshooting document here: ./docs/troubleshooting.md )
 
+<!--
 1. Become root: `sudo -i`, then install Git and some stuff:
 
        # As root:
@@ -147,61 +183,30 @@ Installation instructions
        apt-get -y install tree ncdu vim    # nice to have
        locale-gen en_US.UTF-8              # installs English
        export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
+    -->
 
-1. Create big empty files that you can delete if your server runs out of disk:
-
-       fallocate --length 250MiB /balloon-1-delete-if-disk-full
-       fallocate --length 250MiB /balloon-2-delete-if-disk-full
-       fallocate --length 250MiB /var/balloon-3-delete-if-disk-full
-       fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
-
-1. Download installation scripts: (you need to install in
+1. Download Talkyard installation, backup etc scripts: (you need to save in
    `/opt/talkyard-v1/` for the backup scripts to work)
 
+       sudo -i  # become root
        cd /opt/
        git clone https://github.com/debiki/talkyard-prod-one.git talkyard-v1
        cd talkyard-v1
 
-1. If you want to & know what you're doing:
-   - Comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
-   - Mount `/var/` and `/var/opt/backups/(talkyard/)` on their own disks
-      (so the host OS and Talkyard won't stop working just because some disk
-      gets full).
-   - Edit `/opt/talkyard-v1/scripts/create-volumes.sh`, e.g. the `talkyard-v1-uploads` line,
-      to store uploaded files on their own disk, or (not implemented) S3 object storage.
-
-<!-- Script for CGE:
-
-# m h  dom mon dow   command
-@reboot echo '---REBOOT---' >> /opt/talkyard-cron.log
-@reboot echo '/opt/talkyard-mount-backups-bucket.sh >> /opt/talkyard-cron.log 2>&1' | at now + 5 minutes
-10 0 * * * cd /opt/talkyard && ./scripts/delete-old-logs.sh >> talkyard-maint.log 2>&1
-10 2 * * * cd /opt/talkyard && ./scripts/backup.sh daily >> talkyard-maint.log 2>&1
-10 3 * * * cd /opt/talkyard && ./scripts/delete-old-backups.sh >> talkyard-maint.log 2>&1
-51 0 * * * cd /opt/talkyard && ./scripts/renew-https-certs.sh >> talkyard-maint.log 2>&1
-
-root@tyc-gcew1dal23a:~# cat /opt/talkyard-mount-backups-bucket.sh  
-#!/bin/bash
-mkdir -p /opt/talkyard-backup-archives-in-gcs
-/usr/bin/gcsfuse cloud-storage-bucket-name /opt/talkyard-backup-archives-in-gcs
-
-
--->
 1. Prepare the OS: install tools, enable automatic security updates, simplify troubleshooting,
    and make ElasticSearch work: (Consider reading the script first...)
 
        ./scripts/prepare-os.sh 2>&1 | tee -a talkyard-maint.log
 
-   OOOPS be more explicit about precisely wht's needed
+   If you don't want to run the whole script, you at least need to:
 
-   If you don't want to run the whole script, you at least need to copy the
-   sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
-   `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
-   won't work. Afterwards, run `sysctl --system` to reload the system configuration.
+   -  Copy the sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
+       `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
+       won't work. Afterwards, run `sysctl --system` to reload the system configuration.
+
+   - `apt install` these: `rng-tools cpulimit`. And `jq` to view logs.
 
 1. Install Docker: (as root in `/opt/talkyard-v1/`)
-
-   OOOPS not Docker-Compose
 
        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
@@ -214,12 +219,13 @@ mkdir -p /opt/talkyard-backup-archives-in-gcs
    }
    ```
 
-1. Install a firewall, for example firewalld. Note that ufw (another Linux firewall)
+    <!-- 
+    1. Install a firewall, for example firewalld. Note that ufw (another Linux firewall)
    is incompatible with Docker, see:
    https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw.
    (If you use Google Cloud Engine: GCE already has a firewall.)
 
-   <!-- Update 2021-04-04: It's better if you use <b>`firewalld`</b> instead — it's safer:
+   Update 2021-04-04: It's better if you use <b>`firewalld`</b> instead — it's safer:
    Docker can bypas `ufw` rules, but not `firewalld` rules.
    Read more here: https://github.com/chaifeng/ufw-docker,
    and you can websearch: https://www.google.com/search?q=ufw+docker
@@ -232,7 +238,9 @@ mkdir -p /opt/talkyard-backup-archives-in-gcs
 
    Here's firewalld: https://firewalld.org/  -->
 
-1. Create Docker volumes: (if you want, you can edit the script and the volumes)
+1. Create Docker volumes: (if you want, you can edit the script and the volumes,
+    e.g. to store uploaded files on their own disk
+    — that's the `talkyard-v1-uploads` Docker volume)
 
         ./scripts/create-volumes.sh
 
@@ -257,7 +265,8 @@ mkdir -p /opt/talkyard-backup-archives-in-gcs
      then comment in `talkyard.port=8080` in `play-framework.conf`.
     -->
 
-1. Depending on how much RAM your server has (run `free -mh` to find out), choose one of these files:
+1. Depending on how much RAM your server has (run `free -mh` to find out),
+   choose one of these files:
    mem/1.7g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
    and copy it to ./docker-compose.override.yml. For example, for
    a server with 2 GB RAM:
@@ -276,12 +285,26 @@ mkdir -p /opt/talkyard-backup-archives-in-gcs
    Afterwards, you can type: `docker compose ps` — you should then see a list
    of Docker containers in state Up (means they're running).
 
-1. Schedule deletion of old log files, daily backups and deletion old backups,
-   and automatic upgrades:
+1. Schedule daily backups and deletion old backups, and automatic upgrades:
 
-        ./scripts/schedule-logrotate.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
+
+    <!-- Script for CGE:
+
+    # m h  dom mon dow   command
+    @reboot echo '---REBOOT---' >> /opt/talkyard-cron.log
+    @reboot echo '/opt/talkyard-mount-backups-bucket.sh >> /opt/talkyard-cron.log 2>&1' | at now + 5 minutes
+    10 0 * * * cd /opt/talkyard && ./scripts/delete-old-logs.sh >> talkyard-maint.log 2>&1
+    10 2 * * * cd /opt/talkyard && ./scripts/backup.sh daily >> talkyard-maint.log 2>&1
+    10 3 * * * cd /opt/talkyard && ./scripts/delete-old-backups.sh >> talkyard-maint.log 2>&1
+    51 0 * * * cd /opt/talkyard && ./scripts/renew-https-certs.sh >> talkyard-maint.log 2>&1
+
+    root@tyc-gcew1dal23a:~# cat /opt/talkyard-mount-backups-bucket.sh  
+    #!/bin/bash
+    mkdir -p /opt/talkyard-backup-archives-in-gcs
+    /usr/bin/gcsfuse cloud-storage-bucket-name /opt/talkyard-backup-archives-in-gcs
+    -->
 
 1. Open a web browser; go to `https://talkyard.your website.com` — note: **https**
    not http.
@@ -520,11 +543,13 @@ You should copy the backups to a safety off-site backup server, regularly.
 Otherwise, if your main server suddenly disappears, or someone breaks into it
 and ransomware-encrypts everything — you'd lose all data.
 
+See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
+
+<!--
 There's also a script you can copy-paste to that off-site backup server,
 and run daily via Cron, to get notified via email if backups stop working
 — but no, not yet implmented `[BADBKPEML]`.
-
-See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
+-->
 
 
 A new Docker network
@@ -562,7 +587,7 @@ License (MIT)
 ----------------
 
 ```
-Copyright (c) 2016-2024 Kaj Magnus Lindberg.
+Copyright (c) 2016-2025 Kaj Magnus Lindberg.
 
 Licensed under the MIT license, see `LICENSE-MIT.txt` — and this is for the
 instructions and scripts in this repository only, not for Talkyard source code
