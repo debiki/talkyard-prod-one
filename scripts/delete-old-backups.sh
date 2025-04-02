@@ -8,7 +8,7 @@ echo
 echo
 log_message "Deleting old backups ..."
 
-backup_archives_dir=/opt/talkyard-backups/archives
+archives_dir=/var/opt/backups/talkyard/v1/archives
 deleted_backups_log=./deleted-backups.tmp.log
 
 
@@ -18,7 +18,7 @@ deleted_backups_log=./deleted-backups.tmp.log
 
 function deleteSome {
   # Need 'eval' otherwise `find` thinks the single quotes "'" are parts of a file name.
-  find_files="eval find $backup_archives_dir -regex '.*/.*-$@(.gpg)?' -type f"
+  find_files="eval find $archives_dir -regex '.+/.+-$@(\.gpg)?' -type f -regextype posix-extended"
 
   min_recent_bkps=8
   recent_days=10
@@ -39,27 +39,28 @@ function deleteSome {
     echo
   else
     # Delete all older than a year.
-    $find_files -mtime +366 -print -delete >> $deleted_backups_log
+    $find_files -mtime +366  \
+        -print -delete >> $deleted_backups_log
 
-    # Keep monthly backups, if older than 100 days.
-    $find_files -mtime +106 -regextype posix-extended  \
+    # Keep monthly backups, if older than 3 months.
+    $find_files -mtime +92  \
         -not -regex '.*[0-9]{4}-[0-9]{2}-01T.*' -print -delete >> $deleted_backups_log
 
     # Keep 1/10 days backups, if older than 1 month. (From the 1st, 11th and 21th days each month, but not 31st.)
-    $find_files -mtime +32 -regextype posix-extended  \
+    $find_files -mtime +32  \
         -not -regex '.*[0-9]{4}-[0-9]{2}-[012]1T.*' -print -delete >> $deleted_backups_log
 
-    # Keep 1/3 days backups, if older than 15 days.
-    $find_files -mtime +15 -regextype posix-extended \
+    # Keep 1/3 days backups, if older than two weeks.
+    $find_files -mtime +14  \
         -not -regex '.*[0-9]{4}-[0-9]{2}-[012][148]T.*' -print -delete >> $deleted_backups_log
 
-    # For the last 15 days, keep all backups.
+    # For the last weeks, keep all backups. (Noop.)
   fi
 }
 
-deleteSome "postgres.sql.gz"
-deleteSome "config.tar.gz"
-deleteSome "random-value.txt"  # (not gzipped)
+deleteSome "postgres\.sql\.gz"
+deleteSome "config\.tar\.gz"
+deleteSome "random-value\.txt"  # (not gzipped)
 
 
 
@@ -68,8 +69,8 @@ deleteSome "random-value.txt"  # (not gzipped)
 
 # Redis is a cache. No point in keeping backups for long.
 
-find $backup_archives_dir -mtime +4 -daystart -type f -regextype posix-extended \
-      -regex '.*/.*-redis.rdb.gz(.gpg)?' -print -delete >> $deleted_backups_log
+find $archives_dir -mtime +4 -daystart -type f -regextype posix-extended \
+      -regex '.*/.*-redis\.rdb\.gz(\.gpg)?' -print -delete >> $deleted_backups_log
 
 
 
@@ -85,7 +86,7 @@ find $backup_archives_dir -mtime +4 -daystart -type f -regextype posix-extended 
 # But if there're only 1 or 2 archives, then, don't delete anything — because
 # that could mean something is amiss: new backups no longer appear.
 
-find_upl_bkps="find $backup_archives_dir -name '*-uploads-up-to-incl-*.d' -type d"
+find_upl_bkps="find $archives_dir -name '*-uploads-up-to-incl-*.d' -type d"
 
 recent_bkps=$(eval $find_upl_bkps -not -mtime +123)
 num_recent_bkps=$(echo "$recent_bkps" | wc --lines)

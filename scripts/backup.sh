@@ -294,18 +294,21 @@ if [ -n "$encrypted" ]; then
   # works also with files with weird names, e.g. that incl spaces. Now, there aren't
   # any such file names in this case, but better safe than sorry.)
   #
-  echo "$new_uploads" | while IFS= read -r file_path; do
-    # (This: ${sth#prefix} removes 'prefix' from $sth.)
-    bkp_path="$backup_archives_dir/$uploads_backup_d/${file_path#./}.gpg"
-    mkdir -p "$(dirname "$bkp_path")"
+  if [ -z "$new_uploads" ]; then
+    echo "No new uploaded files to backup."
+  else
+    echo "$new_uploads" | while IFS= read -r file_path; do
+      echo "Backing up: $file_path ..."
+      # (This: ${sth#prefix} removes 'prefix' from $sth.)
+      bkp_path="$backup_archives_dir/$uploads_backup_d/${file_path#./}.gpg"
+      mkdir -p "$(dirname "$bkp_path")"
 
-    # docker exec -i $(docker ps -q -f "ancestor=busybox") sh -c "cat $file_path" | gpg --symmetric --cipher-algo AES256 -o /path/to/encrypted/$(basename $file_path).gpg
+      # docker exec -i $(docker ps -q -f "ancestor=busybox") sh -c "cat $file_path" | gpg --symmetric --cipher-algo AES256 -o /path/to/encrypted/$(basename $file_path).gpg
 
-    docker exec $busyname sh -c "cat \"/uploads/$file_path\"" \
-        | $with_cpulimit -- $so_nice  $gpg_encrypt --output "$bkp_path"
-
-    echo "Backed up: $file_path" # -> $bkp_path"
-  done
+      docker exec $busyname sh -c "cat \"/uploads/$file_path\"" \
+          | $with_cpulimit -- $so_nice  $gpg_encrypt --output "$bkp_path"
+    done
+  fi
 
   # Could delete backups of recently deleted uploads, sth like this. But isn't it better,
   # backup & security wise, to: _each_month, copy filehash.ext.gpg  that still exist, to
