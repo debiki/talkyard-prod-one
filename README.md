@@ -213,7 +213,7 @@ Next steps:
   Update 2021-03: Works fine w OpenResty, if avoiding  ngx.location.capture [63DRN3M75]
 -->
 - Edit `/opt/talkyard/conf/sites-enabled-manual/talkyard-servers.conf` and redirect
-  from HTTP to HTTPS.<br>
+  from HTTP to HTTPS.<br/>
   (If you for some reason want to run LetsEncrypt's Certbot yourself to generate
   a HTTPS cert, see [docs/setup-https.md](docs/setup-https.md),
   and have a look at the commented out `server {}` block at the bottom of
