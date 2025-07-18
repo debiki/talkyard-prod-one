@@ -1,7 +1,8 @@
-Talkyard production installation
+Installing Talkyard
 ================
 
-For one single server: Debian 11 or 12 with at least 2 GB RAM.
+Here you'll learn how to install Talkyard on a single server, for production use:
+Debian 11 or 12 with at least 2 GB RAM.
 
 Docker based installation. Automatic upgrades.
 Automatic HTTPS cert (via LetsEncrypt).
@@ -21,7 +22,6 @@ Also, knowing a bit about Docker can be good.
 See https://www.talkyard.io/plans for alternatives to installing yourself.
 
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
-This is beta software; there might be bugs.
 
 ### Security: *Private* server
 
@@ -32,7 +32,10 @@ This'll change in Talkyard v1 (next year 2025?) — then we'll use Docker volume
 
 ### Install on your laptop?
 
-Here's [a Vagrantfile here](scripts/Vagrantfile) if you want to test install on a laptop
+Here's [a Vagrantfile here](https://github.com/debiki/talkyard-prod-one/blob/main/scripts/Vagrantfile)
+if you want to test install on a laptop
+<!-- relative links:  scripts/Vagrantfile  don't work in Docusaurus, it doesn't know how
+to render a Vagrantfile. So we're linking to GitHub. Oh well. -->
 — open the Vagrantfile in a text editor, and read, for details.
 (It's old, maybe won't work.)
 
@@ -74,7 +77,8 @@ Installation instructions
 
 (There's a troubleshooting document here: ./docs/troubleshooting.md )
 
-1. Become root: `sudo -i`, then install Git and English: (can be missing, in minimal Debian builds)
+1.
+   Become root: `sudo -i`, then install Git and English: (can be missing, in minimal Debian builds)
 
        # As root:
        apt-get update
@@ -84,7 +88,8 @@ Installation instructions
        locale-gen en_US.UTF-8                      # installs English
        export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
 
-1. Create big empty files that you can delete if your server runs out of disk:
+1.
+   Create big empty files that you can delete if your server runs out of disk:
 
        fallocate --length 250MiB /balloon-1-delete-if-disk-full
        fallocate --length 250MiB /balloon-2-delete-if-disk-full
@@ -110,7 +115,8 @@ Installation instructions
    `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
    won't work. Afterwards, run `sysctl --system` to reload the system configuration.)
 
-1. Install Docker:
+1.
+   Install Docker:
 
        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
@@ -215,7 +221,7 @@ Next steps:
 - Edit `/opt/talkyard/conf/sites-enabled-manual/talkyard-servers.conf` and redirect
   from HTTP to HTTPS.<br/>
   (If you for some reason want to run LetsEncrypt's Certbot yourself to generate
-  a HTTPS cert, see [docs/setup-https.md](docs/setup-https.md),
+  a HTTPS cert, see [docs/setup-https.md](docs/setup-https),
   and have a look at the commented out `server {}` block at the bottom of
   `talkyard-servers.conf`.)
 - Sign up for a send-email-service — see the section just below.

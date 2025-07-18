@@ -1,11 +1,8 @@
-Copy backups elsewhere
+Take regular off-site backups
 ======================
 
-After you've installed Talkyard, you should copy the backups
-to a safety backup server, regularly. That's what this document is about.
-
-(I'd like to simplify all this, by creating an rsync-read-only backup help
-Docker container.)
+After you've installed Talkyard, you should regularly copy the backups
+to an off-site backup server. Here's a way to do that.
 
 
 ### Create SSH key
