@@ -69,10 +69,8 @@ Provision an Debian 11 or 12 server with at least 2 GB RAM, for example at [Digi
 Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
 
 
-Installation instructions
+Preparations
 ----------------
-
-(There's a troubleshooting document here: ./docs/troubleshooting.md )
 
 1. Become root: `sudo -i`, then install Git and English: (can be missing, in minimal Debian builds)
 
@@ -90,6 +88,27 @@ Installation instructions
        fallocate --length 250MiB /balloon-2-delete-if-disk-full
        fallocate --length 250MiB /opt/balloon-3-delete-if-disk-full
        fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
+
+1. Install a firewall, for example firewalld, see: https://firewalld.org.
+
+   Note that ufw (another Linux firewall) is incompatible with Docker
+   — Docker can bypas `ufw` rules, see:
+   https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw.
+
+   If you use Google Cloud Engine: GCE already has a firewall.
+
+   <!-- Old:
+   Read more here: https://github.com/chaifeng/ufw-docker,
+   and you can websearch: https://www.google.com/search?q=ufw+docker
+   [firewalld_not_ufw] [ty_v1] update script, have it use firewalld
+    — too complicated, let self-hosters handle that themselves.
+   -->
+
+
+Installation instructions
+----------------
+
+(There's a troubleshooting document here: ./docs/troubleshooting.md )
 
 1. Download installation scripts: (you need to install in
    `/opt/talkyard/` for the backup scripts to work)
@@ -113,22 +132,6 @@ Installation instructions
 1. Install Docker:
 
        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
-
-1. Install a firewall, for example firewalld, see: https://firewalld.org.
-
-   Note that ufw (another Linux firewall) is incompatible with Docker
-   — Docker can bypas `ufw` rules, see:
-   https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw.
-
-   If you use Google Cloud Engine: GCE already has a firewall.
-
-   <!-- Old:
-   Read more here: https://github.com/chaifeng/ufw-docker,
-   and you can websearch: https://www.google.com/search?q=ufw+docker
-   [firewalld_not_ufw] [ty_v1] update script, have it use firewalld
-    — too complicated, let self-hosters handle that themselves.
-   -->
-
 
 1. Edit config values:
 
