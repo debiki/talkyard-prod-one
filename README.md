@@ -92,7 +92,7 @@ Preparations
 1. Install a firewall, for example firewalld, see: https://firewalld.org.
 
    Note that ufw (another Linux firewall) is incompatible with Docker
-   — Docker can bypas `ufw` rules, see:
+   — Docker can bypass `ufw` rules, see:
    https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw.
 
    If you use Google Cloud Engine: GCE already has a firewall.
