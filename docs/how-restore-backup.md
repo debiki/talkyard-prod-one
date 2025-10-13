@@ -1,5 +1,6 @@
 
-## How restore a Talkyard backup
+How restore a Talkyard backup
+=============================================
 
 If your server suddenly disappears, then, to restore a backup on
 a new server, you can do as follows.

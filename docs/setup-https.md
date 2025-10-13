@@ -1,5 +1,5 @@
 Setting up HTTPS for your Talkyard server
------
+=============================================
 
 You can skip this. Nowadays (Mars 2021) Talkyard automatically generates
 HTTPS certificates for you, as long as you access Talkyard via a domain name
@@ -113,10 +113,10 @@ With Nginx, you'd configure `server { ... }` blocks.
 
 All done.
 
-You can ask questions here: <https://www.talkyard.io/forum/>
+You can ask questions here: https://www.talkyard.io/forum/
 
 
-<br><br>
+<br/><br/>
 [1]:
 If you're curious about why LetsEncrypt needs your server to listen on port 80,
 have a look here:
