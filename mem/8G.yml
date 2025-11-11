@@ -10,9 +10,9 @@ services:
   app:
     environment:
       # There's also stack memory and permanent-generation memory.
-      PLAY_HEAP_MEMORY_MB: 1500
+      PLAY_HEAP_MEMORY_MB: 1800
 
   search:
     environment:
-      ES_JAVA_OPTS: '-Xms1300m -Xmx1300m'
+      ES_JAVA_OPTS: '-Xms1800m -Xmx1800m'
 
