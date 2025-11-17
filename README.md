@@ -221,16 +221,20 @@ Installation instructions
 
        ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
 
-   Consider changing the logging driver to `local`, see:
-   https://docs.docker.com/engine/logging/drivers/local/. In `/etc/docker/daemon.json`:
+   <!-- Now this is in docker-compose.yml instead, in &default_logging.
+   Configure log rotation, so you won't run out of disk.
+   In `/etc/docker/daemon.json`: (see https://docs.docker.com/engine/logging/drivers/json-file/)
 
    ```
    {
-     "log-driver": "local"
+     "log-driver": "json-file",
+     "log-opts": {
+       "max-size": "25m",
+       "max-file": "3"
+     }
    }
    ```
-
-   Here's firewalld: https://firewalld.org/  -->
+    -->
 
 1.
    Create Docker volumes: (if you want, you can edit the script and the volumes,
