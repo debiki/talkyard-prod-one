@@ -12,9 +12,10 @@
 volumes:
   #talkyard-v1-backups: { external: true }
   talkyard-v1-uploads: { external: true }
-  talkyard-v1-pg17-data: { external: true }
+  talkyard-v1-pg-data: { external: true }
   talkyard-v1-cache-data: { external: true }
-  talkyard-v1-es9-data: { external: true }
+  talkyard-v1-es-data: { external: true }
+  talkyard-v1-es-logs: { external: true }
 
 networks:
   # This netw name get prefixed with COMPOSE_PROJECT_NAME  = 'talkyard_' by Docker, from .env.
@@ -159,18 +160,11 @@ services:
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/rdb/Dockerfile
     restart: always
     volumes:
-      - talkyard-v1-pg17-data:/var/lib/postgresql/data/
+      - talkyard-v1-pg-data:/var/lib/postgresql/data/
       - ./conf/rdb/:/var/lib/postgresql/conf/
-      # Don't. stdout & err instead.
-      # # Mount here so standard monitoring tools configured to find Postgres logs here will work.
-      # # (Inside the container, we don't mount in /var/lib/postgresql/data/pg_log/ because
-      # # then Postgres would refuse to create a db in data/, because data/ wouldn't be empty.)
-      # - /var/log/postgresql/:/var/log/postgresql/
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_RDB_IP}
-    # Log to stderr instead of /var/log/postgresql/:    # can't this be in Dockerfile?
-    command: '--logging_collector=off'
     logging: *default_logging
     environment:
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
@@ -205,11 +199,12 @@ services:
     # dockerfile: https://github.com/debiki/talkyard/blob/master/images/search/Dockerfile
     restart: always
     volumes:
-      # COULD_OPTIMIZE Maybe use a Docker volume contanier here instead? What does the docs mean when
-      # they say "Always use a volume bound on /usr/share/elasticsearch/data" — is mapping
-      # a directory from the OS okay then? (that's using (parts of) a host's device/volume.
-      # https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html#docker-cli-run-prod-mode
-      - talkyard-v1-es9-data:/usr/share/elasticsearch/data/
+      - talkyard-v1-es-data:/usr/share/elasticsearch/data/
+      # Deprecation logs aren't written to stdout, but to files in this dir,
+      # auto rotated, max 5G in total.
+      # See: https://www.elastic.co/docs/deploy-manage/monitor/logging-configuration/elasticsearch-deprecation-logs
+      - talkyard-v1-es-logs:/usr/share/elasticsearch/logs/
+
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_SEARCH_IP}
