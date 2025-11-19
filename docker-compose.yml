@@ -26,11 +26,7 @@ networks:
 
 # See: https://github.com/compose-spec/compose-spec/blob/main/spec.md#logging
 x-logging: &default_logging
-  driver: json-file
-  options:
-    max-size: 25m
-    max-file: 3
-    # compress: true
+  driver: local
 
 services:
   web:
@@ -55,7 +51,7 @@ services:
         ipv4_address: ${INTERNAL_NET_WEB_IP}
     depends_on:
       - app
-    logging: &default_logging
+    logging: *default_logging
     environment:
       ## By default, Talkyard logs to /var/log/nginx/ — see the volumes list above.
       ## However you can log to stdout instead: (both Nginx' access and error logs)
@@ -118,7 +114,7 @@ services:
       # But this we need to wait for. E.g. upgrading Postgres 17 —> 18.
       #migrate:
       #  condition: service_completed_successfully
-    logging: &default_logging
+    logging: *default_logging
     environment:
       - PLAY_SECRET_KEY
       - TALKYARD_SECURE
@@ -140,7 +136,7 @@ services:
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_CACHE_IP}
-    logging: &default_logging
+    logging: *default_logging
     sysctls:
       net.core.somaxconn: 511
     healthcheck:  # move to image?
@@ -175,7 +171,7 @@ services:
         ipv4_address: ${INTERNAL_NET_RDB_IP}
     # Log to stderr instead of /var/log/postgresql/:    # can't this be in Dockerfile?
     command: '--logging_collector=off'
-    logging: &default_logging
+    logging: *default_logging
     environment:
       POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
       # Optionally, streaming replication peer:
@@ -217,7 +213,7 @@ services:
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_SEARCH_IP}
-    logging: &default_logging
+    logging: *default_logging
     environment:
       bootstrap.memory_lock: 'true'
       ES_JAVA_OPTS: '-Xms512m -Xmx512m'
