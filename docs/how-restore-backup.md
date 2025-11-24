@@ -6,7 +6,7 @@ If your server disappeared, and you want to restore a backup on a new server.
 Or if you're upgrading from Talkyard epoch v0 to v1. Then you can do as follows.
 
 Start installing Talkyard on that new server, following the instructions in
-https://github.com/debiki/talkyard-prod-one/blob/master/README.md
+https://github.com/debiki/talkyard-prod-one/blob/ty-prod-one-v1/README.md
 — but stop at step 8: "Edit config values".
 Instead, we'll copy config files from the backup:
 
@@ -100,13 +100,13 @@ your new Talkyard server. Or maybe 2) change the hostname of the Talkyard server
 — you'd then edit Nginx config in `conf/play-framework.conf`,
 and `conf/sites-enabled-manual/` or `data/sites-enabled-auto-gen/`, plus
 generate a LetsEncrypt cert
-(see: `https://github.com/debiki/talkyard-prod-one/blob/master/docs/setup-https.md`).
+(see: `https://github.com/debiki/talkyard-prod-one/blob/ty-prod-one-v1/docs/setup-https.md`).
 
 
 ### Backups and automatic upgrades
 
-Continue with step 9 in the installation instructions in README.md,
-https://github.com/debiki/talkyard-prod-one/blob/master/README.md,
+Continue with step ?? in the installation instructions in README.md,
+https://github.com/debiki/talkyard-prod-one/blob/ty-prod-one-v1/README.md,
 that is, this step:
 *"Schedule deletion of old log files, daily backups and deletion old backups, and automatic upgrades"*.
 

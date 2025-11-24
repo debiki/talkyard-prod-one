@@ -100,8 +100,8 @@ new version of the host scripts, and you'll install in /opt/talkyard-vX/,
 and import a backup.) -->
 
 Talkyard uses these directories:
-<!-- (following the Linux File System Hierarchy Standard, FHS)
-FHS, Debian: https://manpages.debian.org/bookworm/manpages/hier.7.en.html
+(following the Linux File System Hierarchy Standard, FHS)
+<!-- FHS, Debian: https://manpages.debian.org/bookworm/manpages/hier.7.en.html
 Shouldn't use /opt/backups for backups?  o.O
 They write:  "/var/backups  Reserved for historical reasons."
 And, https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch05s02.html: "Several directories
@@ -249,8 +249,8 @@ Installation instructions
 1. Edit config values:
 
    ```
-   nano conf/play-framework.conf  # fill in values in the Required Settings section
-   nano .env                      # type a database password
+   nano conf/app/play-framework.conf  # fill in values in the Required Settings section
+   nano .env                          # type a database password
    ```
 
    Note:
