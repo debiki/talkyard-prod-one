@@ -27,15 +27,6 @@ if ! grep -q 'LANG=' /etc/default/locale; then
 fi
 
 
-# Install 'jq', for viewing json logs.
-# And start using any hardware random number generator, in case the server has one.
-log_message 'Installing jq and rng-tools, for json logs and hardware random numbers...'
-apt-get -y install jq rng-tools
-
-log_message 'Installing add-apt-repository...'
-apt-get -y install software-properties-common
-
-
 # Append system config settings, so the ElasticSearch Docker container will work,
 # and so Nginx can handle more connections. [BACKLGSZ]
 
@@ -130,11 +121,9 @@ else
           -o Dpkg::Options::="--force-confold" \
           unattended-upgrades \
           update-notifier-common
-  # [ty_v1] Change from "1" to "always", and use systemd to configure how often,
-  # works with Debian >= 10, see: https://unix.stackexchange.com/a/541426
   cat <<EOF > $auto_upgr_f
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::Update-Package-Lists "always";
+APT::Periodic::Unattended-Upgrade "always";
 APT::Periodic::AutoremoveInterval "14";
 APT::Periodic::AutocleanInterval "14";
 APT::Periodic::MinAge "8";

@@ -124,9 +124,6 @@ since they would conflict with historical and/or local practice. They are:
 - `/var/lib/docker/`:
     Database storage, uploaded files (in Docker volumes).
     Docker images, log files.
-<!--
-- `/var/opt/talkyard/v1/`: Database storage, e.g. PostgreSQL and Redis. (Docker volumes.)
-- `/var/opt/talkyard/v1/uploads/`: Uploaded files, e.g. images. (A Docker volume.) -->
 - `/var/opt/backups/talkyard/v1/`:
     Backups. (_Not_ a Docker volume.)
 
@@ -143,26 +140,52 @@ Or connect to some S3 compatible cloud storage (not yet implemented `[cloud_stor
 Preparations
 ----------------
 
-Update the OS, then install Git and some stuff:
+1.
+   Update the OS, then install Git and some stuff:
 
-    apt-get update
-    apt-get upgrade
-    apt-get -y install git locales
-    apt-get -y install cpulimit         # avoids kernel panics when gzipping backups
-    apt-get -y install rng-tools        # better generation of random numbers
-    apt-get -y install jq               # to view logs
-    apt-get -y install tree ncdu vim    # nice to have
-    locale-gen en_US.UTF-8              # installs English
-    export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
+       apt-get update
+       apt-get upgrade
+       apt-get -y install git locales
+       apt-get -y install cpulimit         # avoids kernel panics when gzipping backups
+       apt-get -y install rng-tools        # better generation of random numbers
+       apt-get -y install jq               # to view logs
+       apt-get -y install tree ncdu vim    # nice to have
+       locale-gen en_US.UTF-8              # installs English
+       export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
 
-Create big empty files that you can delete if your server runs out of disk:
+1.
+   Create big empty files that you can delete if your server runs out of disk:
 
-    fallocate --length 250MiB /balloon-1-delete-if-disk-full
-    fallocate --length 250MiB /balloon-2-delete-if-disk-full
-    fallocate --length 250MiB /var/balloon-3-delete-if-disk-full
-    fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
+       fallocate --length 250MiB /balloon-1-delete-if-disk-full
+       fallocate --length 250MiB /balloon-2-delete-if-disk-full
+       fallocate --length 250MiB /var/balloon-3-delete-if-disk-full
+       fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
 
-And, if you want to, and know what you're doing:
+1.
+   Install Docker:
+   - If you use Debian 13 or Ubuntu 24, you can just: `sudo apt-get install docker`.
+   - Otherwise, read: https://docs.docker.com/engine/install/debian/ and follow the instructions.
+     Or use the convenience script: https://docs.docker.com/engine/install/debian/#install-using-the-convenience-script.
+
+1.
+   Install the Docker Compose plugin: (after you've installed Docker)
+
+       sudo apt-get install -y docker-compose-plugin
+
+1.
+   Configure Docker log rotation, so you won't run out of disk.
+   You can use the `local` log driver — it cleans up old log files automatically
+   (see https://docs.docker.com/engine/logging/drivers/json-file/).
+   In `/etc/docker/daemon.json`:
+
+       {
+         "log-driver": "local"
+       }
+
+
+### Advanced
+
+If you want to, and know what you're doing:
 
 **Swap:** Comment out any swap from `/etc/fstab`, and run: `swapoff -a`.
 
@@ -215,26 +238,6 @@ Installation instructions
    -  Copy the sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
        `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
        won't work. Afterwards, run `sysctl --system` to reload the system configuration.
-
-1.
-   Install Docker: (as root in `/opt/talkyard-v1/`)
-
-       ./scripts/install-docker-compose.sh 2>&1 | tee -a talkyard-maint.log
-
-   <!-- Now this is in docker-compose.yml instead, in &default_logging.
-   Configure log rotation, so you won't run out of disk.
-   In `/etc/docker/daemon.json`: (see https://docs.docker.com/engine/logging/drivers/json-file/)
-
-   ```
-   {
-     "log-driver": "json-file",
-     "log-opts": {
-       "max-size": "25m",
-       "max-file": "3"
-     }
-   }
-   ```
-    -->
 
 1.
    Create Docker volumes: (if you want, you can edit the script and the volumes,

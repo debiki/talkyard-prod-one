@@ -253,9 +253,9 @@ if [ -n "$encrypted" ]; then
   # and `cat` uploaded files. Let's start the container just once and use `exec`.
   short_random_value=$( echo "$random_value" | head -c 7 )
   busyname="talkyard-busybox-$short_random_value"
-  docker run --rm -v talkyard-v1-uploads:/uploads:ro -d --name $busyname busybox tail -f /dev/null
+  docker run --rm -v talkyard-v1-pub-files:/pub-files:ro -d --name $busyname busybox tail -f /dev/null
 
-  all_uploads="$(docker exec $busyname  sh -c 'cd /uploads && find . -type f' | sort)"
+  all_uploads="$(docker exec $busyname  sh -c 'cd /pub-files/uploads && find . -type f' | sort)"
 
   # If new month: Copy existing uploads from the last month's uploads backup directory, so
   # we won't have to encrypt everything again — could take long if many GB uploaded files.
@@ -305,7 +305,7 @@ if [ -n "$encrypted" ]; then
 
       # docker exec -i $(docker ps -q -f "ancestor=busybox") sh -c "cat $file_path" | gpg --symmetric --cipher-algo AES256 -o /path/to/encrypted/$(basename $file_path).gpg
 
-      docker exec $busyname sh -c "cat \"/uploads/$file_path\"" \
+      docker exec $busyname sh -c "cat \"/pub-files/uploads/$file_path\"" \
           | $with_cpulimit -- $so_nice  $gpg_encrypt --output "$bkp_path"
     done
   fi
@@ -343,7 +343,7 @@ log_message "Done backing up uploads."
 
 # Keep track of what we've backed up:
 $docker_compose exec rdb $psql -c \
-    "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '$hostname', 'uploads', '$uploads_backup_d', '$random_value');"
+    "insert into backup_test_log3 (logged_at, logged_by, backup_of_what, file_name, random_value) values (now_utc(), '$hostname', 'pub-uploads', '$uploads_backup_d', '$random_value');"
 
 
 

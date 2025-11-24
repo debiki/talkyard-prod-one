@@ -11,22 +11,11 @@ echo
 log_message "Installing Docker and Docker-Compose..."
 
 
-# ------- Uninstall conflicting software
-
-## [ty_v1] Look for any of these packages, and if found, ask if we can remove
-## them. If not, don't proceed?
-## But not that important — on a new Debian 12 VPS, none of them were installed
-## by default.
-# for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do
-#   sudo apt-get remove $pkg
-# done
-
-
 # ------- Add Docker repository
 
-# But what about Debian 12?
+# But what about Debian 12 and 13?
 
-
+# Move to README.md?
 # Install packages to allow apt to use a repository over HTTPS:
 apt-get update
 apt-get -y install \
@@ -183,42 +172,8 @@ fi
 
 
 # Install Docker Compose (see https://github.com/docker/compose/releases)
-#
-# And verify it's the right file — check the sha256 hash.
 
-sudo apt-get install -y docker-compose-plugin
-
-if [ -z "Skip this, now using Docker Compose not Docker-Compose." ]; then
-docker_compose_f="/usr/local/bin/docker-compose"
-if [ -f $docker_compose_f ]; then
-  log_message "Docker-Compose already installed at: $docker_compose_f"
-else
-  # Haven't yet upgraded to the new Docker Compose plugin written in Go. [ty_v1]
-  d_c_url="https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)"
-  log_message "Installing old Docker-Compose v1.29 from: $d_c_url ..."
-  curl -L "$d_c_url" -o $docker_compose_f
-  chmod +x $docker_compose_f
-
-  # The file name is docker-compose-Linux-x86_64 (renamed to docker-compose) —
-  # probably on almost all Linux distros? So this hash should almost always work?
-  # Version 1.29.2, as of 2022-10-20:
-  dc_hash_expected="f3f10cf3dbb8107e9ba2ea5f23c1d2159ff7321d16f0a23051d68d8e2547b323"
-  dc_hash_actual="$(sha256sum $docker_compose_f)"
-  if [[ ! $dc_hash_actual =~ $dc_hash_expected ]]; then
-    echo
-    log_message "Unexpected SHA256 hash of: $docker_compose_f"
-    log_message "Expected: $dc_hash_expected"
-    log_message "But sha256sum says:"
-    log_message "  $dc_hash_actual"
-    log_message "Is something amiss? I'm not sure. Aborting installation."
-    echo
-    log_message "ERROR, see above."
-    echo
-    exit 1
-  fi
-  log_message
-fi
-fi
+apt-get install -y docker-compose-plugin
 
 log_message
 log_message
@@ -226,15 +181,15 @@ log_message "*** Done ***"
 log_message
 log_message "Docker and Docker-Compose installed."
 log_message
-log_message "This should print 'docker-compose version 1.29...' or later: (not yet using v2.x)"
+log_message "This should print 'Docker Compose version v2.40' or later:"
 log_message "----------------------------"
-docker-compose -v
+docker compose version
 d_c_status_code="$?"
 log_message "----------------------------"
 echo
 
 if [ $d_c_status_code -ne 0 ]; then
-  log_message "ERROR: docker-compose didn't work, see above. Bye."
+  log_message "ERROR: docker compose didn't work, see above. Bye."
   exit 1
 fi
 
