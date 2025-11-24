@@ -72,7 +72,9 @@ zcat /BACKUP_ARCHIVES_DIR/DB_BACKUP_FILE.sql.gz \
 # Restore uploaded files
 # ------------------------------
 
-rsync -a  /BACKUP_ARCHIVES_DIR/UPLOADS_BACKUP_DIR.d/  /opt/talkyard/data/uploads/
+# Oops now stored in a Docker volume:  talkyard-v1-pub-files  in uploads/ sub dir.
+# So won't work:   [ty_v1]
+# rsync -a  /BACKUP_ARCHIVES_DIR/UPLOADS_BACKUP_DIR.d/  /opt/talkyard/data/uploads/
 ```
 
 ### Memory
