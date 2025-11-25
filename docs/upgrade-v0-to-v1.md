@@ -6,24 +6,23 @@ be v1.YYYY.NNN (e.g. v1.2025.001).
 
 To upgrade, you'll install Talkyrad v1 side-by-side with v0, take a backup of v0,
 shut down v0 (but don't uninstall it). Then, import the backup to v1 and start v1.
-— Details further down below.
 
 Why upgrade?
 -------------------------
 
-Talkyard v1.2025.001 doesn't add any new features — it only upgrades all components
+Talkyard v1.2025.001 upgrades all components
 to more recent versions (upgrades to PostgreSQL 18, ElasticSearch 9, Redis 8,
 Debian 12 or 13).
 This is good to do, so you'll be using supported versions of the software.
 
-Talkyard >= v1.2025.002 will add new features and bug fixes though (only the first
-version, 001, is a upgrade-all-components but-no-new-features release).
-
-Talkyard v0 will stop getting new features, only bug fixes.
-
 There's also changes to the installation and maintenance scripts,
 e.g. optionally encrypted backups.
 And we'll start using Docker named volumes by default, instead of bind mounts.
+
+Talkyard >= v1.2025.002 will add new features and bug fixes (only the first
+version, 001, is a upgrade-all-components but-no-new-features release).
+
+Talkyard v0 will stop getting new features, only bug fixes.
 
 
 How to upgrade
@@ -36,37 +35,40 @@ Upgrade your Operating System to Debian 12 or 13
 
 Upgrade Docker to >= ???. Install the Compose plugin, if you haven't already:
 
+    apt-get install -y docker-compose-plugin
 
 
-### Backup and shut down
+### Backup and shut down v0
 
 Make your Talkyard v0 server read-only:
 
 ```
 cd /opt/talkyard
-... TBD
+
+docker-compose exec rdb psql ...
 ```
 
-Backup your existing Talkyard installation, let's name the backup 'beforeV1Upgrade':
+Take a backup, let's name it 'beforeV1Upgrade':
 
 ```
-cd /opt/talkyard
+cd /opt/talkyard   # this is v0
 ./scripts/backup.sh beforeV1Upgrade
 ```
 
-Then, shut down Talkyrad v0 — but don't delete anything! Just leave it as-is:
-(Note: This uses Docker-Compose v1.)
+Now, shut down Talkyrad v0 — but don't delete anything! Just leave it as-is:
 
 ```
 # in /opt/talkyard:
 docker-compose down   # (using Docker-Compose v1)
 ```
 
+Open a web browser and verify that you cannot access the Talkyard site.
 
-### Install v1. Copy config
+
+### Install v1. Copy config from v0
 
 
-Install Talkyard v1 (the new epoch), as per the installation instructions in ../README.md .
+Install Talkyard v1, as per the installation instructions in ../README.md .
 
 Copy configuration files from your v0 installation to v1 — with a small change:
 
@@ -75,8 +77,9 @@ Copy configuration files from your v0 installation to v1 — with a small change
 cp -a /opt/talkyard/conf  /opt/talkyard-v1/conf
 
 # Move play-framework.conf to a new 'app/' sub dir: (for consistency with other containers)
-mkdir /opt/talkyard/conf/app
-mv /opt/talkyard/conf/play-framework.conf /opt/talkyard/conf/app/play-framework.conf
+cd /opt/talkyard-v1/
+mkdir conf/app
+mv conf/play-framework.conf conf/app/play-framework.conf
 ```
 
 Edit the config files:
@@ -88,8 +91,20 @@ SILHOUETTE?
 ```
 
 
-But don't copy  `/opt/talkyard/data/` (just leave it as-is).
-In Talkyard v1, we use Docker named volumes only, instead — no `data/` directory needed.
+(We'll copy uploaded files from `/opt/talkyard/data/` to v1, below.)
+
+
+### Does it work this far?
+
+Start the new Talkyard v1 site:
+
+```
+cd /opt/talkyard-v1
+docker compose up -d
+```
+
+See if you can access it in a browser. It'll be empty, since you haven't restored the
+database yet.
 
 
 ### Restore database
@@ -98,8 +113,8 @@ Restore the database backup into Talkyrad v1: (and replace `...  beforeV1Upgrade
 with the backup file name.)
 
 ```
-cd /opt/talkyard-v1/
-docker compose up -d rdb   # (this is Docker Compose v2)
+cd /opt/talkyard-v1/      # note: v1
+docker compose up -d rdb  # (this is Docker Compose v2)
 
 # NOTE: Overwrites any existing database (!).
 zcat /opt/talkyard-backups/archives/...  beforeV1Upgrade ...sql.gz \
@@ -110,24 +125,40 @@ zcat /opt/talkyard-backups/archives/...  beforeV1Upgrade ...sql.gz \
 
 ### Copy uploaded files
 
+The old location of uploaded files is: `/opt/talkyard-backups/uploads`
+but the new is inside a Docker named volume. We'll start the  'app'
+container, which automatically mounts the volume (as specified in docker-compose.yml),
+then we'll copy the uploads.
 
-<!--
+```
+# In /opt/talkyard-v1:
+
 docker compose run --rm  \
-    -v /opt/talkyard-backups/uploads:/old-uploads:ro  \
-    -v talkyard-v1-pub-files:/pub-files  \
-    busybox
+    -v /opt/talkyard/data/uploads:/uploads:ro  \
+    app \
+        cp -a /uploads/public /opt/talkyard-v1/pub-files/uploads
+```
 
-# Source - https://stackoverflow.com/a
-# Posted by Aleksey Rembish, modified by community. See post 'Timeline' for change history
-# Retrieved 2025-11-24, License - CC BY-SA 3.0
 
-docker run --rm \ 
-  --volume [DOCKER_COMPOSE_PREFIX]_[VOLUME_NAME]:/[TEMPORARY_DIRECTORY_TO_STORE_VOLUME_DATA] \
-  --volume $(pwd):/[TEMPORARY_DIRECTORY_TO_STORE_BACKUP_FILE] \
-  ubuntu \
-  tar cvf /[TEMPORARY_DIRECTORY_TO_STORE_BACKUP_FILE]/[BACKUP_FILENAME].tar /[TEMPORARY_DIRECTORY_TO_STORE_VOLUME_DATA]
+### Does it work?
 
--->
+Start Talkyard v1 with your data restored:
+
+```
+# In /opt/talkyard-v1:
+
+docker compose up -d
+docker compose logs -f
+```
+
+Open a web browser and see if you can access your Talkyard site again.
+
+
+### Make the site read-write again
+
+```
+docker compose exec rdb psql ...
+```
 
 
 ### Configure backups
