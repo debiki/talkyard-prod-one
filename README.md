@@ -1,8 +1,11 @@
 Installing Talkyard
 ================
 
-Here you'll learn how to install Talkyard on a single server, for production use:
+Here you'll learn how to install Talkyard v1 on a single server, for production use:
 Debian 11 or 12 with at least 2 GB RAM.
+
+<small>(Old Talkyard v0 docs are <a href="https://github.com/debiki/talkyard-prod-one/tree/ty-prod-one-v0">
+  here</a>.)</small>
 
 NOTICE:
 
@@ -51,13 +54,14 @@ to render a Vagrantfile. So we're linking to GitHub. Oh well. - ->
 -->
 
 
-### Install behind an Nginx reverse proxy?
+<!--
+### Install behind an Nginx reverse proxy? -->
 
 <!-- Someone tried to do this, although in his case, there was *no* reverse proxy. -->
-<!-- Move to docs/ file, and update path:  /opt/talkyard/conf/play-framework.conf  —>  .../conf/app/play-framework.conf  ? -->
+<!-- Move to docs/ file, and update path:  /opt/talkyard/conf/play-framework.conf  —>  .../conf/app/play-framework.conf  ? [2doc]
 To install Talkyard behind a reverse proxy, read here: docs/reverse-proxy.md.
 (If you don't know what a reverse proxy is, just ignore this.)
-
+ -->
 <!--
 Skip this, unless you know what a "reverse proxy" is;
 instead, continue below, the section "Install on a new server".
@@ -68,9 +72,11 @@ The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
 -->
 
 
+<!--
 ### Install on a new server
 
 The rest of this document is about how to install Talkyard on a new server.
+-->
 
 Installation overview: You'll rent a virtual private server (VPS) somewhere, then download
 and install Talkyard, then sign up for a send-emails service and configure email settings.
@@ -86,7 +92,7 @@ Get a server and a Web address
 
 Provision an Debian 12 or 13 server <!-- not 11, it's EOL 2026 --> with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/), a US company, or [Upcloud](https://upcloud.com/), an EU company.
 
-Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
+Point a domain name, say, `forum.your-website.com`, to the server IP address.
 
 
 Directories
@@ -100,7 +106,7 @@ new version of the host scripts, and you'll install in /opt/talkyard-vX/,
 and import a backup.) -->
 
 Talkyard uses these directories:
-(following the Linux File System Hierarchy Standard, FHS)
+(following the Linux File System Hierarchy Standard)
 <!-- FHS, Debian: https://manpages.debian.org/bookworm/manpages/hier.7.en.html
 Shouldn't use /opt/backups for backups?  o.O
 They write:  "/var/backups  Reserved for historical reasons."
@@ -110,11 +116,11 @@ since they would conflict with historical and/or local practice. They are:
 /var/backups, /var/cron, ...".  Better store backups in /var/opt/...backups.../ somewhere?
 -->
 
-- `/opt/talkyard-v1/`: Installation scripts, other scripts, and `docker-compose.yml`.
-      This is a Git repo — you can check in your changes to Git (but not passwords!).
-      You should know how to resolve Git conflicts,
-      if you `git fetch` new minor versions of these scripts.
+- `/opt/talkyard-v1/`: Various scripts, and `docker-compose.yml`.
+      This is a Git repo — you can check in your changes to Git (but not passwords!),
+      but only if you can resolve Git conflicts!
       <!--
+      if you `git fetch` new minor versions of these scripts.
       We call scripts here "host scripts" since they run on the host operating system.
       They aren't part of Talkyard itself — none of them would be relevant, if
       instead running Ty on Windows (not supported).
@@ -125,7 +131,7 @@ since they would conflict with historical and/or local practice. They are:
     Database storage, uploaded files (in Docker volumes).
     Docker images, log files.
 - `/var/opt/backups/talkyard/v1/`:
-    Backups. (_Not_ a Docker volume.)
+    Backups.
 
 <!--
 If you want, mount `/var/` and `/var/opt/backups/` on
@@ -165,7 +171,7 @@ Preparations
    Install Docker:
    - If you use Debian 13 or Ubuntu 24, you can just: `sudo apt-get install docker`.
    - Otherwise, read: https://docs.docker.com/engine/install/debian/ and follow the instructions.
-     Or use the convenience script: https://docs.docker.com/engine/install/debian/#install-using-the-convenience-script.
+     Or use their convenience script: https://docs.docker.com/engine/install/debian/#install-using-the-convenience-script.
 
 1.
    Install the Docker Compose plugin: (after you've installed Docker)
@@ -200,7 +206,7 @@ Note that ufw (another Linux firewall) is incompatible with Docker
 https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw.
 <!-- [firewalld_not_ufw] update script, have it use firewalld  -->
 
-Look in `.env` to see the IP addresses of the Docker containers. The ip
+You can see the IP addresses of the Docker containers in the `.env` file. The ip
 of the `web` container, which runs Nginx and listens on ports 80 and 443,
 is set on the `INTERNAL_NET_WEB_IP=...` row, and this is the only
 container that should be reachable from outside.
@@ -226,6 +232,8 @@ Installation instructions
        cd /opt/
        git clone https://github.com/debiki/talkyard-prod-one.git talkyard-v1
        cd talkyard-v1
+       # Make sure you'll install v1:
+       git checkout origin/ty-prod-one-v1
 
 1.
    Prepare the OS: install tools, enable automatic security updates, simplify troubleshooting,
@@ -271,9 +279,9 @@ Installation instructions
    choose one of these files:
    mem/1.7g.yml, mem/2g.yml, mem/3.6g.yml, ... and so on,
    and copy it to ./docker-compose.override.yml. For example, for
-   a server with 2 GB RAM:
+   a server with 4 GB RAM:
 
-        cp mem/2g.yml docker-compose.override.yml
+        cp mem/4g.yml docker-compose.override.yml
 
 1. Install and start the latest version. This might take a few minutes
    the first time (to download Docker images).

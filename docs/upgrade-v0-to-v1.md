@@ -1,3 +1,5 @@
+Upgrading from Talkyard v0 to v1
+================================
 
 
 Talkyrad v1 is a major-major new version of Talkyard, that is, a new epoch.
@@ -35,7 +37,7 @@ Upgrade your Operating System to Debian 12 or 13
 
 Upgrade Docker to >= ???. Install the Compose plugin, if you haven't already:
 
-    apt-get install -y docker-compose-plugin
+    apt-get install docker-compose-plugin
 
 
 ### Backup and shut down v0
@@ -48,7 +50,7 @@ cd /opt/talkyard
 docker-compose exec rdb psql ...
 ```
 
-Take a backup, let's name it 'beforeV1Upgrade':
+Take a backup, let's name it `beforeV1Upgrade`:
 
 ```
 cd /opt/talkyard   # this is v0
@@ -125,8 +127,8 @@ zcat /opt/talkyard-backups/archives/...  beforeV1Upgrade ...sql.gz \
 
 ### Copy uploaded files
 
-The old location of uploaded files is: `/opt/talkyard-backups/uploads`
-but the new is inside a Docker named volume. We'll start the  'app'
+The old location of uploaded files is: `/opt/talkyard/data/uploads`;
+the new is in a Docker named volume. We'll start the  'app'
 container, which automatically mounts the volume (as specified in docker-compose.yml),
 then we'll copy the uploads.
 
@@ -134,9 +136,9 @@ then we'll copy the uploads.
 # In /opt/talkyard-v1:
 
 docker compose run --rm  \
-    -v /opt/talkyard/data/uploads:/uploads:ro  \
+    -v /opt/talkyard/data/uploads:/uploads-v0:ro  \
     app \
-        cp -a /uploads/public /opt/talkyard-v1/pub-files/uploads
+        rsync -a /uploads-v0/public/ /opt/talkyard-v1/pub-files/uploads/
 ```
 
 
@@ -154,17 +156,17 @@ docker compose logs -f
 Open a web browser and see if you can access your Talkyard site again.
 
 
-### Make the site read-write again
+### Make the site read-write
 
 ```
 docker compose exec rdb psql ...
 ```
 
 
-### Configure backups
+### Reconfigure backups
 
 Reconfigure the off-site backup script so it backups `/var/opt/backups/`
-(instead of `/opt/talkyard-backups/`).
+(instead of `/opt/talkyard-backups/`) — see the end of ../README.md.
 
 Wait a month or two. All fine? You can delete old v0.
 

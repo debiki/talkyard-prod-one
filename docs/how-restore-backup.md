@@ -37,8 +37,6 @@ tar xf /BACKUP_ARCHIVES_DIR/CONFIG_BACKUP_FILE.tar.gz -C old-conf
 mv old-conf/.env                        ./
 mv old-conf/docker-compose.*            ./
 mv old-conf/conf                        ./conf
-mv old-conf/data/certbot                data/certbot
-mv old-conf/data/sites-enabled-auto-gen data/sites-enabled-auto-gen
 
 
 # Stop any App server
@@ -72,9 +70,11 @@ zcat /BACKUP_ARCHIVES_DIR/DB_BACKUP_FILE.sql.gz \
 # Restore uploaded files
 # ------------------------------
 
-# Oops now stored in a Docker volume:  talkyard-v1-pub-files  in uploads/ sub dir.
-# So won't work:   [ty_v1]
-# rsync -a  /BACKUP_ARCHIVES_DIR/UPLOADS_BACKUP_DIR.d/  /opt/talkyard/data/uploads/
+# Test if works!  [ty_v1]
+docker compose run --rm  \
+    -v /BACKUP_ARCHIVES_DIR/UPLOADS_BACKUP_DIR.d:/uploads:ro  \
+    app \
+        rsync -a /uploads/ /opt/talkyard-v1/pub-files/uploads/
 ```
 
 ### Memory
@@ -83,7 +83,7 @@ Next, configure memory: Run `free -m` to find out how many megabytes
 memory your machine has. Look at docker-compose.override.yml to see how
 much memory Talkyard has been configure to use — and optionally,
 replace that file with another more suitable one from `./mem/*`,
-e.g.: `cp mem/2g.yml docker-compose.override.yml`.
+e.g.: `cp mem/4g.yml docker-compose.override.yml`.
 
 
 ### Start Talkyard
