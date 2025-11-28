@@ -1,5 +1,5 @@
 # Dockerfiles for the Docker images are in another Git repo:
-# https://github.com/debiki/talkyard, at: images/(image-name)/Dockerfile
+# https://github.com/debiki/talkyard, at: images/(service-name)/Dockerfile
 #
 # There's an image build script: https://github.com/debiki/talkyard/blob/main/Makefile,
 # the `prod-images` and `tag-and-push-latest-images` targets.
@@ -28,11 +28,12 @@ networks:
 
 # See: https://github.com/compose-spec/compose-spec/blob/main/spec.md#logging
 x-logging: &default_logging
+  # This driver rotates logs by default, so we won't run out of disk.
   driver: local
 
 services:
   web:
-    image: ${DOCKER_REPOSITORY}/talkyard-web:${VERSION_TAG}
+    image: ${DOCKER_REPOSITORY}/talkyard-${EDITION}-web:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/web/Dockerfile
     restart: always
     volumes:
@@ -57,6 +58,7 @@ services:
         ipv4_address: ${INTERNAL_NET_WEB_IP}
     depends_on:
       - app
+      - cache
     logging: *default_logging
     environment:
       TY_NGX_ERROR_LOG_LEVEL: 'info'  # or 'notice' or 'debug'
@@ -89,7 +91,7 @@ services:
       - NET_BIND_SERVICE
 
   app:
-    image: ${DOCKER_REPOSITORY}/talkyard-app:${VERSION_TAG}
+    image: ${DOCKER_REPOSITORY}/talkyard-${EDITION}-app:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/app/Dockerfile.prod
     restart: always
     stdin_open: true  # otherwise Play Framework exits
@@ -117,12 +119,12 @@ services:
       - BECOME_OWNER_EMAIL_ADDRESS
     cap_drop:
       - ALL
-    cap_add:  # is this enough?
+    cap_add:
       - SETGID
       - SETUID
 
   cache:
-    image: ${DOCKER_REPOSITORY}/talkyard-cache:${VERSION_TAG}
+    image: ${DOCKER_REPOSITORY}/talkyard-${EDITION}-cache:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/cache/Dockerfile
     restart: always
     volumes:
@@ -149,11 +151,11 @@ services:
       - KILL # ?
 
   rdb:
-    image: ${DOCKER_REPOSITORY}/talkyard-rdb:${VERSION_TAG}
+    image: ${DOCKER_REPOSITORY}/talkyard-${EDITION}-rdb:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/rdb/Dockerfile
     restart: always
     volumes:
-      - talkyard-v1-pg-data:/var/lib/postgresql/data
+      - talkyard-v1-pg-data:/var/lib/postgresql
       - ./conf/rdb:/var/lib/postgresql/conf
     networks:
       internal_net:
@@ -179,7 +181,7 @@ services:
       retries: 5
 
   search:
-    image: ${DOCKER_REPOSITORY}/talkyard-search:${VERSION_TAG}
+    image: ${DOCKER_REPOSITORY}/talkyard-${EDITION}-search:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/search/Dockerfile
     restart: always
     volumes:
