@@ -8,16 +8,15 @@
 # https://github.com/compose-spec/compose-spec/blob/main/spec.md
 
 
-# You can create using ./scripts/create-volumes.sh.
+# You can override this in docker-compose.override.yml.
 volumes:
-  #talkyard-v1-backups: { external: true }
-  talkyard-v1-web-acme: { external: true }
-  talkyard-v1-pub-files: { external: true }
-  talkyard-v1-priv-files: { external: true }
-  talkyard-v1-pg-data: { external: true }
-  talkyard-v1-cache-data: { external: true }
-  talkyard-v1-es-data: { external: true }
-  talkyard-v1-es-logs: { external: true }
+  talkyard-v1-web-acme:
+  talkyard-v1-pub-files:
+  talkyard-v1-priv-files:
+  talkyard-v1-pg-data:
+  talkyard-v1-cache-data:
+  talkyard-v1-es-data:
+  talkyard-v1-es-logs:
 
 networks:
   # This netw name get prefixed with COMPOSE_PROJECT_NAME  = 'talkyard_' by Docker, from .env.
