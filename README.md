@@ -92,7 +92,10 @@ Have a look in `./docker-compose.yml` (in this repo) for details and links.
 Get a server and a Web address
 ----------------
 
-Provision an Debian 12 or 13 server <!-- not 11, it's EOL 2026 --> with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/), a US company, or [Upcloud](https://upcloud.com/), an EU company.
+Provision an Debian 12 or 13 server <!-- not 11, it's EOL 2026 -->
+with at least 20 GB disk and 2 GB RAM,
+for example at [Digital Ocean](https://www.digitalocean.com/), a US company,
+or [Upcloud](https://upcloud.com/), an EU company.
 
 Point a domain name, say, `forum.your-website.com`, to the server IP address.
 

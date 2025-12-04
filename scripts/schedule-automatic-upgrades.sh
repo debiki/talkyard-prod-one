@@ -7,7 +7,7 @@ function log_message {
 echo
 log_message "Scheduling automatic upgrades..."
 
-upgrade_match=`crontab -l | grep '/opt/talkyard-v1.*/upgrade-if-needed'`
+upgrade_match=$(crontab -l | grep '/opt/talkyard-v1 .*/upgrade-if-needed.sh')
 
 # We backup at 02:10, delete old backups at 03:10 (see schedule-daily-backups.sh),
 # so let's check for new versions and upgrade, at 04:10.
