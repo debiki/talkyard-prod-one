@@ -2,15 +2,17 @@ Installing Talkyard
 ================
 
 Here you'll learn how to install Talkyard v1 on a single server, for production use:
-Debian 11 or 12 with at least 2 GB RAM.
+Debian 12 or 13 with at least 2 GB RAM.
 
 <small>(Old Talkyard v0 docs are <a href="https://github.com/debiki/talkyard-prod-one/tree/ty-prod-one-v0">
   here</a>.)</small>
 
-NOTICE:
+------
 
-This Git branch is for upcoming Talkyard v1 (epoch 1). Don't use! Work in progress.
-And, I'll **rewrite history** in this branch.
+NOTICE: This Git branch is for upcoming Talkyard v1 (epoch 1). Feedback welcome!
+Leave a comment here for example: https://forum.talkyard.io/-857/release-talkyard-v1
+
+(I'll **rewrite history** in this branch.)
 
 ------
 
@@ -168,15 +170,14 @@ Preparations
        fallocate --length 250MiB /var/balloon-4-delete-if-disk-full
 
 1.
-   Install Docker:
-   - If you use Debian 13 or Ubuntu 24, you can just: `sudo apt-get install docker`.
-   - Otherwise, read: https://docs.docker.com/engine/install/debian/ and follow the instructions.
-     Or use their convenience script: https://docs.docker.com/engine/install/debian/#install-using-the-convenience-script.
+   Install Docker.
+   Read: https://docs.docker.com/engine/install/debian/ and follow the instructions.
+   Or use their convenience script: https://docs.docker.com/engine/install/debian/#install-using-the-convenience-script.
 
 1.
-   Install the Docker Compose plugin: (after you've installed Docker)
+   Install the Docker Compose plugin:
 
-       sudo apt-get install -y docker-compose-plugin
+       sudo apt-get install docker-compose-plugin
 
 1.
    Configure Docker log rotation, so you won't run out of disk.
@@ -233,7 +234,7 @@ Installation instructions
        git clone https://github.com/debiki/talkyard-prod-one.git talkyard-v1
        cd talkyard-v1
        # Make sure you'll install v1:
-       git checkout origin/ty-prod-one-v1
+       git checkout --track origin/ty-prod-one-v1
 
 1.
    Prepare the OS: install tools, enable automatic security updates, simplify troubleshooting,
@@ -246,13 +247,6 @@ Installation instructions
    -  Copy the sysctl `net.core.somaxconn` and `vm.max_map_count` settings in the script to your
        `/etc/sysctl.conf` config file — otherwise, the full-text-search-engine (ElasticSearch)
        won't work. Afterwards, run `sysctl --system` to reload the system configuration.
-
-1.
-   Create Docker volumes: (if you want, you can edit the script and the volumes,
-   e.g. to store uploaded files on their own disk
-   — that's the `talkyard-v1-uploads` Docker volume)
-
-       ./scripts/create-volumes.sh
 
 1. Edit config values:
 
