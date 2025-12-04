@@ -144,7 +144,6 @@ if [ -n "$CURRENT_VERSION" ]; then
     # --all removes also unused but not-dangling images, but not volumes
     # (need to add --volumes to remove volumes too).
     $docker system prune --all --force --filter "until=8928h" \
-            --filter "label=$label.prune=true" \
             --filter "label=$label.edition=tyse" \
             --filter "label=$label.epoch=1"
   done
