@@ -1,7 +1,4 @@
-data/
-
-# Auto generated.
-conf/acme/acme-account.key
+secrets/
 
 # Maintenance log. Various scripts write to.
 talkyard-maint.log
