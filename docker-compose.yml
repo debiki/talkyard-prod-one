@@ -232,4 +232,29 @@ services:
       - SETUID
       # KILL?
 
+  backup:
+    image: ${DOCKER_REG_ORG}/talkyard-backup:${VERSION_TAG}
+    # dockerfile: https://github.com/debiki/talkyard/blob/main/images/backup/Dockerfile
+    restart: never
+    secrets:
+      # Will appear at /run/secrets/postgres_password. [backup_pg_client_secret]
+      - postgres_password
+      - backup_password
+    volumes:
+      # So can backup uploaded files.
+      - talkyard-v1-pub-files:/var/talkyard-v1/pub-files:ro
+      - talkyard-v1-priv-files:/var/talkyard-v1/priv-files:ro
+      - talkyard-v1-redis-data:/var/talkyard-v1/redis-data:ro
+      # So can backup config files.
+      - .:/opt/talkyard-v1:ro
+      # Here we save the backups.
+      - /var/opt/backups/talkyard/v1:/var/opt/backups/talkyard/v1
+    logging: *default_logging
+    depends_on:
+      - rdb
+    networks:
+      internal_net:
+    cap_drop:
+      - ALL
+
 # vim: et ts=2 sw=2
