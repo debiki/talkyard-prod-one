@@ -18,6 +18,13 @@ volumes:
   talkyard-v1-es-data:
   talkyard-v1-es-logs:
 
+# See: https://docs.docker.com/compose/how-tos/use-secrets/
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  backup_password:
+    file: ./secrets/backup_password.txt
+
 networks:
   # This netw name get prefixed with COMPOSE_PROJECT_NAME  = 'talkyard_' by Docker, from .env.
   internal_net:
@@ -102,6 +109,13 @@ services:
       # So backups can be downloaded via the admin web interface. But read-only,
       # so evil bugs cannot destroy all backups.
       # - /var/opt/backups/talkyard/v1/:/var/opt/backups/talkyard/v1/:ro
+    secrets:
+      - source: postgres_password
+        target: /run/secrets/postgres_password
+        # We run Talkyard not as root but as 'appuser', therefore:
+        uid: '1000'  # that's 'appuser', see Dockerfile.prod [appuser_id_1000]
+        gid: '1000'  # 'appgroup' has id 1000 too.
+        mode: 0400   # read-only
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_APP_IP}
@@ -114,7 +128,9 @@ services:
     environment:
       - PLAY_SECRET_KEY
       - TALKYARD_SECURE
-      - POSTGRES_PASSWORD
+      - POSTGRES_PASSWORD  # legacy
+      # The app always looks here, not configurable.
+      # POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
       - TALKYARD_HOSTNAME
       - BECOME_OWNER_EMAIL_ADDRESS
     cap_drop:
@@ -154,6 +170,8 @@ services:
     image: ${DOCKER_REG_ORG}/talkyard-rdb:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/rdb/Dockerfile
     restart: always
+    secrets:
+      - postgres_password
     volumes:
       - talkyard-v1-pg-data:/var/lib/postgresql
       - ./conf/rdb:/var/lib/postgresql/conf
@@ -162,7 +180,8 @@ services:
         ipv4_address: ${INTERNAL_NET_RDB_IP}
     logging: *default_logging
     environment:
-      POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'  # legacy
     cap_drop:
       - ALL
     cap_add: # [enough_caps]? See: https://github.com/docker-library/postgres/issues/649

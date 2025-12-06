@@ -254,8 +254,8 @@ Installation instructions
 1. Edit config values:
 
    ```
-   nano conf/app/play-framework.conf  # fill in values in the Required Settings section
-   nano .env                          # type a database password
+   nano conf/app/play-framework.conf   # fill in values in the Required Settings section
+   nano secrets/postgres_password.txt  # type a database password on a single line, nothing else!
    ```
 
    Note:
