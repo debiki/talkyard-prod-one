@@ -235,13 +235,13 @@ services:
   backup:
     image: ${DOCKER_REG_ORG}/talkyard-backup:${VERSION_TAG}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/backup/Dockerfile
-    restart: never
+    restart: no
     secrets:
       # Will appear at /run/secrets/postgres_password. [backup_pg_client_secret]
       - postgres_password
       - backup_password
     volumes:
-      # So can backup uploaded files.
+      # So can backup uploaded files and Redis.
       - talkyard-v1-pub-files:/var/talkyard-v1/pub-files:ro
       - talkyard-v1-priv-files:/var/talkyard-v1/priv-files:ro
       - talkyard-v1-redis-data:/var/talkyard-v1/redis-data:ro
@@ -251,10 +251,14 @@ services:
       - /var/opt/backups/talkyard/v1:/var/opt/backups/talkyard/v1
     logging: *default_logging
     depends_on:
+      # So can backup database.
       - rdb
     networks:
       internal_net:
     cap_drop:
       - ALL
+    cap_add:
+      # So 'root' can access Redis' dump.rdb file, which is owned by user 'redis' 999.
+      - CAP_DAC_READ_SEARCH
 
 # vim: et ts=2 sw=2
