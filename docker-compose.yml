@@ -126,9 +126,7 @@ services:
       - search
     logging: *default_logging
     environment:
-      - PLAY_SECRET_KEY
       - TALKYARD_SECURE
-      - POSTGRES_PASSWORD  # legacy
       # The app always looks here, not configurable.
       # POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
       - TALKYARD_HOSTNAME
@@ -181,7 +179,6 @@ services:
     logging: *default_logging
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      POSTGRES_PASSWORD: '$POSTGRES_PASSWORD'  # legacy
     cap_drop:
       - ALL
     cap_add: # [enough_caps]? See: https://github.com/docker-library/postgres/issues/649
