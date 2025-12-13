@@ -22,8 +22,8 @@ volumes:
 secrets:
   postgres_password:
     file: ./secrets/postgres_password.txt
-  backup_password:
-    file: ./secrets/backup_password.txt
+  #backup_password:
+  #  file: ./secrets/backup_password.txt
 
 networks:
   # This netw name get prefixed with COMPOSE_PROJECT_NAME  = 'talkyard_' by Docker, from .env.
@@ -242,7 +242,7 @@ services:
     secrets:
       # Will appear at /run/secrets/postgres_password. [backup_pg_client_secret]
       - postgres_password
-      - backup_password
+      #- backup_password
     volumes:
       # So can backup uploaded files and Redis.
       - talkyard-v1-pub-files:/var/talkyard-v1/pub-files:ro
