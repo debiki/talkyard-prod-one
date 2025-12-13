@@ -115,12 +115,15 @@ if [ -f $auto_upgr_f ]; then
   echo
 else
   log_message 'Enabling automatic security updates and reboots...'
+  # About the packages we install:
+  # apt-config-auto-update: Makes APT automatically update its package cache.
+  # unattended-upgrades: Downloads and installs security upgrades automatically and unattended.
   DEBIAN_FRONTEND=noninteractive \
       apt-get install -y \
           -o Dpkg::Options::="--force-confdef" \
           -o Dpkg::Options::="--force-confold" \
           unattended-upgrades \
-          update-notifier-common
+          apt-config-auto-update
   cat <<EOF > $auto_upgr_f
 APT::Periodic::Update-Package-Lists "always";
 APT::Periodic::Unattended-Upgrade "always";
