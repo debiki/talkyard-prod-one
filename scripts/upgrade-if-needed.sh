@@ -220,10 +220,7 @@ if [ -n "$CURRENT_VERSION" ]; then
           --name ty-maint  \
           -p80:80  -p443:443  \
           -e TY_MAINT_MODE=true  \
-          -v /opt/talkyard-v1/conf/maint-msg.html:/opt/nginx/html/502.html  \
-          -v /opt/talkyard-v1/conf/sites-enabled-manual/:/etc/nginx/sites-enabled-manual/:ro  \
-          -v /opt/talkyard-v1/data/sites-enabled-auto-gen/:/etc/nginx/sites-enabled-auto-gen/:ro  \
-          -v /opt/talkyard-v1/data/certbot/:/etc/certbot/:ro  \
+          -v ./conf/web/maint-msg.html:/opt/nginx/html/502.html  \
           web
   set -e
 
