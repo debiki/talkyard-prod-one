@@ -205,7 +205,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   # — otherwise, if 'web' can connect to Play Framework in 'app', then, making
   # requests to 'web' hangs, waiting for 'app' to have started completely.
   # We cannot use `--add-host=app:172.26.0...` — that param is for `docker`
-  # only not `docker compose`. Instead, we add scripts/docker-compose.wrong-app-ip.yml
+  # only not `docker compose`. Instead, we add docker-compose.wrong-app-ip.yml
   # which does the same thing.
   #
   # Also, need to explicitly mount the Nginx config volumes, otherwise, when using
@@ -215,7 +215,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   VERSION_TAG="$NEXT_VERSION"  \
       $docker_compose \
                         -f docker-compose.yml  \
-                        -f scripts/docker-compose.wrong-app-ip.yml  \
+                        -f scripts/impl/docker-compose.wrong-app-ip.yml  \
         run --rm -d --no-deps  \
           --name ty-maint  \
           -p80:80  -p443:443  \
