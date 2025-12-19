@@ -2,7 +2,17 @@ Installing Talkyard
 ================
 
 Here you'll learn how to install Talkyard on a single server, for production use:
-Debian 11 or 12 with at least 2 GB RAM.
+Debian 12 with at least 2 GB RAM.
+
+**Note:** This version, v0, is getting outdated.
+We suggest testing the upcoming v1 (new epoch) instead,
+to avoid a manual v0-to-v1 upgrade later.
+
+Check out the v1 Git branch: https://github.com/debiki/talkyard-prod-one/tree/ty-prod-one-v1
+
+You can post feedback in the forum: https://forum.talkyard.io/-857/release-talkyard-v1
+   
+---
 
 Docker based installation. Automatic upgrades.
 Automatic HTTPS cert (via LetsEncrypt).
@@ -67,7 +77,7 @@ Have a look in `./docker-compose.yml` (in this repo) for details and links.
 Get a server and a Web address
 ----------------
 
-Provision an Debian 11 or 12 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
+Provision an Debian 12 server with at least 2 GB RAM, for example at [Digital Ocean](https://www.digitalocean.com/).
 
 Point a domain name, say, `talkyard.your-website.com`, to the server IP address.
 
