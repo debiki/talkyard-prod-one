@@ -107,6 +107,22 @@ fi
 check_single_line        "$NEXT_VERSION"  '`tail -n1 versions/version-tags.log`'
 check_version_is_epoch_1 "$NEXT_VERSION"  '`tail -n1 versions/version-tags.log`'
 
+PINNED_VERSION="$(sed -nr 's/^ *PINNED_VERSION_TAG=([a-zA-Z0-9\._-]*).*/\1/p' .env)"
+if [ -n "$PINNED_VERSION" ]; then
+  check_single_line        "$PINNED_VERSION"  'PINNED_VERSION_TAG=... in .env'
+  check_version_is_epoch_1 "$PINNED_VERSION"  'PINNED_VERSION_TAG=... in .env'
+  log_message "Pinned version: $PINNED_VERSION"
+
+  if [[ "$CURRENT_VERSION" == "$PINNED_VERSION" ]]; then
+    log_message "Pinned version is same as current version. Need do nothing. Bye."
+    echo
+    exit 0
+  fi
+
+  log_message "Setting next version to pinned version."
+  NEXT_VERSION="$PINNED_VERSION"
+fi
+
 
 # Decide what to do
 # ===========================
@@ -136,10 +152,14 @@ fi
 # need to downgrade to previous server version:  31 * 12 * 24h = 8928.
 # Also, do this whilst the old containers are still running, so their images
 # won't be removed (that is, before the Upgrade step below).
+#
+# But skip, if on a pinned version — don't know how old it is, and maybe it's
+# not running right now.
 
-if [ -n "$CURRENT_VERSION" ]; then
+if [[ -n "$CURRENT_VERSION" && -z "$PINNED_VERSION" ]]; then
   # Let's make this work both with reverse DNS key names, and without (just "talkyard").
   # And if moving from .io to .app / .dev / .org TLD in the future, hmm.
+  log_message "Removing any unused Talkyard images older than a year ..."
   for label in "io.talkyard" "app.talkyard" "dev.talkyard" "org.talkyard" "talkyard" ; do
     # --all removes also unused but not-dangling images, but not volumes
     # (need to add --volumes to remove volumes too).
@@ -156,7 +176,7 @@ fi
 # `docker-compose.yml` uses the environment variable `$VERSION_TAG` in the image tags, so it'll pull
 # the version we want.
 log_message "Downloading version $NEXT_VERSION... (this might take long)"
-VERSION_TAG="$NEXT_VERSION" $docker_compose pull
+PINNED_VERSION_TAG="$NEXT_VERSION" $docker_compose pull
 
 
 # Upgrade
@@ -183,7 +203,7 @@ fi
 # ```````````````````````````
 
 log_message "$WHAT: Starting v$NEXT_VERSION, the app and database ..."
-VERSION_TAG="$NEXT_VERSION" $docker_compose up -d app
+PINNED_VERSION_TAG="$NEXT_VERSION" $docker_compose up -d app
 
 
 # Under Maintenance message
@@ -212,7 +232,7 @@ if [ -n "$CURRENT_VERSION" ]; then
   # 'run', apparently they're not mounted.
   #
   set +e  # if doesn't work, harmless
-  VERSION_TAG="$NEXT_VERSION"  \
+  PINNED_VERSION_TAG="$NEXT_VERSION"  \
       $docker_compose \
                         -f docker-compose.yml  \
                         -f scripts/impl/docker-compose.wrong-app-ip.yml  \
@@ -249,7 +269,7 @@ fi
 
 # Just 'web' left to start.
 log_message "$WHAT: Starting 'web' (Nginx) ..."
-VERSION_TAG="$NEXT_VERSION" $docker_compose up -d
+PINNED_VERSION_TAG="$NEXT_VERSION" $docker_compose up -d
 
 
 # Done. Bump version

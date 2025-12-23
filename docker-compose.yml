@@ -44,7 +44,7 @@ x-logging: &default_logging
 
 services:
   web:
-    image: ${DOCKER_REG_ORG}/talkyard-web:${VERSION_TAG}
+    image: ${DOCKER_REG_ORG}/talkyard-web:${PINNED_VERSION_TAG:-${VERSION_TAG}}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/web/Dockerfile
     restart: always
     volumes:
@@ -105,7 +105,7 @@ services:
       - NET_BIND_SERVICE
 
   app:
-    image: ${DOCKER_REG_ORG}/talkyard-app:${VERSION_TAG}
+    image: ${DOCKER_REG_ORG}/talkyard-app:${PINNED_VERSION_TAG:-${VERSION_TAG}}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/app/Dockerfile.prod
     restart: always
     stdin_open: true  # otherwise Play Framework exits
@@ -142,7 +142,7 @@ services:
       - ALL
 
   cache:
-    image: ${DOCKER_REG_ORG}/talkyard-cache:${VERSION_TAG}
+    image: ${DOCKER_REG_ORG}/talkyard-cache:${PINNED_VERSION_TAG:-${VERSION_TAG}}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/cache/Dockerfile
     restart: always
     volumes:
@@ -161,7 +161,7 @@ services:
       - SETUID
 
   rdb:
-    image: ${DOCKER_REG_ORG}/talkyard-rdb:${VERSION_TAG}
+    image: ${DOCKER_REG_ORG}/talkyard-rdb:${PINNED_VERSION_TAG:-${VERSION_TAG}}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/rdb/Dockerfile
     restart: always
     secrets:
@@ -186,7 +186,7 @@ services:
       - SYS_NICE
 
   search:
-    image: ${DOCKER_REG_ORG}/talkyard-search:${VERSION_TAG}
+    image: ${DOCKER_REG_ORG}/talkyard-search:${PINNED_VERSION_TAG:-${VERSION_TAG}}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/search/Dockerfile
     restart: always
     volumes:
@@ -217,7 +217,7 @@ services:
       - SETUID
 
   backup:
-    image: ${DOCKER_REG_ORG}/talkyard-backup:${VERSION_TAG}
+    image: ${DOCKER_REG_ORG}/talkyard-backup:${PINNED_VERSION_TAG:-${VERSION_TAG}}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/backup/Dockerfile
     profiles: [backup] # prevents auto-start on 'up'
     restart: no
