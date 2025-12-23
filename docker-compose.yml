@@ -117,12 +117,13 @@ services:
       # so evil bugs cannot destroy all backups.
       # - /var/opt/backups/talkyard/v1/:/var/opt/backups/talkyard/v1/:ro
     secrets:
-      - source: postgres_password
-        target: /run/secrets/postgres_password
-        # We run Talkyard not as root but as 'appuser', therefore:
-        uid: '1000'  # that's 'appuser', see Dockerfile.prod [appuser_id_1000]
-        gid: '1000'  # 'appgroup' has id 1000 too.
-        mode: 0400   # read-only
+      - postgres_password
+    post_start:
+      # We run Talkyard as 'appuser', see Dockerfile.prod, therefore:  [appuser_id_1000]
+      # `sh -x` runs `set -x` so we'll see what happens.
+      - command: sh -x /ty/chown-postgres_password.sh
+        user: root
+        privileged: true # otherwise can't change file owner
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_APP_IP}
