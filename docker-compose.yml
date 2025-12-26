@@ -118,12 +118,6 @@ services:
       # - /var/opt/backups/talkyard/v1/:/var/opt/backups/talkyard/v1/:ro
     secrets:
       - postgres_password
-    post_start:
-      # We run Talkyard as 'appuser', see Dockerfile.prod, therefore:  [appuser_id_1000]
-      # `sh -x` runs `set -x` so we'll see what happens.
-      - command: sh -x /ty/chown-postgres_password.sh
-        user: root
-        privileged: true # otherwise can't change file owner
     networks:
       internal_net:
         ipv4_address: ${INTERNAL_NET_APP_IP}
@@ -141,6 +135,12 @@ services:
       - BECOME_OWNER_EMAIL_ADDRESS
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN   # to make secrets readable to 'appuser'
+      - FOWNER  #
+      - DAC_OVERRIDE
+      - SETUID  # to switch to 'appuser'
+      - SETGID  #              'appgroup'
 
   cache:
     image: ${DOCKER_REG_ORG}/talkyard-cache:${PINNED_VERSION_TAG:-${VERSION_TAG}}
@@ -181,6 +181,7 @@ services:
     cap_add: # [enough_caps]? See: https://github.com/docker-library/postgres/issues/649
       - CHOWN
       - DAC_READ_SEARCH
+      - DAC_OVERRIDE  # to copy Postgres secret
       - FOWNER
       - SETGID
       - SETUID
