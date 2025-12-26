@@ -123,6 +123,7 @@ services:
         ipv4_address: ${INTERNAL_NET_APP_IP}
     depends_on:
       # Start also if other services are unhealthy, so can show admin troubleshooting tips.
+      - rendr
       - cache
       - rdb
       - search
@@ -141,6 +142,16 @@ services:
       - DAC_OVERRIDE
       - SETUID  # to switch to 'appuser'
       - SETGID  #              'appgroup'
+
+  rendr:
+    image: ${DOCKER_REG_ORG}/talkyard-rendr:${PINNED_VERSION_TAG:-${VERSION_TAG}}
+    # dockerfile: https://github.com/debiki/talkyard/blob/main/images/rendr/Dockerfile
+    networks:
+      internal_net:
+        ipv4_address: ${INTERNAL_NET_RENDR_IP}
+    logging: *default_logging
+    cap_drop:
+      - ALL
 
   cache:
     image: ${DOCKER_REG_ORG}/talkyard-cache:${PINNED_VERSION_TAG:-${VERSION_TAG}}
