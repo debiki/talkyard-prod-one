@@ -150,7 +150,6 @@ Preparations
        apt-get update
        apt-get upgrade
        apt-get -y install git locales
-       apt-get -y install cpulimit         # avoids kernel panics when gzipping backups
        apt-get -y install rng-tools        # better generation of random numbers
        apt-get -y install jq               # to view logs
        apt-get -y install tree ncdu vim    # nice to have
@@ -260,7 +259,11 @@ Installation instructions
 
    ```
    nano conf/app/play-framework.conf   # fill in values in the Required Settings section
+
    nano secrets/postgres_password.txt  # type a database password on a single line, nothing else!
+
+   # Don't let anyone see the password.
+   chmod 0600 secrets/postgres_password.txt
    ```
 
    Note:

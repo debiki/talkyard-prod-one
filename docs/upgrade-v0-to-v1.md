@@ -139,7 +139,7 @@ which automatically mounts the volume, as specified in docker-compose.yml.
 docker compose run --rm  \
     -v /opt/talkyard/data/uploads:/uploads-v0:ro  \
     app \
-        rsync -a /uploads-v0/public/ /opt/talkyard-v1/pub-files/uploads/
+        rsync -a  /uploads-v0/public/  /var/talkyard/v1/pub-files/uploads/
 ```
 
 

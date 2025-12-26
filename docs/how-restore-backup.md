@@ -77,7 +77,7 @@ zcat /BACKUP_ARCHIVES_DIR/DB_BACKUP_FILE.sql.gz \
 docker compose run --rm  \
     -v /BACKUP_ARCHIVES_DIR/UPLOADS_BACKUP_DIR.d:/uploads:ro  \
     app \
-        rsync -a /uploads/ /opt/talkyard-v1/pub-files/uploads/
+        rsync -a  /uploads/  /var/talkyard/v1/pub-files/uploads/
 ```
 
 ### Memory
@@ -100,8 +100,8 @@ docker compose logs -f --tail 999
 
 Also, think about if you need to 1) update your DNS server with the IP address to
 your new Talkyard server. Or maybe 2) change the hostname of the Talkyard server
-— you'd then edit Nginx config in `conf/play-framework.conf`,
-and `conf/sites-enabled-manual/` or `data/sites-enabled-auto-gen/`, plus
+— you'd then edit Nginx config in `conf/app/play-framework.conf`,
+and `conf/web/sites-enabled/talkyard-servers.conf`, plus
 generate a LetsEncrypt cert
 (see: `https://github.com/debiki/talkyard-prod-one/blob/ty-prod-one-v1/docs/setup-https.md`).
 
