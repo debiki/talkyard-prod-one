@@ -129,8 +129,8 @@ services:
     logging: *default_logging
     environment:
       - TALKYARD_SECURE
-      # The app always looks here, not configurable.
-      # POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      # The app always looks here, not configurable. [postgres_pw_path]
+      # POSTGRES_PASSWORD_FILE=/tmp/postgres_password
       - TALKYARD_HOSTNAME
       - BECOME_OWNER_EMAIL_ADDRESS
     cap_drop:

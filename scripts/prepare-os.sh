@@ -40,7 +40,7 @@ if ! grep -q 'Talkyard' /etc/sysctl.conf; then
 		# Turn off swap, default = 60.
 		vm.swappiness=0
 		# Up the max backlog queue size (num connections per port), default = 128.
-		# Sync with conf/sites-enabled-manual/talkyard-servers.conf.
+		# Sync with conf/web/sites-enabled/talkyard-servers.conf.
 		net.core.somaxconn=8192
 		# ElasticSearch wants this, default = 65530
 		# See: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
