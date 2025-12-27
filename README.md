@@ -10,7 +10,7 @@ to avoid a manual v0-to-v1 upgrade later.
 
 Check out the v1 Git branch: https://github.com/debiki/talkyard-prod-one/tree/ty-prod-one-v1
 
-You can post feedback in the forum: https://forum.talkyard.io/-857/release-talkyard-v1
+<!-- You can post feedback in the forum: https://forum.talkyard.io/-857/release-talkyard-v1 -->
    
 ---
 
@@ -38,7 +38,7 @@ Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/
 Don't give people-you-don't-absolutely-trust ssh access to your Talkyard server.
 The database files in `/opt/talkyard/data/rdb/` are accessible to people who can
 ssh into the server, and log files in `/var/log/` are, too.
-This'll change in Talkyard v1 (next year 2025?) — then we'll use Docker volumes instead.
+This'll change in Talkyard v1 — then we use Docker named volumes instead.
 
 ### Install on your laptop?
 
