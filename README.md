@@ -9,8 +9,10 @@ Debian 12 or 13 with at least 2 GB RAM.
 
 ------
 
-NOTICE: This Git branch is for upcoming Talkyard v1 (epoch 1). Feedback welcome!
-Leave a comment here for example: https://forum.talkyard.io/-857/release-talkyard-v1
+NOTICE: This Git branch is for upcoming Talkyard v1 (epoch 1).
+Feedback welcome! You can post in: https://forum.talkyard.io
+
+<!-- Leave a comment here for example: https://forum.talkyard.io/-857/release-talkyard-v1 -->
 
 (I'll **rewrite history** in this branch.)
 
