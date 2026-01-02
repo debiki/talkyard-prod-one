@@ -83,6 +83,8 @@ services:
       # X_PULL_KEY: '...'
       # CDN_PULL_KEY: '...'
 
+    security_opt:
+      - no-new-privileges=true
     # When cap_drop is ALL, it gets processed before cap_add, see:
     # https://stackoverflow.com/a/63219871
     # and:
@@ -134,6 +136,8 @@ services:
       # POSTGRES_PASSWORD_FILE=/tmp/postgres_password
       - TALKYARD_HOSTNAME
       - BECOME_OWNER_EMAIL_ADDRESS
+    security_opt:
+      - no-new-privileges=true
     cap_drop:
       - ALL
     cap_add:
@@ -165,6 +169,8 @@ services:
     logging: *default_logging
     sysctls:
       net.core.somaxconn: 511
+    security_opt:
+      - no-new-privileges=true
     cap_drop:
       - ALL
     cap_add: # [enough_caps]? See: https://github.com/docker-library/postgres/issues/649
@@ -187,6 +193,8 @@ services:
     logging: *default_logging
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    security_opt:
+      - no-new-privileges=true
     cap_drop:
       - ALL
     cap_add: # [enough_caps]? See: https://github.com/docker-library/postgres/issues/649
@@ -222,6 +230,8 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    security_opt:
+      - no-new-privileges=true
     cap_drop:
       - ALL
     cap_add:  # [enough_caps]?
@@ -259,6 +269,8 @@ services:
       - rdb
     networks:
       internal_net:
+    security_opt:
+      - no-new-privileges=true
     cap_drop:
       - ALL
     cap_add:
