@@ -18,9 +18,10 @@ Feedback welcome! You can post in: https://forum.talkyard.io
 
 ------
 
-Docker based installation. Automatic upgrades.
-Automatic HTTPS cert (via LetsEncrypt).
-One installation can host many sites.
+Docker-based installation.
+Automated upgrades and backups.
+Automatic HTTPS certs.
+Multi-site support.
 
 <!-- NO, Swarm is abandonware
 If however you already have a Docker-Compose or Docker Swarm installation
@@ -29,11 +30,13 @@ then have a look at: https://github.com/debiki/talkyard-prod-swarm.
 -->
 
 
-You should be familiar with Linux, Bash and Git. Otherwise you might run into
+You should be familiar with Linux, Bash, Git and Docker.
+Or use our hosting, see https://www.talkyard.io.
+<!-- Otherwise you might run into
 problems. For example, there might be Git edit conflicts, if you and we change
 the same file — then you need to know how to resolve those edit conflicts.
-Also, knowing a bit about Docker can be good.
-See https://www.talkyard.io/plans for alternatives to installing yourself.
+Alternatively, there's paid hosting, see: https://www.talkyard.io/pricing/.
+-->
 
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 
@@ -82,24 +85,13 @@ The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
 The rest of this document is about how to install Talkyard on a new server.
 -->
 
-Installation overview: You'll rent a virtual private server (VPS) somewhere, then download
-and install Talkyard, then sign up for a send-emails service and configure email settings.
+**Installation overview:** You'll rent a virtual private server (VPS), download
+and install Talkyard, sign up for a send-emails service, and configure email settings.
 Then optionally configure OpenAuth login for Google, Facebook, Twitter, GitHub.
 And off-site backups.
 
 Dockerfiles, build scripts and source code are in another repo: https://github.com/debiki/talkyard.
-Have a look in `./docker-compose.yml` (in this repo) for details and links.
-
-
-Get a server and a Web address
-----------------
-
-Provision an Debian 12 or 13 server <!-- not 11, it's EOL 2026 -->
-with at least 20 GB disk and 2 GB RAM,
-for example at [Digital Ocean](https://www.digitalocean.com/), a US company,
-or [Upcloud](https://upcloud.com/), an EU company.
-
-Point a domain name, say, `forum.your-website.com`, to the server IP address.
+See `./docker-compose.yml` (in this repo) for details and links.
 
 
 Directories
@@ -145,6 +137,14 @@ since they would conflict with historical and/or local practice. They are:
 
 Preparations
 ----------------
+
+1.
+   Provision a Debian 12 or 13 server, <!-- not 11, it's EOL 2026 --> or Ubuntu 24.04,
+   with at least 20 GB disk and 2 GB RAM,
+   for example at <!-- [Digital Ocean](https://www.digitalocean.com/), a US company, -->
+   [Upcloud](https://upcloud.com/).
+
+   Point a domain name, say, `forum.your-website.com`, to the server IP address.
 
 1.
    Update the OS, then install Git and some stuff:
@@ -216,10 +216,12 @@ Note that ufw (another Linux firewall) is incompatible with Docker
 https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw.
 <!-- [firewalld_not_ufw] update script, have it use firewalld  -->
 
-You can see the IP addresses of the Docker containers in the `.env` file. The ip
+You can see the IP addresses of the Docker containers in the `.env` file. The IP
 of the `web` container, which runs Nginx and listens on ports 80 and 443,
-is set on the `INTERNAL_NET_WEB_IP=...` row, and this is the only
-container that should be reachable from outside.
+is set on the `FE_PUB_NET_WEB_IP=...` line, and this is the only
+container that should be reachable from outside. The egress proxy should be able
+to connect to the Internet (but no one should be able to connect to it). Its
+IP address is set on the `EG_PUB_NET_EGRESSP_IP=...` line.
 More about Firewalld and Docker:
 https://firewalld.org/2024/04/strictly-filtering-docker-containers
 
@@ -290,19 +292,19 @@ Installation instructions
 
         cp mem/4g.yml docker-compose.override.yml
 
-1. Install and start the latest version. This might take a few minutes
+1. Install and start the latest version. Might take a few minutes
    the first time (to download Docker images).
 
         # This script also installs, although named "upgrade–...".
         ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
    (This creates a new Docker network — you can choose the IP range; see the
-   section *A New Docker Network* below.)
+   section *Docker Networks* below.)
 
    Type `docker compose ps` — you should now see a list
    of Docker containers in state Up (means they're running).
 
-1. Schedule daily backups and deletion old backups, and automatic upgrades:
+1. Schedule daily backups, deletion of old backups, and automatic upgrades:
 
         ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
@@ -575,20 +577,23 @@ and run daily via Cron, to get notified via email if backups stop working
 -->
 
 
-A new Docker network
+Docker networks
 ----------------
 
-Talkyard creates its own Docker network, and assigns static IPs to the containers.
-Otherwise, if a container restarts, Docker might give it a new IP,
+Talkyard creates its own Docker subnets, for security reasons, and assigns static
+IPs to the containers.
+Without static IPs, then, if a container restarts, Docker might give it a new IP,
 and the other containers then couldn't find it it. —
 Unless they're also restarted, so all things that have cached the old stale IP,
-picks up the new IP instead. Or unless one starts using something like Traefik.
-But static IPs is simpler. <!-- Maybe later: [docker_dyn_ips] -->
+pick up the new IP instead.
 
-You can choose the network IP range in the `.env` file — there's this variable:
+You can choose the network IP ranges. Open the `.env` file, scroll down and you'll see:
 
 ```
-INTERNAL_NET_SUBNET=172.26.0.0/25
+FE_PUB_NET_SUBNET=...
+FE_INT_NET_SUBNET=...
+BE_INT_NET_SUBNET=...
+...
 ```
 
 

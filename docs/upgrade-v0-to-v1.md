@@ -1,6 +1,10 @@
 Upgrading from Talkyard v0 to v1
 ================================
 
+**NOTICE**: This is a **draft**, not yet finished or tested.
+
+---
+
 Talkyrad v1 is a major new version of Talkyard — a new epoch.
 Previous versions have been v0.YYYY.NNN,
 newer versions will be v1.YYYY.NNN (e.g. v1.2025.001).
