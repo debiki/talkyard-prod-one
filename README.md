@@ -18,9 +18,9 @@ Feedback welcome! You can post in: https://forum.talkyard.io
 
 ------
 
-Docker based installation. Automatic upgrades.
-Automatic HTTPS cert (via LetsEncrypt).
-One installation can host many sites.
+Docker-based installation. Automated upgrades and backups.
+Automatic HTTPS certs (via LetsEncrypt).
+Multi-site support.
 
 <!-- NO, Swarm is abandonware
 If however you already have a Docker-Compose or Docker Swarm installation
@@ -29,11 +29,12 @@ then have a look at: https://github.com/debiki/talkyard-prod-swarm.
 -->
 
 
-You should be familiar with Linux, Bash and Git. Otherwise you might run into
+You should be familiar with Linux, Bash, Git and Docker.
+<!-- Otherwise you might run into
 problems. For example, there might be Git edit conflicts, if you and we change
 the same file — then you need to know how to resolve those edit conflicts.
-Also, knowing a bit about Docker can be good.
-See https://www.talkyard.io/plans for alternatives to installing yourself.
+-->
+Alternatively, there's paid hosting, see: https://www.talkyard.io/pricing/.
 
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 
