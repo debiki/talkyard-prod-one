@@ -31,11 +31,12 @@ then have a look at: https://github.com/debiki/talkyard-prod-swarm.
 
 
 You should be familiar with Linux, Bash, Git and Docker.
+Or use our hosting, see https://www.talkyard.io.
 <!-- Otherwise you might run into
 problems. For example, there might be Git edit conflicts, if you and we change
 the same file — then you need to know how to resolve those edit conflicts.
--->
 Alternatively, there's paid hosting, see: https://www.talkyard.io/pricing/.
+-->
 
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
 
@@ -84,24 +85,13 @@ The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
 The rest of this document is about how to install Talkyard on a new server.
 -->
 
-Installation overview: You'll rent a virtual private server (VPS), then download
-and install Talkyard, then sign up for a send-emails service and configure email settings.
+Installation overview: You'll rent a virtual private server (VPS), download
+and install Talkyard, sign up for a send-emails service, and configure email settings.
 Then optionally configure OpenAuth login for Google, Facebook, Twitter, GitHub.
 And off-site backups.
 
 Dockerfiles, build scripts and source code are in another repo: https://github.com/debiki/talkyard.
-Have a look in `./docker-compose.yml` (in this repo) for details and links.
-
-
-Get a server and a Web address
-----------------
-
-Provision an Debian 12 or 13 server <!-- not 11, it's EOL 2026 -->
-with at least 20 GB disk and 2 GB RAM,
-for example at [Digital Ocean](https://www.digitalocean.com/), a US company,
-or [Upcloud](https://upcloud.com/), an EU company.
-
-Point a domain name, say, `forum.your-website.com`, to the server IP address.
+See `./docker-compose.yml` (in this repo) for details and links.
 
 
 Directories
@@ -147,6 +137,14 @@ since they would conflict with historical and/or local practice. They are:
 
 Preparations
 ----------------
+
+1.
+  Provision an Debian 12 or 13 server, or Ubuntu 24.04, <!-- not 11, it's EOL 2026 -->
+  with at least 20 GB disk and 2 GB RAM,
+  for example at [Digital Ocean](https://www.digitalocean.com/), a US company,
+  or [Upcloud](https://upcloud.com/), an EU company.
+
+  Point a domain name, say, `forum.your-website.com`, to the server IP address.
 
 1.
    Update the OS, then install Git and some stuff:
