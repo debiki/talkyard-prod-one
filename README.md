@@ -18,8 +18,9 @@ Feedback welcome! You can post in: https://forum.talkyard.io
 
 ------
 
-Docker-based installation. Automated upgrades and backups.
-Automatic HTTPS certs (via LetsEncrypt).
+Docker-based installation.
+Automated upgrades and backups.
+Automatic HTTPS certs.
 Multi-site support.
 
 <!-- NO, Swarm is abandonware
@@ -83,7 +84,7 @@ The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
 The rest of this document is about how to install Talkyard on a new server.
 -->
 
-Installation overview: You'll rent a virtual private server (VPS) somewhere, then download
+Installation overview: You'll rent a virtual private server (VPS), then download
 and install Talkyard, then sign up for a send-emails service and configure email settings.
 Then optionally configure OpenAuth login for Google, Facebook, Twitter, GitHub.
 And off-site backups.
