@@ -85,7 +85,7 @@ The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
 The rest of this document is about how to install Talkyard on a new server.
 -->
 
-Installation overview: You'll rent a virtual private server (VPS), download
+**Installation overview:** You'll rent a virtual private server (VPS), download
 and install Talkyard, sign up for a send-emails service, and configure email settings.
 Then optionally configure OpenAuth login for Google, Facebook, Twitter, GitHub.
 And off-site backups.
@@ -139,12 +139,12 @@ Preparations
 ----------------
 
 1.
-  Provision an Debian 12 or 13 server, or Ubuntu 24.04, <!-- not 11, it's EOL 2026 -->
-  with at least 20 GB disk and 2 GB RAM,
-  for example at [Digital Ocean](https://www.digitalocean.com/), a US company,
-  or [Upcloud](https://upcloud.com/), an EU company.
+   Provision a Debian 12 or 13 server, <!-- not 11, it's EOL 2026 --> or Ubuntu 24.04,
+   with at least 20 GB disk and 2 GB RAM,
+   for example at <!-- [Digital Ocean](https://www.digitalocean.com/), a US company, -->
+   [Upcloud](https://upcloud.com/).
 
-  Point a domain name, say, `forum.your-website.com`, to the server IP address.
+   Point a domain name, say, `forum.your-website.com`, to the server IP address.
 
 1.
    Update the OS, then install Git and some stuff:
@@ -290,7 +290,7 @@ Installation instructions
 
         cp mem/4g.yml docker-compose.override.yml
 
-1. Install and start the latest version. This might take a few minutes
+1. Install and start the latest version. Might take a few minutes
    the first time (to download Docker images).
 
         # This script also installs, although named "upgrade–...".
@@ -302,7 +302,7 @@ Installation instructions
    Type `docker compose ps` — you should now see a list
    of Docker containers in state Up (means they're running).
 
-1. Schedule daily backups and deletion old backups, and automatic upgrades:
+1. Schedule daily backups, deletion of old backups, and automatic upgrades:
 
         ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
         ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
