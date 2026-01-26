@@ -28,12 +28,7 @@ secrets:
   #backup_password:
   #  file: ./secrets/backup_password.txt
 
-
-# Internal networks are isolated from the external world, can't access the Internet.
-# See: https://docs.docker.com/reference/compose-file/networks/#internal
-#
 # The netw names get prefixed with the COMPOSE_PROJECT_NAME.
-#
 networks:
   # Frontend public network. Connects Nginx to the Internet.
   fe_pub_net:
@@ -46,7 +41,9 @@ networks:
     ipam:
       config:
         - subnet: ${FE_INT_NET_SUBNET}
-  # Backend network: the app server and various databases.
+  # Backend network: the app server and various databases. Is an internal network,
+  # not directly connected to the Internet.
+  # See: https://docs.docker.com/reference/compose-file/networks/#internal
   be_int_net:
     internal: true
     ipam:
