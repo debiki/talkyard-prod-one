@@ -277,12 +277,17 @@ services:
   # Stops Server Side Request Forgery (SSRF).
   egressp:
     image: ${DOCKER_REG_ORG}/talkyard-egressp
-    read_only: true
     networks:
       eg_int_net:
         ipv4_address: ${EG_INT_NET_EGRESSP_IP}
       eg_pub_net:
         ipv4_address: ${EG_PUB_NET_EGRESSP_IP}
+    logging: *default_logging
+    read_only: true
+    security_opt:
+      - no-new-privileges=true
+    cap_drop:
+      - ALL
 
   backup:
     image: ${DOCKER_REG_ORG}/talkyard-backup:${PINNED_VERSION_TAG:-${VERSION_TAG}}
