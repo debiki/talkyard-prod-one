@@ -28,13 +28,41 @@ secrets:
   #backup_password:
   #  file: ./secrets/backup_password.txt
 
+
+# Internal networks are isolated from the external world, can't access the Internet.
+# See: https://docs.docker.com/reference/compose-file/networks/#internal
+#
+# The netw names get prefixed with the COMPOSE_PROJECT_NAME.
+#
 networks:
-  # The netw name gets prefixed by the COMPOSE_PROJECT_NAME.
-  internal_net:
-    driver: bridge
+  # Frontend public network. Connects Nginx to the Internet.
+  fe_pub_net:
     ipam:
       config:
-        - subnet: ${INTERNAL_NET_SUBNET}
+        - subnet: ${FE_PUB_NET_SUBNET}
+  # So Nginx can talk to the app server.
+  fe_int_net:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${FE_INT_NET_SUBNET}
+  # Backend network: the app server and various databases.
+  be_int_net:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${BE_INT_NET_SUBNET}
+  # So the app server can connect to the egress proxy.
+  eg_int_net:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${EG_INT_NET_SUBNET}
+  # So the egress proxy can access the Internet, e.g. to send webhooks or fetch link previews.
+  eg_pub_net:
+    ipam:
+      config:
+        - subnet: ${EG_PUB_NET_SUBNET}
 
 # See: https://github.com/compose-spec/compose-spec/blob/main/spec.md#logging
 x-logging: &default_logging
@@ -68,8 +96,10 @@ services:
       - '80:80'
       - '443:443'
     networks:
-      internal_net:
-        ipv4_address: ${INTERNAL_NET_WEB_IP}
+      fe_pub_net:
+        ipv4_address: ${FE_PUB_NET_WEB_IP}
+      fe_int_net:
+        ipv4_address: ${FE_INT_NET_WEB_IP}
     depends_on:
       - app
       - cache
@@ -121,8 +151,12 @@ services:
     secrets:
       - postgres_password
     networks:
-      internal_net:
-        ipv4_address: ${INTERNAL_NET_APP_IP}
+      fe_int_net:
+        ipv4_address: ${FE_INT_NET_APP_IP}
+      be_int_net:
+        ipv4_address: ${BE_INT_NET_APP_IP}
+      eg_int_net:
+        ipv4_address: ${EG_INT_NET_APP_IP}
     depends_on:
       # Start also if other services are unhealthy, so can show admin troubleshooting tips.
       - rendr
@@ -151,8 +185,8 @@ services:
     image: ${DOCKER_REG_ORG}/talkyard-rendr:${PINNED_VERSION_TAG:-${VERSION_TAG}}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/rendr/Dockerfile
     networks:
-      internal_net:
-        ipv4_address: ${INTERNAL_NET_RENDR_IP}
+      be_int_net:
+        ipv4_address: ${BE_INT_NET_RENDR_IP}
     logging: *default_logging
     cap_drop:
       - ALL
@@ -164,8 +198,8 @@ services:
     volumes:
       - redis-data:/data
     networks:
-      internal_net:
-        ipv4_address: ${INTERNAL_NET_CACHE_IP}
+      be_int_net:
+        ipv4_address: ${BE_INT_NET_CACHE_IP}
     logging: *default_logging
     sysctls:
       net.core.somaxconn: 511
@@ -188,8 +222,8 @@ services:
       - pg-data:/var/lib/postgresql
       - ./conf/rdb:/var/lib/postgresql/conf:ro
     networks:
-      internal_net:
-        ipv4_address: ${INTERNAL_NET_RDB_IP}
+      be_int_net:
+        ipv4_address: ${BE_INT_NET_RDB_IP}
     logging: *default_logging
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
@@ -217,8 +251,8 @@ services:
       # See: https://www.elastic.co/docs/deploy-manage/monitor/logging-configuration/elasticsearch-deprecation-logs
       - es-logs:/usr/share/elasticsearch/logs
     networks:
-      internal_net:
-        ipv4_address: ${INTERNAL_NET_SEARCH_IP}
+      be_int_net:
+        ipv4_address: ${BE_INT_NET_SEARCH_IP}
     logging: *default_logging
     environment:
       bootstrap.memory_lock: 'true'
@@ -238,6 +272,17 @@ services:
       # SYS_CHROOT? See  https://github.com/nasa-jpl/ASSESS/blob/master/docker-compose.yml
       - SETGID
       - SETUID
+
+  # Egress proxy.
+  # Stops Server Side Request Forgery (SSRF).
+  egressp:
+    image: ${DOCKER_REG_ORG}/talkyard-egressp
+    read_only: true
+    networks:
+      eg_int_net:
+        ipv4_address: ${EG_INT_NET_EGRESSP_IP}
+      eg_pub_net:
+        ipv4_address: ${EG_PUB_NET_EGRESSP_IP}
 
   backup:
     image: ${DOCKER_REG_ORG}/talkyard-backup:${PINNED_VERSION_TAG:-${VERSION_TAG}}
@@ -268,7 +313,7 @@ services:
       # So can backup database.
       - rdb
     networks:
-      internal_net:
+      be_int_net:
     security_opt:
       - no-new-privileges=true
     cap_drop:
