@@ -36,19 +36,21 @@ RELEASE_BRANCH_LINE="$(grep -E '^ *RELEASE_BRANCH=.*$' .env)"
 RELEASE_BRANCH="$(sed -nr 's/^RELEASE_BRANCH= *([^# ]+) *$/\1/p' .env)"
 if [ -z "$RELEASE_BRANCH" ]; then
   if [ -n "$RELEASE_BRANCH_LINE" ]; then
-    log_message "ERROR: Weird RELEASE_BRANCH=... line: (between ---)"
+    log_message "ERROR: Weird RELEASE_BRANCH=... line in .env: (between ---)"
     log_message "----"
     log_message "$RELEASE_BRANCH_LINE"
     log_message "----"
-    exit 1
+  else
+    # There's this line by default:  RELEASE_BRANCH=tyse-v1-regular — did they delete it?
+    log_message "ERROR: No RELEASE_BRANCH=... specified in .env."
   fi
-  RELEASE_BRANCH='tyse-v1-regular'
-  log_message "Using default release branch: $RELEASE_BRANCH (since nothing specified in .env)."
+  exit 1
 else
   log_message "Using release branch: $RELEASE_BRANCH."
 fi
 
 # This script (and others in this repo) are compatible only with Talkyard epoch 1.
+# (-e is for the pattern, needed since starts w '-'. It's not --extended-regexp, that's -E.)
 if [ -z "$(echo "$RELEASE_BRANCH" | grep -e '-v1-')" ]; then
   log_message "ERROR: Wrong epoch in release branch. Should be '...-v1-...'"
   log_message "but is: '$RELEASE_BRANCH'."
@@ -173,8 +175,10 @@ fi
 # Download new version
 # ===========================
 
-# `docker-compose.yml` uses the environment variable `$VERSION_TAG` in the image tags, so it'll pull
-# the version we want.
+# `docker-compose.yml` uses the environment variable `$PINNED_VERSION_TAG` in the image tags,
+# for example, the app service:
+#    image: ${DOCKER_REG_ORG}/talkyard-app:${PINNED_VERSION_TAG:-${VERSION_TAG}}
+# So, by setting PINNED_VERSION_TAG we can make Docker download the next version.
 log_message "Downloading version $NEXT_VERSION... (this might take long)"
 PINNED_VERSION_TAG="$NEXT_VERSION" $docker_compose pull
 
@@ -202,7 +206,7 @@ fi
 # Start any database migration
 # ```````````````````````````
 
-log_message "$WHAT: Starting v$NEXT_VERSION, the app and database ..."
+log_message "$WHAT: Starting v$NEXT_VERSION, the app and databases ..."
 PINNED_VERSION_TAG="$NEXT_VERSION" $docker_compose up -d app
 
 
