@@ -226,7 +226,6 @@ services:
       - postgres_password
     volumes:
       - pg-data:/var/lib/postgresql
-      - ./conf/rdb:/var/lib/postgresql/conf:ro
     networks:
       be_int_net:
         ipv4_address: ${BE_INT_NET_RDB_IP}
