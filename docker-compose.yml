@@ -16,8 +16,8 @@ volumes:
   web-generated:
   pub-files:
   priv-files:
-  pg-data:
   redis-data:
+  pg-data:
   es-data:
   es-logs:
 
@@ -76,7 +76,7 @@ services:
       # Nginx `server {...}` blocks for your Talkyard forum.
       - ./conf/web/sites-enabled:/etc/nginx/sites-enabled:ro
       # A LetsEncrypt ACME account key gets generated on startup and saved here.
-      # Once done, you could make this dir read-only: append ':ro' to the next line.
+      # Once done, you could make this volume read-only: append ':ro' to the next line.
       - web-generated:/etc/nginx/generated
       # Don't, however, mount priv-files here.
       - pub-files:/var/talkyard/v1/pub-files:ro
@@ -171,6 +171,7 @@ services:
       # POSTGRES_PASSWORD_FILE=/tmp/postgres_password
       - TALKYARD_HOSTNAME
       - BECOME_OWNER_EMAIL_ADDRESS
+      # [egressp_conf]
       - 'http_proxy=http://egressp:4750'
       - 'https_proxy=http://egressp:4750'
       - "no_proxy=''"
