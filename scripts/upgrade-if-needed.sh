@@ -254,8 +254,9 @@ if [ -n "$CURRENT_VERSION" ]; then
   # connected to the wrong IP. [maint_app_ip]
   log_message "$WHAT: Waiting for the app server to have started ..."
   # (We've done: `set -e`, but that ignores `if` and `until` tests.)
+  # Specify --noproxy so curl won't try to use egressp. [egressp_conf]
   until $docker exec -i "$($docker_compose ps -q app)"  \
-            curl --output /dev/null --silent --head --fail  \
+            curl --output /dev/null --silent --head --fail --noproxy '*' \
                  http://localhost:9000/-/are-scripts-ready
   do
     printf '.'
