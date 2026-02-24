@@ -5,15 +5,16 @@
 # to 'app'; then it won't respond to the end user until half a minute (?)
 # has elapsed.
 
-version: '3.7'
-
 services:
   web:
     extra_hosts:
-        # Wrong IP. The correct IP is INTERNAL_NET_APP_IP=172.26.0.31,
+        # Try connecting to a non-existing IP on a subnet we *can* access.
+        # Because if 'web' tries to connect to something outside the subnet, seems
+        # it justs "hang", maybe the connection would eventually timeout?
+        #
+        # 'web' is on the fe_int_net subnet:  FE_INT_NET_SUBNET = 172.26.2.0/24
+        # and the correct app IP is:          FE_INT_NET_APP_IP = 172.26.2.41
         # see ../.env.
-        # (Note that our subnet is 172.26.0.0/25, so ....127 is the highest allowed
-        # value. If 'web' tries to connect to ...254, this just "hangs", maybe the
-        # connection would eventually timeout? Oh well.)
-        app: 172.26.0.127
+        #
+        app: 172.26.2.127  # intentionally wrong
 
