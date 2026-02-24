@@ -198,6 +198,14 @@ if [ -n "$CURRENT_VERSION" ]; then
   # meanwhile.
   $docker_compose stop search
   $docker_compose stop app
+
+  # And, in case ty-main was left running if this upgrade script was aborted in the middle:
+  # (If it's still running, `down` below won't be able to recreate the networks, and
+  # ty-maint might have occupied an IP addr we need.)
+  set +e
+  $docker kill ty-maint
+  set -e
+
   $docker_compose down
   log_message "Upgrading: Done shutting down."
 fi
