@@ -11,6 +11,7 @@ echo
 echo
 log_message 'Configuring this Operating System:'
 
+did_what=''
 
 # Avoid harmless "warning: Setting locale failed" warnings from Perl:
 # (https://askubuntu.com/questions/162391/how-do-i-fix-my-locale-issue)
@@ -19,11 +20,13 @@ if ! grep -q 'LC_ALL=' /etc/default/locale; then
   echo 'Setting LC_ALL to en_US.UTF-8...'
   echo 'LC_ALL=en_US.UTF-8' >> /etc/default/locale
   export LC_ALL='en_US.UTF-8'
+  did_what="Configured LC_ALL=en_US.UTF-8."
 fi
 if ! grep -q 'LANG=' /etc/default/locale; then
   echo 'Setting LANG to en_US.UTF-8...'
   echo 'LANG=en_US.UTF-8' >> /etc/default/locale
   export LANG='en_US.UTF-8'
+  did_what="$did_what Configured LANG=en_US.UTF-8."
 fi
 
 
@@ -49,6 +52,9 @@ if ! grep -q 'Talkyard' /etc/sysctl.conf; then
 
   log_message 'Reloading the system config...'
   sysctl --system
+  did_what="$did_what Added Talkyard settings to /etc/sysctl.conf."
+else
+  log_message 'Talkyard settings found in /etc/sysctl.conf, leaving as is.'
 fi
 
 
@@ -72,6 +78,7 @@ else
     # 'exit 0' in a new Ubuntu installation ... no, Debian now.
     sed -i -e '$i # For Talkyard and the Redis Docker container:\necho madvise > /sys/kernel/mm/transparent_hugepage/enabled\n' $rc_local_f
   fi
+  did_what="$did_what Set Transparent Huge Pages to [madvise]."
 fi
 
 
@@ -87,6 +94,9 @@ if ! grep -q 'HISTTIMEFORMAT' ~/.bashrc; then
 		export HISTFILESIZE=10100
 		export HISTTIMEFORMAT='%F %T %z  '
 		EOF
+  did_what="$did_what Added HIST* settings to .bashrc."
+else
+  log_message 'Probably sensible settings found in .bashrc, leaving as is.'
 fi
 
 
@@ -115,6 +125,7 @@ if [ -f $auto_upgr_f ]; then
   echo
 else
   log_message 'Enabling automatic security updates and reboots...'
+  did_what="$did_what Enabled automatic security updates and reboots."
   # About the packages we install:
   # apt-config-auto-update: Makes APT automatically update its package cache.
   # unattended-upgrades: Downloads and installs security upgrades automatically and unattended.
@@ -135,7 +146,13 @@ EOF
 fi
 
 
-log_message 'Done configuring the OS.'
+log_message "Done configuring the OS."
+
+if [ -z "$did_what" ]; then
+  log_message "I did nothing — everything seemed ok already."
+else
+  log_message "I did this: $did_what"
+fi
 echo
 
 # vim: ts=2 sw=2 tw=0 fo=r list
