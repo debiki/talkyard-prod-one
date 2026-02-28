@@ -26,6 +26,10 @@ export PATH="/usr/bin:/bin"  # that's how Cron works, see:
 
 export ORIG_DATE=$(date)
 
+echo "If you want to restore the original date, minus time elapsed, run:"
+echo
+echo "date --set \"$ORIG_DATE\""
+
 
 
 function backup_at {
@@ -82,14 +86,18 @@ backup_at "2022-01-13 10:00:00"
 backup_at "2022-01-14 10:00:00"
 backup_at "2022-01-15 10:00:00"
 backup_at "2022-01-16 10:00:00"
+backup_at "2022-01-17 10:00:00"
+backup_at "2022-01-18 10:00:00"
+backup_at "2022-01-19 10:00:00"
+backup_at "2022-01-20 10:00:00"
 echo
-echo "Took 13 backups."
+echo "Took 17 backups, 20 in total."
 read -p "Press enter to continue"
 echo
 delete_old_backups_at "2022-01-16 11:00:01"
 echo
-echo "That should have deleted one Postgres, one Config and some Redis backups."
-echo "See  min_recent_bkps=8  and   -mtime +15  in scripts/delete-old-backups.sh"
+echo "That should have deleted ? Postgres, ? Config and some Redis backups."
+echo "See  min_recent_bkps=8  and  'run_find -mtime +14'  in  scripts/delete-old-backups.sh"
 echo
 read -p "Press enter to continue"
 echo
