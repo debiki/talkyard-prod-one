@@ -1,6 +1,17 @@
 Installing Talkyard
 ================
 
+NOTICE: This Git branch is a PREVIEW of the upcoming Talkyard v1 (epoch 1).
+
+You need to edit `.env` and set `RELEASE_BRANCH=tyse-v1-dev` (even though the
+comment juts above in `.env` says "don't use").
+
+Do not use this preview of v1 "for real", in production, yet.
+
+Feedback welcome! You can post in: https://forum.talkyard.io
+
+------
+
 Here you'll learn how to install Talkyard v1 on a single server, for production use:
 Debian 12 or 13 with at least 2 GB RAM.
 
@@ -8,10 +19,6 @@ Debian 12 or 13 with at least 2 GB RAM.
   here</a>.)</small>
 
 ------
-
-NOTICE: This Git branch is for upcoming Talkyard v1 (epoch 1).
-Feedback welcome! You can post in: https://forum.talkyard.io
-
 <!-- Leave a comment here for example: https://forum.talkyard.io/-857/release-talkyard-v1 -->
 
 (I'll **rewrite history** in this branch.)
@@ -276,7 +283,8 @@ Installation instructions
    - If you don't edit `play.http.secret.key` in `play-framework.conf`,
      the server won't start.
    - A PostgreSQL database user, named *talkyard*, gets created automatically,
-     by the *rdb* Docker container, with the password you type in the `.env` file.
+     by the *rdb* Docker container, with the password you specified in
+     `secrets/postgres_password.txt`.
      You don't need to do anything.
     <!-- Do people use Vagrant nowadays? [vagrant_or_not] In any case, shouldn't the *web*
       container, not the *app*, listen to 8080?
