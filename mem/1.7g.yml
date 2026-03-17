@@ -15,5 +15,9 @@ services:
   search:
     environment:
       ES_JAVA_OPTS: '-Xms192m -Xmx192m'
+    deploy:
+      resources:
+        limits:
+          memory: 0.9G
 
 

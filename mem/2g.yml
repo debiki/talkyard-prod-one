@@ -14,4 +14,8 @@ services:
   search:
     environment:
       ES_JAVA_OPTS: '-Xms320m -Xmx320m'
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
