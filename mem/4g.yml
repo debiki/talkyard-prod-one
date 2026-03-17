@@ -14,4 +14,9 @@ services:
   search:
     environment:
       ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+    deploy:
+      # Let's restrict the container to 40% of total mem.
+      resources:
+        limits:
+          memory: 1.6G
 
