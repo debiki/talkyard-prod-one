@@ -221,6 +221,7 @@ Or connect to some S3 compatible cloud storage (not yet implemented `[cloud_stor
 Note that ufw (another Linux firewall) is incompatible with Docker
 — Docker can bypass `ufw` rules, see:
 https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw.
+There is, however, [ufw-docker](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html#recommended-mitigations).
 <!-- [firewalld_not_ufw] update script, have it use firewalld  -->
 
 You can see the IP addresses of the Docker containers in the `.env` file. The IP
