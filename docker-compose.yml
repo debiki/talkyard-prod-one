@@ -218,6 +218,7 @@ services:
       - CHOWN  # [redis_cap_chown]
       - SETGID
       - SETUID
+      - SETPCAP
 
   rdb:
     image: ${DOCKER_REG_ORG}/talkyard-rdb:${PINNED_VERSION_TAG:-${VERSION_TAG}}
