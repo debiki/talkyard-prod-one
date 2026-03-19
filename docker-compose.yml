@@ -283,6 +283,7 @@ services:
   # Stops Server Side Request Forgery (SSRF).
   egressp:
     image: ${DOCKER_REG_ORG}/talkyard-egressp:${PINNED_VERSION_TAG:-${VERSION_TAG}}
+    restart: always
     networks:
       eg_int_net:
         ipv4_address: ${EG_INT_NET_EGRESSP_IP}
@@ -299,7 +300,6 @@ services:
     image: ${DOCKER_REG_ORG}/talkyard-backup:${PINNED_VERSION_TAG:-${VERSION_TAG}}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/backup/Dockerfile
     profiles: [backup] # prevents auto-start on 'up'
-    restart: no
     # If under heavy load, run the backup script at 25% priority. (Default is 1024 shares.)
     cpu_shares: 256
     # Don't let the backup container use more than 60% CPU (even if the system is idle),
