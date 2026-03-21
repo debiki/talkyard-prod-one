@@ -87,22 +87,34 @@ Open a web browser and check that your Talkyard site is inaccessible.
 ### Phase 2: Install v1
 
 
-Install Talkyard v1, as per the installation instructions in ../README.md,
-until step 7 "Open a web browser".
-
-But instead of going to `https://talkyard.your website.com`,
-open `http://localhost`, and 
+Install Talkyard v1, as per the installation instructions in ../README.md.
 
 Pick a new password when configuring Postgres (to rotate passwords).
 
-#### Verification
+But stop before step 7 "Open a web browser; go to https://talkyard.your website.com".
 
-Let's see if the v1 installation works. If you're doing the upgrade in a separate VM
+Instead, do this:
+
+```
+# Everything started?
+# This should reply:  "pong pong, from Play and Postgres. Found system user: true"
+#
+curl http://localhost/-/ping-db
+
+# Check for any errors. There should be exactly one error log message,
+# namely this:  "I won't send emails, because:  No talkyard.smtp.host configured"
+#
+docker compose logs | grep ERR | grep -v 'ADD CONSTRAINT .* DEFERRABLE';
+```
+
+Next, if you're doing the upgrade in a separate VM
 (e.g. from a machine image), find the IP of this VM, and add it to your laptop's /etc/hosts:
 
 ```
 11.22.33.44  your-forum.example.com
 ```
+
+Thereafter, open `http://your-forum.example.com` in your browser.
 
 You should see an error page — this new v1 installation doesn't know about your
 old server and hostname:
@@ -112,28 +124,42 @@ old server and hostname:
 There is no site with hostname '....' [TyE404HOSTNAME]
 ```
 
+Now we've installed Talkyard v1. Next, we'll import your forum to the v1 server.
+
+
 ### Phase 2: Copy configuration from v0 to v1
 
 
-====
+Go to the old Talkyard v0 dir. Look at the changes you've made to the app server config file.
 
+Probably you can ignore the `.env` file — do _not_ copy version numbers, and you've
+picked a new database password already (when installing v1).
 
-Then, look at the changes you've made to the app server config file,
-in version v0:
+But do copy changes you've made in `play-framework.conf` to
+`conf/app/play-framework.conf` in v1.
+
+And any Nginx configuration changes in `talkyard-servers.conf` to
+`conf/web/sites-enabled/talkyard-servers.conf` in v1.
+
+Look:
 
 ```
-cd /opt/talkyard   # old version, *not* v1
+cd /opt/talkyard   # old version v0, *not* v1
 git status
-git log --oneline --graph --all -n33
+git log --oneline --graph --all -n22
+
+# Changes you've made to the application server config.
+# Don't copy: `talkyard.postgresql.password`. In v1, we use Docker secrets instead.
 git diff -- conf/play-framework.conf
+
+# Changes in the Nginx confg.
+git diff -- conf/sites-enabled-manual/talkyard-servers.conf
 ```
 
-Either copy the whole file to: `/opt/talkyard-v1/conf/app/play-framework.conf` (note: `app/` sub dir).
+<!--
+`/opt/talkyard-v1/conf/app/play-framework.conf` (note: `app/` sub dir).
 Or copy only the changes you see in `git diff`.
-
 If you copy the whole file, you need to rename a few config values:
-
-
 
 
 Look at changes you've made to the Nginx config file:
@@ -144,10 +170,10 @@ git diff -- conf/sites-enabled-manual/
 
 Either copy the whole file to: `conf/web/sites-enabled` (note: `web/` sub dir),
 or edit the v1 config file and add the changes from v0 (if any).
+-->
 
 
-
-
+<!--
 If you're upgrading to v1 on *the same* server,
 Copy configuration files from your v0 installation to v1 — with one change:
 
@@ -207,10 +233,17 @@ to:
 talkyard.authn {
 ```
 
+CDN:
+`talkyard.cdnOrigin` —> `talkyard.cdn.origin`
+
+
 Remove: `play.application.loader = ed.server.EdAppLoader` if specified (no longer needed).
+-->
 <!-- `play.application.loader = talkyard.server.TyAppLoader` -->
 
+<!--
 Comment out or remove: `talkyard.postgresql.password`. In v1, we use Docker secrets instead.
+-->
 
 
 ##### Nginx
@@ -221,6 +254,12 @@ these have been renamed to `TY_NGX_LIMIT_...`.
 Delete `TY_NGX_ACCESS_LOG_PATH` and `TY_NGX_ERROR_LOG_PATH` — no longer in use.
 (Instead, logging to stdout and stderr.)
 
+
+Edit `/opt/talkyard-v1/conf/web/sites-enabled/talkyard-servers.conf`
+and enable HTTPS, and redirect from HTTP to HTTPS. (See instructions at top of file.)
+
+
+<!--
 If you've configured HTTPS via LetsEncrypt and Certbot, then, this should work: Edit
 
 ```
@@ -239,6 +278,8 @@ Oops!
 ```
 /etc/nginx/https-cert-self-signed-fallback.pem;  —>  .../generated/...  ?
 ```
+-->
+
 
 ##### PostgreSQL
 
@@ -290,19 +331,21 @@ zcat /opt/talkyard-backups/archives/...beforeV1Upgrade...sql.gz \
     | tee -a talkyard-maint.log
 ```
 
-Also, update the Talkyard user's password to match your database password,
-and grant 'create' (needed for database migrations):
+Afterwards, update the Talkyard user's password to match your database password,
+and grant `create` (needed for database migrations):
 
 ```
 cd /opt/talkyard-v1/      # note: v1
-sudo cat secrets/postgres_password.txt   # copy the password
 
-docker compose exec rdb psql postgres postgres
+# Copy your new PostgreSQL password.
+NEW_PW=$(tr -d '\n\r' < secrets/postgres_password.txt)
 
-alter user talkyard password 'the-password-from-above';
-
+# Update password and grant permission.
+docker compose exec -T rdb  psql postgres postgres -v new_pw="$NEW_PW"  <<'EOF'
+alter user talkyard password :'new_pw';
 \c talkyard
 grant create on schema public to talkyard;
+EOF
 ```
 
 (This in effects rotates the password, wich is good.)
@@ -320,11 +363,9 @@ which automatically mounts the volume, as specified in docker-compose.yml.
 
 docker compose run --rm --user 1000:1000  \
     -v /opt/talkyard/data/uploads:/uploads-v0:ro  \
-    -v pub-files:/var/talkyard/v1/pub-files  \
-    backup \
-    rsync -rlpt --no-owner --no-group  \
-        /uploads-v0/public/  \
-        /var/talkyard/v1/pub-files/uploads/
+    -v pub-files:/pub-files-v1  \
+    backup  \
+    rsync -rlpt --no-owner --no-group  /uploads-v0/public/  /pub-files-v1/uploads/
 ```
 
 (Details: 1) We're user 1000 in the _app_ container, so, copying as user 1000 here
@@ -384,7 +425,7 @@ Open a web browser and see if you can access your Talkyard site again.
 Disable Maintenance Mode:
 
 ```
-cd /opt/talkyard
+cd /opt/talkyard-v1  # note: v1
 sudo docker compose exec rdb psql talkyard talkyard -c \
       'update system_settings_t set maintenance_until_unix_secs_c = null;'
 ```
