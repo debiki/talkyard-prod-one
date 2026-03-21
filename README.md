@@ -8,6 +8,12 @@ comment juts above in `.env` says "don't use").
 
 Do not use this preview of v1 "for real", in production, yet.
 
+Also, don't install v0 — because then you'd want to upgrade to v1 pretty soon,
+a waste of time.
+
+Instead: **Wait 1 or 2 weeks until v1 has been released** — that should be in the beginning
+of April 2026, or end of Mars. Then install v1.
+
 Feedback welcome! You can post in: https://forum.talkyard.io
 
 ------
@@ -18,12 +24,7 @@ Debian 12 or 13 with at least 2 GB RAM.
 <small>(Old Talkyard v0 docs are <a href="https://github.com/debiki/talkyard-prod-one/tree/ty-prod-one-v0">
   here</a>.)</small>
 
-------
 <!-- Leave a comment here for example: https://forum.talkyard.io/-857/release-talkyard-v1 -->
-
-(I'll **rewrite history** in this branch.)
-
-------
 
 Docker-based installation.
 Automated upgrades and backups.
