@@ -178,10 +178,7 @@ Preparations
    Install Docker.
    Read: https://docs.docker.com/engine/install/debian/ and follow the instructions.
    Or use their convenience script: https://docs.docker.com/engine/install/debian/#install-using-the-convenience-script.
-
-   Afterwards, also install the Docker Compose plugin:
-
-       sudo apt-get install docker-compose-plugin
+   <!-- They'll install the Docker Compose plugin, if they follow the instructions. -->
 
    (Optionally, add: `{ "log-driver": "local" }` to `/etc/docker/daemon.json`,
    so Docker will delete old logs for all your Docker containers, and save disk.
