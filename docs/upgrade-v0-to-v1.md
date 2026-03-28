@@ -48,8 +48,9 @@ Enable the API if you use the API.
 Upgrade your Operating System to Debian 12 or 13
 (Ubuntu 22 or 24 LTS should work too — they're based on Debian 12 and 13).
 
-Upgrade Docker to >= ???. Install Docker Compose v2, if you haven't already:
-<!-- ty.io: Docker Compose version v2.14.1   as of 260319 -->
+Upgrade Docker to >= v2.14.1. Install Docker Compose v2, if you haven't already:
+<!-- ty.io: Docker Compose version v2.14.1   as of 260319. Maybe some
+older versions work, no time to find out. -->
 
     apt-get install docker-compose-plugin
 
@@ -104,7 +105,7 @@ curl http://localhost/-/ping-db
 # Check for any errors. There should be exactly one error log message,
 # namely this:  "I won't send emails, because:  No talkyard.smtp.host configured"
 #
-docker compose logs | grep ERR | grep -v 'ADD CONSTRAINT .* DEFERRABLE';
+docker compose logs | grep ERR | grep -v 'ADD CONSTRAINT .* DEFERRABLE'
 ```
 
 Next, if you're doing the upgrade in a separate VM
@@ -129,6 +130,14 @@ Now we've installed Talkyard v1. Next, we'll import your forum to the v1 server.
 
 ### Phase 2: Copy configuration from v0 to v1
 
+
+If you're migrating to a new server at the same time, then,
+copy the backup to the new server for example using `scp`.
+Here you should see the `beforeV1Upgrade` backup files:
+
+```
+ls -halt /opt/talkyard-backups/archives/ | head -n22
+```
 
 Go to the old Talkyard v0 dir. Look at the changes you've made to the app server config file.
 
@@ -212,6 +221,7 @@ Some config values have been renamed, others are no longer in use.
 
 In `conf/app/play-framework.conf`:
 
+Comment out!
 Have you set `talkyard.uploads.localhostDir` to something special?
 Talk with the Talkyard support team in the forum.
 
@@ -221,6 +231,7 @@ Rename `silhouette` to `talkyard.authn`, that is, from:
 # Authentication
 # ---------------------
 
+YYY
 silhouette {
 ```
 
@@ -234,25 +245,22 @@ talkyard.authn {
 ```
 
 CDN:
+YYY
 `talkyard.cdnOrigin` —> `talkyard.cdn.origin`
 
 
+YYY
 Remove: `play.application.loader = ed.server.EdAppLoader` if specified (no longer needed).
 -->
 <!-- `play.application.loader = talkyard.server.TyAppLoader` -->
 
 <!--
+YYY
 Comment out or remove: `talkyard.postgresql.password`. In v1, we use Docker secrets instead.
 -->
 
 
 ##### Nginx
-
-If you've configured any environment varialbes like `ED_NGX_LIMIT_...`,
-these have been renamed to `TY_NGX_LIMIT_...`.
-
-Delete `TY_NGX_ACCESS_LOG_PATH` and `TY_NGX_ERROR_LOG_PATH` — no longer in use.
-(Instead, logging to stdout and stderr.)
 
 
 Edit `/opt/talkyard-v1/conf/web/sites-enabled/talkyard-servers.conf`
@@ -278,6 +286,37 @@ Oops!
 ```
 /etc/nginx/https-cert-self-signed-fallback.pem;  —>  .../generated/...  ?
 ```
+
+
+Probably all you need to do, is to edit the new  talkyard-servers.conf
+and redirect from http to https:
+
+```
+root@hostname:/opt/talkyard-v1/conf/web/sites-enabled# git diff -- . 
+diff --git a/conf/web/sites-enabled/talkyard-servers.conf b/conf/web/sites-enabled/talkyard-servers.conf
+index 16b03a5..113dd20 100644
+--- a/conf/web/sites-enabled/talkyard-servers.conf
++++ b/conf/web/sites-enabled/talkyard-servers.conf
+@@ -41,15 +41,15 @@ server {
+ 
+   ## To redirect to HTTPS, comment out these two includes, and comment in
+   ## "location / { return 302 ... }" below.
+-  include /etc/nginx/server-limits.conf;
+-  include /etc/nginx/server-locations.conf;
++  #include /etc/nginx/server-limits.conf;
++  #include /etc/nginx/server-locations.conf;
+ 
+   ## Redirect from HTTP to HTTPS.
+   ## Use temp redirects (302) not permanent (301) in case you'll want to allow
+   ## http in the future, for some reason.
+-  #location / {
+-  #  return 302 https://$http_host$request_uri;
+-  #}
++  location / {
++    return 302 https://$http_host$request_uri;
++  }
+ }
+```
 -->
 
 
@@ -299,6 +338,13 @@ See if your new Docker memory settings are the same as the old.
 — copy any settings to v1 as needed, but without the `version: ...` line.
 (Run `free -m` to see how much memory you have.)
 
+If you've configured any environment varialbes like `ED_NGX_LIMIT_...`
+in `docker-compose.yml`,
+these have been renamed to `TY_NGX_LIMIT_...`.
+
+Delete `TY_NGX_ACCESS_LOG_PATH` and `TY_NGX_ERROR_LOG_PATH` — no longer in use.
+(Instead, logging to stdout and stderr.)
+
 
 
 #### Verification
@@ -307,7 +353,10 @@ Start the new Talkyard v1 site:
 
 ```
 cd /opt/talkyard-v1
-docker compose up -d
+docker compose down    # stop, was using the old settings
+docker compose up -d   # does it start with the new settings?
+
+docker compose logs | grep ERR | grep -v 'ADD CONSTRAINT .* DEFERRABLE'
 ```
 
 See if you can access it in a browser. It'll be empty, since you haven't restored the
@@ -335,7 +384,7 @@ Afterwards, update the Talkyard user's password to match your database password,
 and grant `create` (needed for database migrations):
 
 ```
-cd /opt/talkyard-v1/      # note: v1
+# In /opt/talkyard-v1/:
 
 # Copy your new PostgreSQL password.
 NEW_PW=$(tr -d '\n\r' < secrets/postgres_password.txt)
@@ -359,7 +408,7 @@ which automatically mounts the volume, as specified in docker-compose.yml.
 
 
 ```
-# In /opt/talkyard-v1:
+# In /opt/talkyard-v1/:
 
 docker compose run --rm --user 1000:1000  \
     -v /opt/talkyard/data/uploads:/uploads-v0:ro  \
@@ -370,9 +419,9 @@ docker compose run --rm --user 1000:1000  \
 
 (Details: 1) We're user 1000 in the _app_ container, so, copying as user 1000 here
 too. 2) Using `rsync -rlpt` not `rsync -a` since we don't want to copy file ownership
-(we want the files to become owned by user 1000 instead `[appuser_id_1000]`).
-3) Read-write mounting `pub-files` — it's just read-_only_ mounted in
-`docker-compose.yml`. 4) Using the _backup_ image — it has rsync installed.)
+— we want the files to become owned by user 1000 instead `[appuser_id_1000]`.
+3) `pub-files` is mounted in `docker-compose.yml`, but read-only. Therefore we
+mount it read-write here. 4) Using the _backup_ image — it has rsync installed.)
 
 
 #### Reindex everything
@@ -387,6 +436,9 @@ or hours.)
 
 ```
 docker compose up -d search
+
+# Repeat until you see "acknowledged":true" instead of "Connection refused"
+# — it can take half a minute for ElasticSearch to start.
 docker compose exec search curl -XDELETE 'http://localhost:9200/posts_es9_v1/'
 ```
 
@@ -398,7 +450,8 @@ there might be some cruft in the Redis cache. Let's empty the cache.
 
 ```
 # In /opt/talkyard-v1:
-docker compose exec cache redis-cli FLUSHDB
+docker compose up -d cache                    # start Redis
+docker compose exec cache redis-cli FLUSHDB   # clear cache
 ```
 
 
@@ -409,10 +462,11 @@ Start Talkyard v1 with your data restored:
 ```
 # In /opt/talkyard-v1:
 
-docker compose down  # so everything restarts and picks up settings you copied from v0
+docker compose down      # stop everyhting. So restarts & picks up edited settings
 
-docker compose up -d
-docker compose logs -f
+docker compose up -d     # start (recreates containers)
+docker compose ps        # status Up or Starting?
+docker compose logs -f   # look at logs
 ```
 
 Open a web browser and see if you can access your Talkyard site again.
