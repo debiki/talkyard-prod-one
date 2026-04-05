@@ -107,7 +107,6 @@ services:
       ## Max uploaded file size, e.g. uploaded images or backups to restore:
       # TY_NGX_LIMIT_REQ_BODY_SIZE: '25m'
       ## To let any CDN of yours bypass Ty's Nginx rate limits:
-      # X_PULL_KEY: '...'
       # CDN_PULL_KEY: '...'
 
     security_opt:
