@@ -1,6 +1,8 @@
 Installing Talkyard
 ================
 
+! Not preview
+
 NOTICE: This Git branch is a PREVIEW of the upcoming Talkyard v1 (epoch 1).
 
 You need to edit `.env` and set `RELEASE_BRANCH=tyse-v1-dev` (even though the
@@ -105,7 +107,7 @@ See `./docker-compose.yml` (in this repo) for details and links.
 Directories
 ----------------
 
-You'll install Talkyard <!-- -the-software, and config files, --> in `/opt/talkyard-v1/`.
+You'll install Talkyard in `/opt/talkyard-v1/`.
 
 <!--
 (`-v1` is for "host scripts version one". Every 3? 5? years, there's a major
