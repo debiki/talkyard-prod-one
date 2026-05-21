@@ -252,7 +252,7 @@ That's probably all you need to do
 so you shouldn't need to copy any HTTPS certificates.
 
 However, if you've configured a wildcard cert (`*.example.com`), contact the
-Talkyrad support people at the forum.
+Talkyard support people at the forum.
 
 <!--
 If you've configured HTTPS via LetsEncrypt and Certbot, then, this should work: Edit
@@ -388,7 +388,8 @@ with the backup file name.)
 
 ```
 cd /opt/talkyard-v1/      # note: v1
-docker compose up -d rdb  # (this is Docker Compose v2)
+docker compose down       # avoid error messages when overwriting db. (This is Compose v2 btw)
+docker compose up -d rdb  # start the database only
 
 # NOTE: Overwrites any existing database (!).
 zcat /opt/talkyard-backups/archives/...beforeV1Upgrade...sql.gz \
@@ -453,7 +454,7 @@ or hours.)
 docker compose up -d search
 
 # Repeat until you see "acknowledged":true" instead of "Connection refused"
-# — it can take half a minute for ElasticSearch to start.
+# — it can take a minute for ElasticSearch to start.
 docker compose exec search curl -XDELETE 'http://localhost:9200/posts_es9_v1/'
 ```
 
