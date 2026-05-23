@@ -553,10 +553,11 @@ Backups
 See [docs/how-restore-backups.md](./docs/how-restore-backup.md).
 
 
+<!-- But they don't need to! This is just off-topic & confusing.
 You can log in to Postgres like so:
-
     sudo docker compose exec rdb psql postgres postgres  # as user 'postgres'
     sudo docker compose exec rdb psql talkyard talkyard  # as user 'talkyard'
+-->
 
 
 ### Backing up, manually
