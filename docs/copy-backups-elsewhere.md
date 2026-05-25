@@ -106,23 +106,26 @@ Talkyard tech stack.
 
 ### Get an email, if backups stop working
 
-*NOT YET IMPLEMENTED* ` [BADBKPEML]`, the following does not yet work:
+There's two scripts you can copy-paste to the off-site backup server,
+to get notified if backups stop working:<!-- [BADBKPEML] -->
 
-On the remote backup server, copy the contents of the script
-[scripts/check-talkyard-backups.sh](../scripts/check-talkyard-backups.sh)
-to your home directory. Edit the script and fill in email server (SMTP)
-credentials.
+- [scripts/offsite-backup-checks/check-talkyard-backups.sh](../scripts/offsite-backup-checks/check-talkyard-backups.sh)
+- [scripts/offsite-backup-checks/alert-if-talkyard-backups-bad.sh](../scripts/offsite-backup-checks/alert-if-talkyard-backups-bad.sh)
 
-Then, test run the script:
+You could place side-by-side with the off-site backup directory.
 
-    cd $HOME
-    ./check-talkyard-backups.sh --send-email-if-bad talkyard-backups/
+Then, open `alert-if-talkyard-backups-bad.sh` and read the instructions about how to
+edit that script so you'll get notified if backups stop working.
+— You'll need your own email account or transactional email service.
 
-And test send an email:
+(But you're not supposed to edit `check-talkyard-backups.sh`.)
 
-    ./check-talkyard-backups.sh --send-test-email
+Test run the script:
 
-If it works, run daily via Cron:
+    ./alert-if-talkyard-backups-bad.sh  wrong/dir/
+    ./alert-if-talkyard-backups-bad.sh  correct/backup/dir/
 
-    crontab -l | { cat; echo '@daily ./check-talkyard-backups.sh --send-email-if-bad talkyard-backups/ >> talkyard-cron.log 2>&1'; } | crontab -
+And see if you get notified when specifying, say, an empty directory.
+
+Run `alert-if-talkyard-backups-bad.sh` daily via Cron (instructions in the script).
 

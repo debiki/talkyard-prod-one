@@ -578,13 +578,10 @@ You should copy the backups to a safety off-site backup server, regularly.
 Otherwise, if your main server suddenly disappears, or someone breaks into it
 and ransomware-encrypts everything — you'd lose all data.
 
-See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
+Also, there's an example script you can edit & use to get notified
+if backups stop working.<!--  [BADBKPEML] -->
 
-<!--
-There's also a script you can copy-paste to that off-site backup server,
-and run daily via Cron, to get notified via email if backups stop working
-— but no, not yet implmented `[BADBKPEML]`.
--->
+See [docs/copy-backups-elsewhere.md](./docs/copy-backups-elsewhere.md).
 
 
 Docker networks
