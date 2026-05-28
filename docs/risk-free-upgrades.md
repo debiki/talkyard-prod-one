@@ -62,14 +62,19 @@ otherwise there's nothing to upgrade and they wouldn't be reading this.  -->
 Instructions
 -------------------------
 
+Note: If you're on Talkyard v0, then, `cd` to `/opt/talkyard` instead of `/opt/talkyard-v1`,
+and use `docker-compose` instead of `docker compose`
+(the former is Compose v1, the latter Compose v2).
+
+
 1. **Before**
 
    1. **Enable Maintenance Mode** which also makes the server read-only.
       SSH into your server, and:
 
       ```
-      cd /opt/talkyard
-      sudo docker-compose exec rdb psql talkyard talkyard -c \
+      cd /opt/talkyard-v1
+      sudo docker compose exec rdb psql talkyard talkyard -c \
             'update system_settings_t set maintenance_until_unix_secs_c = 1;'
       ```
 
@@ -78,6 +83,7 @@ Instructions
       (screenshot)
 
 1. **Clone the server**
+
    1. In Google Cloud, go to **Virtual Machines > VM Instances**, and find your VM.
 
    1. Click the three dots **⋮** next to your VM, then click **Create new machine image**.
@@ -104,6 +110,11 @@ Instructions
 
    1. **Upgrade.** SSH into the new VM. Upgrade the forum or the OS.
 
+   1. Do you use a **CDN**? (Content Delivery Network). If so, disable it,
+      since it's still configured to access your *old* server.
+      Comment out the `talkyard.cdn.origin=...` line in
+      `/opt/talkyard-v1/conf/app/play-framework.conf` (in the new VM).
+
    1. Do some manual testing in the browser, including:
       - Visit: `your-forum.example.com/-/build-info`
         do you see the new (upgraded) Talkyard version number?
@@ -120,17 +131,20 @@ Instructions
       Reload web page, look in Dev Tools, the Network tab, and verify you're
       hitting the public IP address of the forum — which now points to the _new_ VM.
 
+   1. Reenable any CDN: comment in `talkyard.cdn.origin=...` — now the CDN works,
+      since it'll access your new server (you've moved the IP).
+
 1. **Afterwards**
 
-    1. **Disable Maintenance Mode.** On the new VM:
+   1. **Disable Maintenance Mode.** On the new VM:
 
-       ```
-       cd /opt/talkyard
-       sudo docker-compose exec rdb psql talkyard talkyard -c \
-             'update system_settings_t set maintenance_until_unix_secs_c = null;'
-       ```
+      ```
+      cd /opt/talkyard-v1
+      sudo docker compose exec rdb psql talkyard talkyard -c \
+            'update system_settings_t set maintenance_until_unix_secs_c = null;'
+      ```
 
-       Reload the web page. Did the maintenance message disappear?
+      Reload the web page. Did the maintenance message disappear?
 
    1. **Shut down** the old VM, but don't delete it (wait a month).
 
