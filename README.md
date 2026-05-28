@@ -1,27 +1,8 @@
 Installing Talkyard
 ================
 
-! Not preview
-
-NOTICE: This Git branch is a PREVIEW of the upcoming Talkyard v1 (epoch 1).
-
-You need to edit `.env` and set `RELEASE_BRANCH=tyse-v1-dev` (even though the
-comment juts above in `.env` says "don't use").
-
-Do not use this preview of v1 "for real", in production, yet.
-
-Also, don't install v0 — because then you'd want to upgrade to v1 pretty soon,
-a waste of time.
-
-Instead: **Wait 1 or 2 weeks until v1 has been released** — that should be in the beginning
-of April 2026, or end of Mars. Then install v1.
-
-Feedback welcome! You can post in: https://forum.talkyard.io
-
-------
-
 Here you'll learn how to install Talkyard v1 on a single server, for production use:
-Debian 12 or 13 with at least 2 GB RAM.
+Debian 12 or 13 with at least 2 GB RAM, or Ubuntu 24 or 26.
 
 <small>(Old Talkyard v0 docs are <a href="https://github.com/debiki/talkyard-prod-one/tree/ty-prod-one-v0">
   here</a>.)</small>
