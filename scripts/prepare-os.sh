@@ -13,22 +13,6 @@ log_message 'Configuring this Operating System:'
 
 did_what=''
 
-# Avoid harmless "warning: Setting locale failed" warnings from Perl:
-# (https://askubuntu.com/questions/162391/how-do-i-fix-my-locale-issue)
-locale-gen 'en_US.UTF-8'
-if ! grep -q 'LC_ALL=' /etc/default/locale; then
-  echo 'Setting LC_ALL to en_US.UTF-8...'
-  echo 'LC_ALL=en_US.UTF-8' >> /etc/default/locale
-  export LC_ALL='en_US.UTF-8'
-  did_what="Configured LC_ALL=en_US.UTF-8."
-fi
-if ! grep -q 'LANG=' /etc/default/locale; then
-  echo 'Setting LANG to en_US.UTF-8...'
-  echo 'LANG=en_US.UTF-8' >> /etc/default/locale
-  export LANG='en_US.UTF-8'
-  did_what="$did_what Configured LANG=en_US.UTF-8."
-fi
-
 
 # Append system config settings, so the ElasticSearch Docker container will work,
 # and so Nginx can handle more connections. [BACKLGSZ]

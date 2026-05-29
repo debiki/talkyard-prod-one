@@ -140,14 +140,19 @@ Preparations
 1.
    Update the OS, then install Git and some stuff:
 
-       apt-get update
-       apt-get upgrade
-       apt-get -y install git locales
-       apt-get -y install rng-tools        # better generation of random numbers
-       apt-get -y install jq               # to view logs
-       apt-get -y install tree ncdu vim    # nice to have
+       apt update
+       apt upgrade
+       apt install -y git              # for downloading installation scripts
+       apt install -y rng-tools        # better generation of random numbers
+       apt install -y jq               # to view logs
+       apt install -y cron             # schedule daily backups
+       apt install -y tree ncdu vim    # nice to have
+
+     <!-- No longer needed? Now C.utf8 seems to be the default locale, that one is ok?
+          (At least Ubuntu 26.04 Minimal in Google Cloud uses C.utf8)
        locale-gen en_US.UTF-8              # installs English
-       export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8  # starts using English (warnings are harmless)
+       update-locale LANG=en_US.UTF-8      # starts using English (warnings are harmless)
+       -->
 
 1.
    Create big empty files that you can delete if your server runs out of disk:
@@ -229,7 +234,7 @@ Installation instructions
    Download installation scripts: (you need to install in
    `/opt/talkyard-v1/` for the backup scripts to work)
 
-       sudo -i  # become root
+       # As root:
        cd /opt/
        git clone https://github.com/debiki/talkyard-prod-one.git talkyard-v1
        cd talkyard-v1
@@ -280,13 +285,13 @@ Installation instructions
    and copy it to ./docker-compose.override.yml. For example, for
    a server with 4 GB RAM:
 
-        cp mem/4g.yml docker-compose.override.yml
+       cp mem/4g.yml docker-compose.override.yml
 
 1. Install and start the latest version. Might take a few minutes
    the first time (to download Docker images).
 
-        # This script also installs, although named "upgrade–...".
-        ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
+       # This script also installs, although named "upgrade–...".
+       ./scripts/upgrade-if-needed.sh 2>&1 | tee -a talkyard-maint.log
 
    (This creates a new Docker network — you can choose the IP range; see the
    section *Docker Networks* below.)
@@ -296,8 +301,8 @@ Installation instructions
 
 1. Schedule daily backups, deletion of old backups, and automatic upgrades:
 
-        ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
-        ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
+       ./scripts/schedule-daily-backups.sh 2>&1 | tee -a talkyard-maint.log
+       ./scripts/schedule-automatic-upgrades.sh 2>&1 | tee -a talkyard-maint.log
 
     <!-- Script for CGE:
 
