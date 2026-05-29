@@ -1,0 +1,13 @@
+// Automatic security upgrades, rebooting if needed.
+//
+// (Added by Talkyard's prepare-os.sh installation script.)
+
+// 'always' lets us apply upgrades more than once per day, although
+// this also depends on the systemd scheduler (apt-daily-upgrade.timer).
+APT::Periodic::Update-Package-Lists "always";
+APT::Periodic::Unattended-Upgrade "always";
+APT::Periodic::AutoremoveInterval "14";
+APT::Periodic::AutocleanInterval "14";
+APT::Periodic::MinAge "8";
+Unattended-Upgrade::Automatic-Reboot "true";
+
