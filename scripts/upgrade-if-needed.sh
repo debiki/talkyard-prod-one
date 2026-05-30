@@ -4,7 +4,7 @@
 set -e
 
 log_message() {
-  echo "`date --iso-8601=seconds --utc` upgrade-script: $1"
+  echo "$(date --iso-8601=seconds --utc) upgrade-script: $1"
 }
 
 check_single_line() {
@@ -32,7 +32,15 @@ echo
 # Determine release branch
 # ===========================
 
-RELEASE_BRANCH_LINE="$(grep -E '^ *RELEASE_BRANCH=.*$' .env)"
+if [ ! -f .env ]; then
+  log_message "ERROR: no  .env  file."
+  log_message "You must run this script from the Talkyard installation dir. Bye."
+  exit 1
+fi
+
+# (`|| true` sets the line to '' (empty string), so we'll do the if-else error handling,
+# instead of exiting w/o any nice error message.)
+RELEASE_BRANCH_LINE="$(grep -E '^ *RELEASE_BRANCH=.*$' .env || true)"
 RELEASE_BRANCH="$(sed -nr 's/^RELEASE_BRANCH= *([^# ]+) *$/\1/p' .env)"
 if [ -z "$RELEASE_BRANCH" ]; then
   if [ -n "$RELEASE_BRANCH_LINE" ]; then
@@ -262,7 +270,8 @@ if [ -n "$CURRENT_VERSION" ]; then
   # connected to the wrong IP. [maint_app_ip]
   log_message "$WHAT: Waiting for the app server to have started ..."
   # (We've done: `set -e`, but that ignores `if` and `until` tests.)
-  # Specify --noproxy so curl won't try to use egressp. [egressp_conf]
+  # Specify --noproxy so curl won't try to use egressp [egressp_conf]
+  # (we run curl inside the app container, wich has http_proxy defined).
   until $docker exec -i "$($docker_compose ps -q app)"  \
             curl --output /dev/null --silent --head --fail --noproxy '*' \
                  http://localhost:9000/-/are-scripts-ready
