@@ -30,6 +30,7 @@ Alternatively, there's paid hosting, see: https://www.talkyard.io/pricing/.
 -->
 
 Ask questions and report problems in **[the forum](http://www.talkyard.io/forum/latest/support)**.
+(We don't use GitHub Issues or Discussions.)
 
 <!-- This now fixed, using Docker volumes & logging instead, others cannot access.
 ### Security: *Private* server
@@ -76,7 +77,7 @@ The steps 1, 2, 3 ... in that tutorial, are the steps 1, 2, 3 ... below.
 The rest of this document is about how to install Talkyard on a new server.
 -->
 
-**Installation overview:** You'll rent a virtual private server (VPS), download
+**Overview:** You'll rent a virtual private server (VPS), download
 and install Talkyard, sign up for a send-emails service, and configure email settings.
 Then optionally configure OpenAuth login for Google, Facebook, Twitter, GitHub.
 And off-site backups.
