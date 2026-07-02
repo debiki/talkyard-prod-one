@@ -81,6 +81,7 @@ Open a web browser and check that your Talkyard site is inaccessible.
 
 ### Phase 2: Install v1
 
+<!-- [dupl_docs__restore_install] -->
 
 Install Talkyard v1 in `/opt/talkyard-v1/`, as per the installation instructions
 in `../README.md`, including:
@@ -389,6 +390,8 @@ docker compose run --rm --user 1000:1000  \
     rsync -rlpt --no-owner --no-group  /uploads-v0/public/  /pub-files-v1/uploads/
 ```
 
+<!-- [dupl_docs__restore_rsync] -->
+
 (Details: 1) We're user 1000 in the _app_ container, so, copying as user 1000 here
 too. 2) Using `rsync -rlpt` not `rsync -a` since we don't want to copy file ownership
 — we want the files to become owned by user 1000 instead `[appuser_id_1000]`.
@@ -406,6 +409,8 @@ so Talkyard will notice it's missing, and recreate it — then everything gets
 reindexed. (This happens in the background and typically takes some minutes
 or hours.)
 
+<!-- [dupl_docs__restore_reindex] -->
+
 ```
 docker compose up -d search  # start ElasticSearch
 
@@ -419,6 +424,8 @@ docker compose exec search curl -XDELETE 'http://localhost:9200/posts_es9_v1/'
 
 Since we started the server briefly, before importing the old databse,
 there might be some cruft in the Redis cache. Let's empty the cache:
+
+<!-- [dupl_docs__restore_flush_redis] -->
 
 ```
 docker compose up -d cache                    # start Redis
