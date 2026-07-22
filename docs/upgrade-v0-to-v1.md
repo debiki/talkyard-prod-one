@@ -51,6 +51,12 @@ older versions work, no time to find out. -->
     apt-get install docker-compose-plugin  # install, if missing
 
 
+### Disk space?
+
+Talkyard v1 stores backups in `/var/opt/backups/talkyard` — check if there's
+enough free space. (v0 instead stored backups in `/opt/talkyard-backups/`.)
+
+
 ### Phase 1: Backup and shut down v0
 
 Make your Talkyard v0 server read-only:
@@ -343,7 +349,7 @@ with the backup file name.)
 
 ```
 cd /opt/talkyard-v1/      # note: v1
-docker compose down       # avoid error messages when overwriting db. (This is Compose v2 btw)
+docker compose down       # avoid error messages when overwriting db
 docker compose up -d rdb  # start the database only
 
 # NOTE: Overwrites any existing database (!).
@@ -589,7 +595,7 @@ Wait a month or two. All fine? You can delete old v0.
 
 #### Get an email, if backups stop working
 
-If you want, in ./copy-backups-elsewhere.md, scroll down to the
+If you want, in `./copy-backups-elsewhere.md`, scroll down to the
 _Get an email, if backups stop working_
 section at the end, and follow the instructions.
 
