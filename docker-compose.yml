@@ -188,6 +188,7 @@ services:
   rendr:
     image: ${DOCKER_REG_ORG}/talkyard-rendr:${PINNED_VERSION_TAG:-${VERSION_TAG}}
     # dockerfile: https://github.com/debiki/talkyard/blob/main/images/rendr/Dockerfile
+    restart: always
     networks:
       be_int_net:
         ipv4_address: ${BE_INT_NET_RENDR_IP}
